@@ -16,13 +16,23 @@
         pkgs    = nixpkgs.legacyPackages.${system};
         my-pkgs = myPkgs.packages.${system};
         swap-summary-fifo = "/run/user/1000/swap-summary";
-        alac = import ./src/alac.nix { inherit pkgs; byobu = my-pkgs.byobu; };
       in
         rec {
           packages = flake-utils.lib.flattenTree (with pkgs; {
             inherit (my-pkgs) swap-summary;
             # wdisplays is arandr for wayland; wev is xev for wayland
             inherit wdisplays wev;
+            # wofi is a gui choser
+            inherit wofi;
+            # my personal wrapper around alacritty/byobu/tmux with a wofi selector
+            alac = import ./src/alac.nix { inherit pkgs; };
+
+            # clipboard management;
+            inherit wl-clipboard; # wl-copy & wl-paste
+            inherit wl-clipboard-x11; # xclip & xsel
+
+            # multi-monitor setup
+            hostconfig = import ./src/hostconfig.nix { inherit pkgs; };
 
 ##            i3status-rc =
 ##              import ./src/i3status-rc.nix { inherit pkgs swap-summary-fifo; };

@@ -1,4 +1,4 @@
-{ pkgs, byobu }: pkgs.writers.writeBashBin "alac" ''
+{ pkgs }: pkgs.writers.writeBashBin "alac" ''
 
 # use wofi to choose a tmux instance, launch an alacritty
 # using that tmux
@@ -6,7 +6,6 @@
 set -eu -o pipefail
 
 alacritty=${pkgs.alacritty}/bin/alacritty
-byobu=${byobu}/bin/byobu
 env=${pkgs.coreutils}/bin/env
 getent=${pkgs.glibc.bin}/bin/getent
 id=${pkgs.coreutils}/bin/id
@@ -23,7 +22,8 @@ wofi=${pkgs.wofi}/bin/wofi
 
 export XDG_RUNTIME_DIR
 
-config_file=$HOME/rc/alacritty/config.yml
+alac_conf=$HOME/rc/alacritty/config.yml
+tmux_conf=$HOME/rc/tmux/conf
 
 exec >& "$XDG_RUNTIME_DIR/alac-$$.log"
 TZ=UTC ${pkgs.coreutils}/bin/date +%Y-%m-%dZ%H:%M:%S
@@ -34,8 +34,13 @@ $env --null | $sort --zero-terminated | $tr \\0 \\n
 echo '----------------------------------------'
 echo
 
-sessions="$($tmux list-sessions -F '#{session_group}' | $sort -u)"
-session_count=$($wc --lines <<< "$sessions")
+if $tmux run 2>/dev/null; then
+  sessions="$($tmux list-sessions -F '#{session_group}' | $sort -u)"
+  session_count=$($wc --lines <<< "$sessions")
+else
+  sessions=""
+  session_count=0
+fi
 
 echo '-- SESSIONS ----------------------------'
 echo "$sessions"
@@ -45,12 +50,12 @@ wofi_args=( --sort-order=alphabetical --dmenu --gtk-dark
             --lines $((1+session_count)) )
 term_name="$(echo "$sessions" | $wofi "''${wofi_args[@]}")"
 
-alacritty_args=( --config-file $config_file --command $byobu new )
+alacritty_args=( --config-file $alac_conf --command $tmux -f $tmux_conf new )
 if [[ $term_name = "" ]]; then
   exec $alacritty "''${alacritty_args[@]}"
 else
   # -A, -t are passed through to tmux
-  exec $alacritty "''${alacritty_args[@]}" -A -t "$term_name"
+  exec $alacritty "''${alacritty_args[@]}" -t "$term_name"
 fi
 ''
 
