@@ -5,7 +5,7 @@
     nixpkgs.url = github:NixOS/nixpkgs/354184a; # master 2023-12-13
     flake-utils.url = github:numtide/flake-utils/c0e246b9;
     myPkgs          = {
-      url    = github:sixears/nix-pkgs/r0.0.3.0;
+      url    = github:sixears/nix-pkgs/r0.0.4.0;
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
   };
@@ -16,6 +16,7 @@
         pkgs    = nixpkgs.legacyPackages.${system};
         my-pkgs = myPkgs.packages.${system};
         swap-summary-fifo = "/run/user/1000/swap-summary";
+        flock-pid-run = my-pkgs.flock-pid-run;
       in
         rec {
           packages = flake-utils.lib.flattenTree (with pkgs; {
@@ -41,20 +42,26 @@
 
 ##            urxvt = rxvt_unicode-with-plugins;
 
-##            sway-config =
-##              let
-##                src = nixpkgs.lib.strings.fileContents ./src/sway-config.nix;
-##                replacements = {
-##                  __alac-exe__= "${alac}/bin/alac";
-##                  __swap-summary-exe__ =
-##                    "${my-pkgs.swap-summary}/bin/swap-summary";
-##                  __swap-summary-fifo__ = swap-summary-fifo;
-##                };
-##                repl_from = builtins.attrNames replacements;
-##                repl_to   = map (x: replacements.${x}) repl_from;
-##                repl_src = builtins.replaceStrings repl_from repl_to src;
-##              in
-##                pkgs.writeTextDir "share/sway-config" repl_src;
+            sway-config =
+              let
+                src = nixpkgs.lib.strings.fileContents ./src/sway-config.nix;
+                replacements = {
+                  __alac-exe__= "${alac}/bin/alac";
+                  __dim-exe__ =
+                    "${import ./src/dim.nix
+                        { inherit pkgs;
+                          inherit (my-pkgs) flock-pid-run;
+                        }
+                      }/bin/dim";
+                  __swap-summary-exe__ =
+                    "${my-pkgs.swap-summary}/bin/swap-summary";
+                  __swap-summary-fifo__ = swap-summary-fifo;
+                };
+                repl_from = builtins.attrNames replacements;
+                repl_to   = map (x: replacements.${x}) repl_from;
+                repl_src = builtins.replaceStrings repl_from repl_to src;
+              in
+                pkgs.writeTextDir "share/sway.rc" repl_src;
 
 ##            i3status-rc =
 ##              let
