@@ -17,6 +17,11 @@
         my-pkgs = myPkgs.packages.${system};
         swap-summary-fifo = "/run/user/1000/swap-summary";
         flock-pid-run = my-pkgs.flock-pid-run;
+            dim = import ./src/dim.nix
+              { inherit pkgs;
+                inherit (my-pkgs) flock-pid-run;
+              };
+
       in
         rec {
           packages = flake-utils.lib.flattenTree (with pkgs; {
@@ -43,25 +48,7 @@
 ##            urxvt = rxvt_unicode-with-plugins;
 
             sway-config =
-              let
-                src = nixpkgs.lib.strings.fileContents ./src/sway-config.nix;
-                replacements = {
-                  __alac-exe__= "${alac}/bin/alac";
-                  __dim-exe__ =
-                    "${import ./src/dim.nix
-                        { inherit pkgs;
-                          inherit (my-pkgs) flock-pid-run;
-                        }
-                      }/bin/dim";
-                  __swap-summary-exe__ =
-                    "${my-pkgs.swap-summary}/bin/swap-summary";
-                  __swap-summary-fifo__ = swap-summary-fifo;
-                };
-                repl_from = builtins.attrNames replacements;
-                repl_to   = map (x: replacements.${x}) repl_from;
-                repl_src = builtins.replaceStrings repl_from repl_to src;
-              in
-                pkgs.writeTextDir "share/sway.rc" repl_src;
+              import ./src/sway-config.nix {inherit pkgs dim; };
 
 ##            i3status-rc =
 ##              let

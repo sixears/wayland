@@ -1,3 +1,4 @@
+{ pkgs, dim }: pkgs.writeTextDir "share/sway.rc" ''
 # Read `man 5 sway` for a complete reference.
 
 exec_always ~/bin/hostconfig
@@ -77,10 +78,13 @@ set $power-on '/home/martyn/bin/sway-power-on /run/user/1000/gammastep.pid'
 # add vlc detection; and halve the timeout times when running on a laptop
 # put this in its own executable
 exec_always /home/martyn/bin/flock-pid-run /run/user/1000/swayidle \
-  swayidle -w                              \
-  timeout  480 __dim-exe__       resume $power-on \
-  timeout  600 $lock      resume $power-on \
-  timeout 1200 $power-off resume $power-on \
+  swayidle -w                  \
+  timeout  480 ${dim}/bin/dim  \
+    resume $power-on           \
+  timeout  600 $lock           \
+    resume $power-on           \
+  timeout 1200 $power-off      \
+    resume $power-on           \
   before-sleep $lock
 
 
@@ -318,3 +322,4 @@ bar {
 }
 
 include /etc/sway/config.d/*
+''
