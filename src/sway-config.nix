@@ -1,13 +1,13 @@
-{ pkgs, dim }: pkgs.writeTextDir "share/sway.rc" ''
+{ pkgs, dim, i3stat, hostconfig }: pkgs.writeTextDir "share/sway.rc" ''
 # Read `man 5 sway` for a complete reference.
 
-exec_always ~/bin/hostconfig
+exec_always ${hostconfig}/bin/hostconfig
 
 # -- input configuration -------------------------------------------------------
 
 # input "1:1:AT_Translated_Set_2_keyboard" {
 input type:keyboard {
-  xkb_layout dvorak
+  xkb_layout us(dvorak)
   xkb_options "caps:ctrl_modifier,compose:prsc,altwin:menu,eurosign:4"
 }
 
@@ -299,7 +299,8 @@ bindsym XF86AudioPlay input type:touchpad events toggle enabled disabled
 
 bar {
 #  status_command i3status -c ~/rc/i3status/i3status
-  status_command /home/martyn/.nix-profiles/gui/bin/i3status -c ~/rc/i3status/i3status.rc
+#  status_command /home/martyn/.nix-profiles/gui/bin/i3status -c ~/rc/i3status/i3status.rc
+  status_command ${i3stat}/bin/i3stat
   position top
   font  Monaco,Bold 11px
 #  separator_symbol "   "

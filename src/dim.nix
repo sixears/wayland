@@ -1,5 +1,7 @@
-{ pkgs, flock-pid-run }: pkgs.writers.writeBashBin "dim" ''
+{ pkgs, flock-pid-run, vlc-lockfile, gammastep-lockfile }:
+pkgs.writers.writeBashBin "dim" ''
 
+set -eu -o pipefail
 PATH=/dev/null
 
 daemonize=${pkgs.daemonize}/bin/daemonize
@@ -10,8 +12,8 @@ id=${pkgs.coreutils}/bin/id
 uid=$($id --user)
 true=${pkgs.coreutils}/bin/true
 
-vlc_lockfile=/run/user/$uid/vlc.pid
-gamma_lockfile=/run/user/$uid/gammastep.pid
+vlc_lockfile=${vlc-lockfile}
+gamma_lockfile=${gammastep-lockfile}
 
 # add warning if vlc file is unavailable (when connected to terminal)
 if [[ -t 0 ]]; then

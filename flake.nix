@@ -5,26 +5,31 @@
     nixpkgs.url = github:NixOS/nixpkgs/354184a; # master 2023-12-13
     flake-utils.url = github:numtide/flake-utils/c0e246b9;
     myPkgs          = {
-      url    = github:sixears/nix-pkgs/r0.0.4.0;
+      url    = github:sixears/nix-pkgs/r0.0.7.0;
+#      url    = path:/home/martyn/nix/pkgs/;
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
+    gui-pkgs.url = path:/home/martyn/nix/gui;
   };
 
-  outputs = { self, nixpkgs, flake-utils, myPkgs }:
+  outputs = { self, nixpkgs, flake-utils, gui-pkgs, myPkgs }:
     flake-utils.lib.eachSystem ["x86_64-linux"] (system:
       let
-        pkgs    = nixpkgs.legacyPackages.${system};
-        my-pkgs = myPkgs.packages.${system};
-        swap-summary-fifo = "/run/user/1000/swap-summary";
-        flock-pid-run = my-pkgs.flock-pid-run;
-            dim = import ./src/dim.nix
-              { inherit pkgs;
-                inherit (my-pkgs) flock-pid-run;
-              };
+        pkgs        = nixpkgs.legacyPackages.${system};
+        my-pkgs     = myPkgs.packages.${system};
+        my-settings = myPkgs.settings.${system};
+        gui         = gui-pkgs.packages.${system};
 
+        swap-summary-fifo = "/run/user/1000/swap-summary";
+        vlc-lockfile       = my-settings.vlc-lockfile;
+        gammastep-lockfile = "/run/user/$uid/gammastep";
+        # flock-pid-run = my-pkgs.flock-pid-run;
+        dim = import ./src/dim.nix
+          { inherit pkgs vlc-lockfile gammastep-lockfile;
+            inherit (my-pkgs) flock-pid-run; };
       in
-        rec {
-          packages = flake-utils.lib.flattenTree (with pkgs; {
+        {
+          packages = flake-utils.lib.flattenTree (with pkgs; rec {
             inherit (my-pkgs) swap-summary;
             # wdisplays is arandr for wayland; wev is xev for wayland
             inherit wdisplays wev;
@@ -48,7 +53,9 @@
 ##            urxvt = rxvt_unicode-with-plugins;
 
             sway-config =
-              import ./src/sway-config.nix {inherit pkgs dim; };
+              import ./src/sway-config.nix { inherit pkgs dim hostconfig;
+                                             inherit (gui) i3stat;
+                                           };
 
 ##            i3status-rc =
 ##              let
