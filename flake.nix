@@ -53,8 +53,9 @@
 ##            urxvt = rxvt_unicode-with-plugins;
 
             sway-config =
-              import ./src/sway-config.nix { inherit pkgs dim hostconfig;
+              import ./src/sway-config.nix { inherit pkgs dim hostconfig alac;
                                              inherit (gui) i3stat;
+                                             wallpaper = ./src/nixos3.jpg;
                                            };
 
 ##            i3status-rc =

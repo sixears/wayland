@@ -1,4 +1,4 @@
-{ pkgs, dim, i3stat, hostconfig }: pkgs.writeTextDir "share/sway.rc" ''
+{ pkgs, dim, i3stat, hostconfig, alac, wallpaper }: pkgs.writeTextDir "share/sway.rc" ''
 # Read `man 5 sway` for a complete reference.
 
 exec_always ${hostconfig}/bin/hostconfig
@@ -36,13 +36,14 @@ font pango:Monaco,9
 set $mod Mod4
 
 # preferred terminal emulator
-set $term /home/martyn/.nix-profiles/wayland/bin/alac
+set $term ${alac}/bin/alac
 
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
 set $menu dmenu_path | dmenu | xargs swaymsg exec --
-set $lock 'swaylock --daemonize --inside-color 161616 --image /home/martyn/wallpapers/nixos3.jpg'
+# set $lock 'swaylock --daemonize --inside-color 161616 --image /home/martyn/wallpapers/nixos3.jpg'
+set $lock 'swaylock --daemonize --inside-color 161616 --image ${wallpaper}'
 
 set $swap /run/user/1000/swap-summary
 
