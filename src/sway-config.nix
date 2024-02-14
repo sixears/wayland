@@ -1,4 +1,6 @@
-{ pkgs, dim, i3stat, hostconfig, alac, wallpaper }: pkgs.writeTextDir "share/sway.rc" ''
+{ pkgs, dim, i3stat, hostconfig, alac, wallpaper, lock-wallpaper
+, swap-summary-fifo }:
+pkgs.writeTextDir "share/sway.rc" ''
 # Read `man 5 sway` for a complete reference.
 
 exec_always ${hostconfig}/bin/hostconfig
@@ -41,16 +43,20 @@ set $term ${alac}/bin/alac
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
-set $menu dmenu_path | dmenu | xargs swaymsg exec --
-# set $lock 'swaylock --daemonize --inside-color 161616 --image /home/martyn/wallpapers/nixos3.jpg'
-set $lock 'swaylock --daemonize --inside-color 161616 --image ${wallpaper}'
+set $dmenu      ${pkgs.dmenu}/bin/dmenu
+set $dmenu_path ${pkgs.dmenu}/bin/dmenu_path
+set $xargs      ${pkgs.findutils}/bin/xargs
 
-set $swap /run/user/1000/swap-summary
+set $menu $dmenu_path | $dmenu | $xargs swaymsg exec --
+set $lock 'swaylock --daemonize --inside-color 161616 --image ${lock-wallpaper}'
+
+set $swap ${swap-summary-fifo}
 
 ### Output configuration
 #
-# Default wallpaper (more resolutions are available in /run/current-system/sw/share/backgrounds/sway/)
-output * bg /home/martyn/wallpapers/nixos1.jpg center #131318
+# Default wallpaper (more resolutions are available in
+# /run/current-system/sw/share/backgrounds/sway/)
+output * bg ${wallpaper} center #131318
 
 # see also https://github.com/NixOS/nixos-artwork
 

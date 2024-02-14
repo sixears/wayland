@@ -53,10 +53,12 @@
 ##            urxvt = rxvt_unicode-with-plugins;
 
             sway-config =
-              import ./src/sway-config.nix { inherit pkgs dim hostconfig alac;
-                                             inherit (gui) i3stat;
-                                             wallpaper = ./src/nixos3.jpg;
-                                           };
+              import ./src/sway-config.nix
+                { inherit pkgs dim hostconfig alac swap-summary-fifo;
+                  inherit (gui) i3stat;
+                  wallpaper = ./src/nixos1.jpg;
+                  lock-wallpaper = ./src/nixos3.jpg;
+                };
 
 ##            i3status-rc =
 ##              let
