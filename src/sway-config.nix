@@ -1,5 +1,5 @@
 { pkgs, dim, i3stat, hostconfig, alac, wallpaper, lock-wallpaper
-, swap-summary-fifo }:
+, swap-summary-fifo, gammastep-lockfile }:
 pkgs.writeTextDir "share/sway.rc" ''
 # Read `man 5 sway` for a complete reference.
 
@@ -40,6 +40,8 @@ set $mod Mod4
 # preferred terminal emulator
 set $term ${alac}/bin/alac
 
+set $uid __UID__
+
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
@@ -51,6 +53,8 @@ set $menu $dmenu_path | $dmenu | $xargs swaymsg exec --
 set $lock 'swaylock --daemonize --inside-color 161616 --image ${lock-wallpaper}'
 
 set $swap ${swap-summary-fifo}
+
+set $swaymsg ${pkgs.sway}/bin/swaymsg
 
 ### Output configuration
 #
@@ -73,9 +77,9 @@ output * bg ${wallpaper} center #131318
 #      ensuring that a before-sleep command has finished before the system goes
 #      to sleep.
 
-set $power-off 'swaymsg "output * power off"'
-# set $power-on  'swaymsg "output * power on"'
-set $power-on '/home/martyn/bin/sway-power-on /run/user/1000/gammastep.pid'
+set $power-off '$swaymsg "output * power off"'
+# set $power-on  '$swaymsg "output * power on"'
+set $power-on '/home/martyn/bin/sway-power-on ${gammastep-lockfile}'
 
 # This will dim the screen after 8 minutes of inactivity, lock it after another
 # 2 minutes, then turn off the displays after further 10 minutes, and turn the
@@ -84,7 +88,7 @@ set $power-on '/home/martyn/bin/sway-power-on /run/user/1000/gammastep.pid'
 
 # add vlc detection; and halve the timeout times when running on a laptop
 # put this in its own executable
-exec_always /home/martyn/bin/flock-pid-run /run/user/1000/swayidle \
+exec_always /home/martyn/bin/flock-pid-run /run/user/$uid/swayidle \
   swayidle -w                  \
   timeout  480 ${dim}/bin/dim  \
     resume $power-on           \

@@ -5,7 +5,7 @@
     nixpkgs.url = github:NixOS/nixpkgs/354184a; # master 2023-12-13
     flake-utils.url = github:numtide/flake-utils/c0e246b9;
     myPkgs          = {
-      url    = github:sixears/nix-pkgs/r0.0.7.0;
+      url    = github:sixears/nix-pkgs/r0.0.9.1;
 #      url    = path:/home/martyn/nix/pkgs/;
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
@@ -22,7 +22,7 @@
 
         swap-summary-fifo = "/run/user/1000/swap-summary";
         vlc-lockfile       = my-settings.vlc-lockfile;
-        gammastep-lockfile = "/run/user/$uid/gammastep";
+        gammastep-lockfile = "/run/user/1000/gammastep.pid";
         # flock-pid-run = my-pkgs.flock-pid-run;
         dim = import ./src/dim.nix
           { inherit pkgs vlc-lockfile gammastep-lockfile;
@@ -54,11 +54,17 @@
 
             sway-config =
               import ./src/sway-config.nix
-                { inherit pkgs dim hostconfig alac swap-summary-fifo;
+                { inherit pkgs dim hostconfig alac swap-summary-fifo
+                          gammastep-lockfile;
                   inherit (gui) i3stat;
                   wallpaper = ./src/nixos1.jpg;
                   lock-wallpaper = ./src/nixos3.jpg;
                 };
+
+
+            sway-rc = import ./src/sway-rc.nix { inherit pkgs sway-config;
+                                                 inherit (my-pkgs) replace;
+                                               };
 
 ##            i3status-rc =
 ##              let
