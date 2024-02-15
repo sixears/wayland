@@ -52,10 +52,14 @@
 
 ##            urxvt = rxvt_unicode-with-plugins;
 
+            sway-power-on =
+              import ./src/sway-power-on.nix { inherit pkgs;
+                                               inherit (my-pkgs) pidkill; };
+
             sway-config =
               import ./src/sway-config.nix
                 { inherit pkgs dim hostconfig alac swap-summary-fifo
-                          gammastep-lockfile;
+                          gammastep-lockfile sway-power-on;
                   inherit (gui) i3stat;
                   wallpaper = ./src/nixos1.jpg;
                   lock-wallpaper = ./src/nixos3.jpg;

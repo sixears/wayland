@@ -1,5 +1,5 @@
 { pkgs, dim, i3stat, hostconfig, alac, wallpaper, lock-wallpaper
-, swap-summary-fifo, gammastep-lockfile }:
+, swap-summary-fifo, gammastep-lockfile, sway-power-on }:
 pkgs.writeTextDir "share/sway.rc" ''
 # Read `man 5 sway` for a complete reference.
 
@@ -79,7 +79,7 @@ output * bg ${wallpaper} center #131318
 
 set $power-off '$swaymsg "output * power off"'
 # set $power-on  '$swaymsg "output * power on"'
-set $power-on '/home/martyn/bin/sway-power-on ${gammastep-lockfile}'
+set $power-on '${sway-power-on}/bin/sway-power-on ${gammastep-lockfile}'
 
 # This will dim the screen after 8 minutes of inactivity, lock it after another
 # 2 minutes, then turn off the displays after further 10 minutes, and turn the
