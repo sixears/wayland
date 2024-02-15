@@ -1,5 +1,5 @@
 { pkgs, dim, i3stat, hostconfig, alac, wallpaper, lock-wallpaper
-, swap-summary-fifo, gammastep-lockfile, sway-power-on }:
+, swap-summary-fifo, gammastep-lockfile, sway-power-on, flock-pid-run }:
 pkgs.writeTextDir "share/sway.rc" ''
 # Read `man 5 sway` for a complete reference.
 
@@ -88,7 +88,7 @@ set $power-on '${sway-power-on}/bin/sway-power-on ${gammastep-lockfile}'
 
 # add vlc detection; and halve the timeout times when running on a laptop
 # put this in its own executable
-exec_always /home/martyn/bin/flock-pid-run /run/user/$uid/swayidle \
+exec_always ${flock-pid-run}/bin/flock-pid-run /run/user/$uid/swayidle \
   swayidle -w                  \
   timeout  480 ${dim}/bin/dim  \
     resume $power-on           \

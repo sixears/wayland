@@ -2,7 +2,7 @@
   description = "nix configuration for wayland things";
 
   inputs = {
-    nixpkgs.url = github:NixOS/nixpkgs/354184a; # master 2023-12-13
+    nixpkgs.url = github:NixOS/nixpkgs/354184a83; # master 2023-12-13
     flake-utils.url = github:numtide/flake-utils/c0e246b9;
     myPkgs          = {
       url    = github:sixears/nix-pkgs/r0.0.9.1;
@@ -61,6 +61,7 @@
                 { inherit pkgs dim hostconfig alac swap-summary-fifo
                           gammastep-lockfile sway-power-on;
                   inherit (gui) i3stat;
+                  inherit (my-pkgs) flock-pid-run;
                   wallpaper = ./src/nixos1.jpg;
                   lock-wallpaper = ./src/nixos3.jpg;
                 };

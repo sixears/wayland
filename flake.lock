@@ -150,8 +150,8 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1707120839,
-        "narHash": "sha256-XTYVXcoUdUn78M4JwDZo/g2SzyCMRaGNJxZJTHeUpQU=",
+        "lastModified": 1707944201,
+        "narHash": "sha256-iHTXW8msEFBHZetWOZ5s1H/EwCAapi7As3kFjx77/1g=",
         "path": "/home/martyn/nix/gui",
         "type": "path"
       },
@@ -170,16 +170,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1704079422,
-        "narHash": "sha256-zB8utLnxQHJrfpOmiE7fy9A1PdhylE6RUJxBtPbaU2o=",
+        "lastModified": 1707428452,
+        "narHash": "sha256-j+/ybGYzrxkNcXVjMc2eWD/KCI4miko4+vYdzvOF9Kg=",
         "owner": "sixears",
         "repo": "nix-pkgs",
-        "rev": "f5d118fc76de653f7bc0e4941c854b8d72b7fd09",
+        "rev": "8cf3b1e3c69de23716a60f78ffbaefafb9debbf9",
         "type": "github"
       },
       "original": {
         "owner": "sixears",
-        "ref": "r0.0.3.0",
+        "ref": "r0.0.9.1",
         "repo": "nix-pkgs",
         "type": "github"
       }
@@ -234,7 +234,7 @@
       },
       "original": {
         "owner": "NixOS",
-        "ref": "354184a",
+        "ref": "354184a83",
         "repo": "nixpkgs",
         "type": "github"
       }
