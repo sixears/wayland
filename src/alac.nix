@@ -35,7 +35,7 @@ echo '----------------------------------------'
 echo
 
 if $tmux run 2>/dev/null; then
-  sessions="$($tmux list-sessions -F '#{session_group}' | $sort -u)"
+  sessions="$({ echo; $tmux list-sessions -F '#{session_group}'; } | $sort -u)"
   session_count=$($wc --lines <<< "$sessions")
 else
   sessions=""

@@ -4,7 +4,7 @@ set -eu -o pipefail
 PATH=/dev/null
 
 ${pidkill}/bin/pidkill "$@"
-exec {$pkgs.sway}/bin/swaymsg 'output * power on'
+exec ${pkgs.sway}/bin/swaymsg 'output * power on'
 
 # -- that's all, folks! --------------------------------------------------------
 

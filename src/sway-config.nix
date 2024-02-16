@@ -39,6 +39,7 @@ set $mod Mod4
 
 # preferred terminal emulator
 set $term ${alac}/bin/alac
+set $wofi ${pkgs.wofi}/bin/wofi
 
 set $uid __UID__
 
@@ -121,7 +122,7 @@ exec_always ${flock-pid-run}/bin/flock-pid-run /run/user/$uid/swayidle \
     bindsym $mod+Return exec $term
 
     # Start an executable
-    bindsym $mod+Shift+Return exec ~/bin/paths wofi --conf /home/martyn/rc/wayland/wofi/config --show run | xargs swaymsg exec --
+    bindsym $mod+Shift+Return exec ~/bin/paths $wofi --conf /home/martyn/rc/wayland/wofi/config --show run | xargs swaymsg exec --
 
     # Kill focused window
     bindsym $mod+Shift+q kill
@@ -143,7 +144,7 @@ exec_always ${flock-pid-run}/bin/flock-pid-run /run/user/$uid/swayidle \
 #    bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
 
 
-    bindsym $mod+Shift+Escape exec bash -c 'e="$(echo -e "no exit\nexit" | wofi --sort-order=default --show dmenu --location=0 --width=30% --conf <(echo hide_search=true) --height=120 --cache=/dev/null)"; [[ $e == exit ]] && swaymsg exit'
+    bindsym $mod+Shift+Escape exec bash -c 'e="$(echo -e "no exit\nexit" | $wofi --sort-order=default --show dmenu --location=0 --width=30% --conf <(echo hide_search=true) --height=120 --cache=/dev/null)"; [[ $e == exit ]] && swaymsg exit'
 #
 # Moving around:
 #

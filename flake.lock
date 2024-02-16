@@ -150,8 +150,8 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1707944201,
-        "narHash": "sha256-iHTXW8msEFBHZetWOZ5s1H/EwCAapi7As3kFjx77/1g=",
+        "lastModified": 1708078089,
+        "narHash": "sha256-y/bYH9lE55LQKuxmvzGHuHx52PZUMB7gzTKS8hcKe28=",
         "path": "/home/martyn/nix/gui",
         "type": "path"
       },
@@ -193,16 +193,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1707428452,
-        "narHash": "sha256-j+/ybGYzrxkNcXVjMc2eWD/KCI4miko4+vYdzvOF9Kg=",
+        "lastModified": 1708072316,
+        "narHash": "sha256-oXfd20XsaX9dsSfF2fIiH2dfCXtWlY2cZLe6t2DZi2c=",
         "owner": "sixears",
         "repo": "nix-pkgs",
-        "rev": "8cf3b1e3c69de23716a60f78ffbaefafb9debbf9",
+        "rev": "87efc58fdc4e6c327eda18d7d548fd1fc89faece",
         "type": "github"
       },
       "original": {
         "owner": "sixears",
-        "ref": "r0.0.9.1",
+        "ref": "r0.0.9.2",
         "repo": "nix-pkgs",
         "type": "github"
       }

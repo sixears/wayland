@@ -5,7 +5,7 @@
     nixpkgs.url = github:NixOS/nixpkgs/354184a83; # master 2023-12-13
     flake-utils.url = github:numtide/flake-utils/c0e246b9;
     myPkgs          = {
-      url    = github:sixears/nix-pkgs/r0.0.9.1;
+      url    = github:sixears/nix-pkgs/r0.0.9.2;
 #      url    = path:/home/martyn/nix/pkgs/;
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
