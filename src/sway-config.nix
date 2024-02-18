@@ -1,5 +1,6 @@
 { pkgs, dim, i3stat, hostconfig, alac, wallpaper, lock-wallpaper
-, swap-summary-fifo, gammastep-lockfile, sway-power-on, flock-pid-run }:
+, swap-summary-fifo, gammastep-lockfile, sway-power-on, flock-pid-run
+, swap-summary, cpu-temperature, cpu-temp-fifo }:
 pkgs.writeTextDir "share/sway.rc" ''
 # Read `man 5 sway` for a complete reference.
 
@@ -50,12 +51,13 @@ set $dmenu      ${pkgs.dmenu}/bin/dmenu
 set $dmenu_path ${pkgs.dmenu}/bin/dmenu_path
 set $xargs      ${pkgs.findutils}/bin/xargs
 
-set $menu $dmenu_path | $dmenu | $xargs swaymsg exec --
 set $lock 'swaylock --daemonize --inside-color 161616 --image ${lock-wallpaper}'
 
 set $swap ${swap-summary-fifo}
+set $cpu_temp ${cpu-temp-fifo}
 
 set $swaymsg ${pkgs.sway}/bin/swaymsg
+set $menu $dmenu_path | $dmenu | $xargs $swaymsg exec --
 
 ### Output configuration
 #
@@ -122,7 +124,7 @@ exec_always ${flock-pid-run}/bin/flock-pid-run /run/user/$uid/swayidle \
     bindsym $mod+Return exec $term
 
     # Start an executable
-    bindsym $mod+Shift+Return exec ~/bin/paths $wofi --conf /home/martyn/rc/wayland/wofi/config --show run | xargs swaymsg exec --
+    bindsym $mod+Shift+Return exec ~/bin/paths $wofi --conf /home/martyn/rc/wayland/wofi/config --show run | xargs $swaymsg exec --
 
     # Kill focused window
     bindsym $mod+Shift+q kill
@@ -141,10 +143,10 @@ exec_always ${flock-pid-run}/bin/flock-pid-run /run/user/$uid/swayidle \
     bindsym $mod+Shift+c reload
 
     # Exit sway (logs you out of your Wayland session)
-#    bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
+#    bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' '$swaymsg exit'
 
 
-    bindsym $mod+Shift+Escape exec bash -c 'e="$(echo -e "no exit\nexit" | $wofi --sort-order=default --show dmenu --location=0 --width=30% --conf <(echo hide_search=true) --height=120 --cache=/dev/null)"; [[ $e == exit ]] && swaymsg exit'
+    bindsym $mod+Shift+Escape exec bash -c 'e="$(echo -e "no exit\nexit" | $wofi --sort-order=default --show dmenu --location=0 --width=30% --conf <(echo hide_search=true) --height=120 --cache=/dev/null)"; [[ $e == exit ]] && $swaymsg exit'
 #
 # Moving around:
 #
@@ -293,7 +295,8 @@ bindsym $mod+b       bar mode dock
 
 # run swap summary service for swaybar
 # exec_always /home/martyn/.nix-profiles/wayland/bin/swap-summary $swap
-exec_always /nix/store/nv1xhj92p8h5ni9nfcsd0s8c049ay9hm-swap-summary/bin/swap-summary $swap
+exec_always ${swap-summary}/bin/swap-summary $swap
+exec_always ${cpu-temperature}/bin/cpu-temperature $cpu_temp
 
 set $pactl exec /run/current-system/sw/bin/pactl
 set $mute  $pactl set-sink-mute @DEFAULT_SINK@ toggle
@@ -310,8 +313,6 @@ bindsym XF86MonBrightnessDown  $xbacklight -dec 5
 bindsym XF86AudioPlay input type:touchpad events toggle enabled disabled
 
 bar {
-#  status_command i3status -c ~/rc/i3status/i3status
-#  status_command /home/martyn/.nix-profiles/gui/bin/i3status -c ~/rc/i3status/i3status.rc
   status_command ${i3stat}/bin/i3stat
   position top
   font  Monaco,Bold 11px
