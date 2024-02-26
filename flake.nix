@@ -45,8 +45,9 @@
               inherit (gui) i3stat;
               inherit (my-pkgs) flock-pid-run swap-summary cpu-temperature;
               inherit (my-settings) swap-summary-fifo cpu-temp-fifo;
-              wallpaper = ./src/nixos1.jpg;
+              wallpaper      = ./src/nixos1.jpg;
               lock-wallpaper = ./src/nixos3.jpg;
+              xkb            = ./src/keyboard.xkb;
             };
 
       in
@@ -64,9 +65,12 @@
 
             inherit alac hostconfig;
 
-            sway-rc = import ./src/sway-rc.nix { inherit pkgs sway-config;
-                                                 inherit (my-pkgs) replace;
-                                               };
+            sway-rc  = import ./src/sway-rc.nix  { inherit pkgs sway-config;
+                                                   inherit (my-pkgs) replace;
+                                                 };
+
+            xkb-file = import ./src/xkb-file.nix { inherit pkgs; };
+
           });
         }
     );

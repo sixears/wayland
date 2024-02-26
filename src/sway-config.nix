@@ -1,6 +1,6 @@
 { pkgs, dim, i3stat, hostconfig, alac, wallpaper, lock-wallpaper
 , swap-summary-fifo, gammastep-lockfile, sway-power-on, flock-pid-run
-, swap-summary, cpu-temperature, cpu-temp-fifo }:
+, swap-summary, cpu-temperature, cpu-temp-fifo, xkb }:
 pkgs.writeTextDir "share/sway.rc" ''
 # Read `man 5 sway` for a complete reference.
 
@@ -10,8 +10,10 @@ exec_always ${hostconfig}/bin/hostconfig
 
 # input "1:1:AT_Translated_Set_2_keyboard" {
 input type:keyboard {
-  xkb_layout us(dvorak)
-  xkb_options "caps:ctrl_modifier,compose:prsc,altwin:menu,eurosign:4"
+##  xkb_layout us(dvorak-intl)
+##  xkb_options "caps:ctrl_modifier,compose:prsc"
+###  xkb_options "caps:ctrl_modifier,compose:prsc,altwin:menu,eurosign:4"
+  xkb_file ${xkb}
 }
 
 input type:touchpad {

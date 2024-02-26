@@ -150,8 +150,8 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1708253023,
-        "narHash": "sha256-GdCjC4WMP5wgVl4oMu/2kXGIHylIDgOLB7y9HSG833w=",
+        "lastModified": 1708787172,
+        "narHash": "sha256-/0dpg4k/h9w9jsflOCA65QtcD7mQlyGM7KesAGKOAsQ=",
         "path": "/home/martyn/nix/gui",
         "type": "path"
       },
