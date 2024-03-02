@@ -1,18 +1,16 @@
 { pkgs, dim, i3stat, hostconfig, alac, wallpaper, lock-wallpaper
 , swap-summary-fifo, gammastep-lockfile, sway-power-on, flock-pid-run
-, swap-summary, cpu-temperature, cpu-temp-fifo, xkb }:
+, swap-summary, cpu-temperature, cpu-temp-fifo, xkb, wofi-config, paths }:
 pkgs.writeTextDir "share/sway.rc" ''
-# Read `man 5 sway` for a complete reference.
 
-exec_always ${hostconfig}/bin/hostconfig
+# Read `man 5 sway` for a complete reference.
 
 # -- input configuration -------------------------------------------------------
 
 # input "1:1:AT_Translated_Set_2_keyboard" {
 input type:keyboard {
-##  xkb_layout us(dvorak-intl)
-##  xkb_options "caps:ctrl_modifier,compose:prsc"
-###  xkb_options "caps:ctrl_modifier,compose:prsc,altwin:menu,eurosign:4"
+# xkb_layout us(dvorak-intl)
+# xkb_options "caps:ctrl_modifier,compose:prsc,altwin:menu,eurosign:4"
   xkb_file ${xkb}
 }
 
@@ -27,7 +25,7 @@ input type:touchpad {
   click_method clickfinger
   # tap-to-click, rather than having to press hard on the pad
   # https://wayland.freedesktop.org/libinput/doc/latest/tapping.html
-#  tap enabled
+# tap enabled
 }
 
 # -- basic appearance ----------------------------------------------------------
@@ -40,115 +38,115 @@ font pango:Monaco,9
 # Sway activation key. Use Mod1 for Alt.
 set $mod Mod4
 
-# preferred terminal emulator
-set $term ${alac}/bin/alac
-set $wofi ${pkgs.wofi}/bin/wofi
-
+# used in filenames in, e.g., /run/user/$uid/
 set $uid __UID__
 
-# Your preferred application launcher
+# -- application launchers -----------------------------------------------------
+
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
+
+# menu-driven command launcher, in the middle of the screen
+set $wofi ${pkgs.wofi}/bin/wofi
+
+# another menu-driven selector/launcher, uses the top of the screen
 set $dmenu      ${pkgs.dmenu}/bin/dmenu
-set $dmenu_path ${pkgs.dmenu}/bin/dmenu_path
-set $xargs      ${pkgs.findutils}/bin/xargs
+# set $dmenu_path ${pkgs.dmenu}/bin/dmenu_path
 
-set $lock 'swaylock --daemonize --inside-color 161616 --image ${lock-wallpaper}'
+# preferred terminal emulator
+set $term ${alac}/bin/alac
 
-set $swap ${swap-summary-fifo}
-set $cpu_temp ${cpu-temp-fifo}
+# other utility programs
+set $flock_pid_run ${flock-pid-run}/bin/flock-pid-run
+set $xargs ${pkgs.findutils}/bin/xargs
 
 set $swaymsg ${pkgs.sway}/bin/swaymsg
-set $menu $dmenu_path | $dmenu | $xargs $swaymsg exec --
+# set $menu $dmenu_path | $dmenu | $xargs $swaymsg exec --
 
-### Output configuration
-#
+# -- output configuration ------------------------------------------------------
+
+# screen layout configuration
+exec_always ${hostconfig}/bin/hostconfig
+# you can get the names of your outputs by running: swaymsg -t get_outputs
+
 # Default wallpaper (more resolutions are available in
 # /run/current-system/sw/share/backgrounds/sway/)
 output * bg ${wallpaper} center #131318
 
 # see also https://github.com/NixOS/nixos-artwork
 
-#
-# Example configuration:
-#
-#   output HDMI-A-1 resolution 1920x1080 position 1920,0
-#
-# You can get the names of your outputs by running: swaymsg -t get_outputs
-
 # -- idle/lock configuration ---------------------------------------------------
 
-# -w : Wait for command to finish executing before continuing, helpful for
-#      ensuring that a before-sleep command has finished before the system goes
-#      to sleep.
-
+set $dim ${dim}/bin/dim
+set $lock 'swaylock --daemonize --inside-color 161616 --image ${lock-wallpaper}'
 set $power-off '$swaymsg "output * power off"'
-# set $power-on  '$swaymsg "output * power on"'
 set $power-on '${sway-power-on}/bin/sway-power-on ${gammastep-lockfile}'
+
+set $swayidle_pid /run/user/$uid/swayidle
 
 # This will dim the screen after 8 minutes of inactivity, lock it after another
 # 2 minutes, then turn off the displays after further 10 minutes, and turn the
 # screens back on when resumed.  It will also lock the screen before the
 # computer goes to sleep.
 
+# -w : Wait for command to finish executing before continuing, helpful for
+#      ensuring that a before-sleep command has finished before the system goes
+#      to sleep.
+
 # add vlc detection; and halve the timeout times when running on a laptop
 # put this in its own executable
-exec_always ${flock-pid-run}/bin/flock-pid-run /run/user/$uid/swayidle \
-  swayidle -w                  \
-  timeout  480 ${dim}/bin/dim  \
-    resume $power-on           \
-  timeout  600 $lock           \
-    resume $power-on           \
-  timeout 1200 $power-off      \
-    resume $power-on           \
+exec_always $flock_pid_run $swayidle_pid    \
+  swayidle -w                               \
+  timeout  480 $dim       resume $power-on  \
+  timeout  600 $lock      resume $power-on  \
+  timeout 1200 $power-off resume $power-on  \
   before-sleep $lock
 
+# -- key bindings --------------------------------------------------------------
 
-### Input configuration
-#
-# Example configuration:
-#
-#   input "2:14:SynPS/2_Synaptics_TouchPad" {
-#       dwt enabled
-#       tap enabled
-#       natural_scroll enabled
-#       middle_emulation enabled
-#   }
-#
-# You can get the names of your inputs by running: swaymsg -t get_inputs
-# Read `man 5 sway-input` for more information about this section.
+# start a terminal
+bindsym $mod+Return exec $term
 
-### Key bindings
-#
-# Basics:
-#
-    # Start a terminal
-    bindsym $mod+Return exec $term
+set $paths ${paths}/bin/paths
 
-    # Start an executable
-    bindsym $mod+Shift+Return exec ~/bin/paths $wofi --conf /home/martyn/rc/wayland/wofi/config --show run | xargs $swaymsg exec --
+# start an executable
+set $exec_path $wofi --conf ${wofi-config} --show run | xargs $swaymsg exec --
+bindsym $mod+Shift+Return exec $exec_path
 
-    # Kill focused window
-    bindsym $mod+Shift+q kill
+# kill focused window
+bindsym $mod+Shift+Escape kill
 
-    # Lock the screen
-    bindsym $mod+backslash exec $lock
+# lock the screen
+bindsym $mod+backslash exec $lock
 
-    # Drag floating windows by holding down $mod and left mouse button.
-    # Resize them with right mouse button + $mod.
-    # Despite the name, also works for non-floating windows.
-    # Change normal to inverse to use left mouse button for resizing and right
-    # mouse button for dragging.
-    floating_modifier $mod normal
+# Drag floating windows by holding down $mod and left mouse button.
+# Resize them with right mouse button + $mod.
+# Despite the name, also works for non-floating windows.
+# Change normal to inverse to use left mouse button for resizing and right
+# mouse button for dragging.
+floating_modifier $mod normal
 
-    # Reload the configuration file
-    bindsym $mod+Shift+c reload
+# Reload the configuration file
+bindsym $mod+Shift+slash reload
 
-    # Exit sway (logs you out of your Wayland session)
-#    bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' '$swaymsg exit'
+# -- exit with Super+Sh+Ctrl+Esc ---------------------------
 
+# set $exit_menu exec swaynag -t warning -m 'Exit sway?' -B 'Yes, exit sway' \
+#                             '$swaymsg exit'
 
-    bindsym $mod+Shift+Escape exec bash -c 'e="$(echo -e "no exit\nexit" | $wofi --sort-order=default --show dmenu --location=0 --width=30% --conf <(echo hide_search=true) --height=120 --cache=/dev/null)"; [[ $e == exit ]] && $swaymsg exit'
+# exit sway (logs you out of your Wayland session)
+set $exit_menu bash -c \
+    'e="$(echo -e "no exit\nexit" | $dmenu)"; [[ $e == exit ]] && $swaymsg exit'
+
+# set $exit_menu exec bash -c \
+#     'e="$(echo -e "no exit\nexit" | $wofi --sort-order=default --show dmenu  \
+#                                           --location=0 --width=30% --conf    \
+#                                            <(echo hide_search=true)          \
+#                                            --height=120 --cache=/dev/null)"; \
+#     [[ $e == exit ]] && $swaymsg exit'
+
+bindsym $mod+Shift+Ctrl+Escape exec $exit_menu
+
 #
 # Moving around:
 #
@@ -216,60 +214,50 @@ set $ws0 "0:"
 
 workspace $ws4 output HDMI-A-3
 
-#
-# Layout stuff:
-#
-    # You can "split" the current object of your focus with
-    # $mod+b or $mod+v, for horizontal and vertical splits
-    # respectively.
-    bindsym $mod+d split none
-    bindsym $mod+h splith
-    bindsym $mod+v splitv
+bindsym $mod+plus  split none
+bindsym $mod+bar   splith
+bindsym $mod+minus splitv
 
-    # Switch the current container between different layout styles
-    bindsym $mod+s layout stacking
-    bindsym $mod+w layout tabbed
-    bindsym $mod+e layout toggle split
-
-    # Make the current focus fullscreen
-    bindsym $mod+f fullscreen
+# Make the current focussed window fullscreen
+#    bindsym $mod+slash fullscreen
+bindsym $mod+Shift+space fullscreen
 
     # Toggle the current focus between tiling and floating mode
-    bindsym $mod+Shift+space floating toggle
+#    bindsym $mod+Shift+space floating toggle
 
-    # Swap focus between the tiling area and the floating area
-    bindsym $mod+space focus mode_toggle
+bindsym $mod+space layout toggle all
 
     # Move focus to the parent container
-    bindsym $mod+a focus parent
-#
-# Scratchpad:
-#
-    # Sway has a "scratchpad", which is a bag of holding for windows.
-    # You can send windows there and get them back later.
+#    bindsym $mod+a focus parent
 
-    # Move the currently focused window to the scratchpad
-    bindsym $mod+Shift+minus move scratchpad
+# -- scratchpad --------------------------------------------
 
-    # Show the next scratchpad window or hide the focused scratchpad window.
-    # If there are multiple scratchpad windows, this command cycles through them.
-    bindsym $mod+minus scratchpad show
-#
-# Resizing containers:
-#
+# Sway has a "scratchpad", which is a bag of holding for windows.
+# You can send windows there and get them back later.
+
+# move the currently focused window to the scratchpad
+bindsym $mod+F13 move scratchpad
+
+# Show the next scratchpad window or hide the focused scratchpad window.
+# If there are multiple scratchpad windows, this command cycles through them.
+bindsym $mod+Shift+F13   scratchpad show
+bindsym $mod+Control+F13 floating   toggle
+
+# -- resizing containers -----------------------------------
+
 mode "resize" {
-    # left will shrink the containers width
-    # right will grow the containers width
-    # up will shrink the containers height
-    # down will grow the containers height
-    bindsym Left resize shrink width 10px
-    bindsym Down resize grow height 10px
-    bindsym Up resize shrink height 10px
-    bindsym Right resize grow width 10px
+  # left will shrink the containers width
+  # right will grow the containers width
+  # up will shrink the containers height
+  # down will grow the containers height
+  bindsym Left resize shrink width 10px
+  bindsym Down resize grow height 10px
+  bindsym Up resize shrink height 10px
+  bindsym Right resize grow width 10px
 
-    # Return to default mode
-    bindsym Return mode "default"
-    bindsym Escape mode "default"
+  # Return to default mode
+  bindsym Return mode "default"
+  bindsym Escape mode "default"
 }
 bindsym $mod+r mode "resize"
 
@@ -295,11 +283,6 @@ bindsym $mod+r mode "resize"
 bindsym $mod+Shift+b bar mode hide
 bindsym $mod+b       bar mode dock
 
-# run swap summary service for swaybar
-# exec_always /home/martyn/.nix-profiles/wayland/bin/swap-summary $swap
-exec_always ${swap-summary}/bin/swap-summary $swap
-exec_always ${cpu-temperature}/bin/cpu-temperature $cpu_temp
-
 set $pactl exec /run/current-system/sw/bin/pactl
 set $mute  $pactl set-sink-mute @DEFAULT_SINK@ toggle
 set $vol   $pactl set-sink-volume @DEFAULT_SINK@
@@ -313,6 +296,15 @@ bindsym XF86MonBrightnessUp    $xbacklight -inc 5
 bindsym XF86MonBrightnessDown  $xbacklight -dec 5
 # (F5)/AudioPlay on Dell_XPS 9315
 bindsym XF86AudioPlay input type:touchpad events toggle enabled disabled
+
+# -- swaybar -------------------------------------------------------------------
+
+# inputs to i3status
+set $swap ${swap-summary-fifo}
+set $cpu_temp ${cpu-temp-fifo}
+
+exec_always ${swap-summary}/bin/swap-summary $swap
+exec_always ${cpu-temperature}/bin/cpu-temperature $cpu_temp
 
 bar {
   status_command ${i3stat}/bin/i3stat

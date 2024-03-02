@@ -2,24 +2,25 @@
   description = "nix configuration for wayland things";
 
   inputs = {
-    nixpkgs.url = github:NixOS/nixpkgs/354184a83; # master 2023-12-13
+    nixpkgs.url     = github:NixOS/nixpkgs/354184a83; # master 2023-12-13
     flake-utils.url = github:numtide/flake-utils/c0e246b9;
     myPkgs          = {
       url    = github:sixears/nix-pkgs/r0.0.10.2;
 #      url    = path:/home/martyn/nix/pkgs/;
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
-    gui-pkgs.url = path:/home/martyn/nix/gui;
+    base-scripts-pkgs.url = path:/home/martyn/nix/base-scripts;
+    gui-pkgs.url          = path:/home/martyn/nix/gui;
   };
 
-  outputs = { self, nixpkgs, flake-utils, gui-pkgs, myPkgs }:
+  outputs = { self, nixpkgs, flake-utils, base-scripts-pkgs, gui-pkgs, myPkgs }:
     flake-utils.lib.eachSystem ["x86_64-linux"] (system:
       let
-        pkgs         = nixpkgs.legacyPackages.${system};
-        my-pkgs      = myPkgs.packages.${system};
-        my-settings  = myPkgs.settings.${system};
-        gui          = gui-pkgs.packages.${system};
-        gui-settings = gui-pkgs.settings.${system};
+        pkgs                  = nixpkgs.legacyPackages.${system};
+        my-pkgs               = myPkgs.packages.${system};
+        my-settings           = myPkgs.settings.${system};
+        base-scripts          = base-scripts-pkgs.packages.${system};
+        gui                   = gui-pkgs.packages.${system};
 
         vlc-lockfile       = my-settings.vlc-lockfile;
         gammastep-lockfile = "/run/user/1000/gammastep.pid";
@@ -40,14 +41,15 @@
 
         sway-config =
           import ./src/sway-config.nix
-            { inherit pkgs dim hostconfig alac
-                      gammastep-lockfile sway-power-on;
-              inherit (gui) i3stat;
-              inherit (my-pkgs) flock-pid-run swap-summary cpu-temperature;
-              inherit (my-settings) swap-summary-fifo cpu-temp-fifo;
+            { inherit pkgs dim hostconfig alac gammastep-lockfile sway-power-on;
+              inherit (gui)          i3stat;
+              inherit (my-pkgs)      flock-pid-run swap-summary cpu-temperature;
+              inherit (my-settings)  swap-summary-fifo cpu-temp-fifo;
+              inherit (base-scripts) paths;
               wallpaper      = ./src/nixos1.jpg;
               lock-wallpaper = ./src/nixos3.jpg;
               xkb            = ./src/keyboard.xkb;
+              wofi-config    = ./src/wofi.rc;
             };
 
       in

@@ -1202,11 +1202,12 @@ xkb_symbols "(unnamed)" {
 
   key <AE11> {
       type= "FOUR_LEVEL",
-      symbols[Group1]= [ bracketleft,       braceleft,   guillemetleft, leftdoublequotemark ]
+#      symbols[Group1]= [ bracketleft,       braceleft,   guillemotleft, leftdoublequotemark ]
+      symbols[Group1]= [ bracketleft,       braceleft,   onefifth, leftdoublequotemark ]
   };
   key <AE12> {
       type= "FOUR_LEVEL",
-      symbols[Group1]= [ bracketright,      braceright,  guillemetright, rightdoublequotemark ]
+      symbols[Group1]= [ bracketright,      braceright,  guillemotright, rightdoublequotemark ]
   };
 
     key <BKSP> {         [       BackSpace,       BackSpace ] };
@@ -1215,14 +1216,12 @@ xkb_symbols "(unnamed)" {
         type= "FOUR_LEVEL",
         symbols[Group1]= [      apostrophe,        quotedbl,      dead_acute,  dead_diaeresis ]
     };
-    key <AD02> {
-        type= "FOUR_LEVEL",
-        symbols[Group1]= [           comma,            less,        ccedilla,        Ccedilla ]
-    };
-    key <AD03> {
-        type= "FOUR_LEVEL",
-        symbols[Group1]= [          period,         greater,   dead_abovedot,      dead_caron ]
-    };
+  key <AD02> { type= "FOUR_LEVEL",
+    symbols[Group1]= [  comma,    less, guillemotleft , dead_caron    ]
+  };
+  key <AD03> { type= "FOUR_LEVEL",
+    symbols[Group1]= [ period, greater, guillemotright, dead_abovedot ]
+  };
     key <AD04> {
         type= "FOUR_LEVEL_ALPHABETIC",
         symbols[Group1]= [               p,               P,      odiaeresis,      Odiaeresis ]
@@ -1538,7 +1537,7 @@ xkb_symbols "(unnamed)" {
     key <I188> {         [      parenright ] };
     key <I189> {         [         XF86New ] };
     key <I190> {         [            Redo ] };
-    key <FK13> {         [       XF86Tools ] };
+    key <FK13> {         [             F13 ] };
     key <FK14> {         [     XF86Launch5 ] };
     key <FK15> {         [     XF86Launch6 ] };
     key <FK16> {         [     XF86Launch7 ] };

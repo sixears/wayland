@@ -1,0 +1,3 @@
+run-always_parse_args=true
+run-show_all=false
+run-print_command=true
