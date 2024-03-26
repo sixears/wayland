@@ -55,6 +55,16 @@ data Abled = Enabled | Disabled
 (Ⓣ) ∷ CharParsing η ⇒ α → 𝕊 → η α
 (Ⓣ) a s = a <$ string s
 
+upto ∷ ℕ → Parser a → Parser [a]
+upto n p | n > 0 = (:) ⊳ try p ⊵ (upto (n-1) p ∤ return [])
+          | otherwise = return []
+-- upto _ _ = return []
+
+upto1 ∷ ℕ → Parser a → Parser [a]
+upto1 n p | n > 0 = (:) ⊳ p ⊵ upto (n-1) p
+          | otherwise = return []
+-- upto1 _ _ = return []
+
 nonSpace ∷ CharParsing η ⇒ η 𝕊
 nonSpace = many ∘ satisfy $ not ∘ isSpace
 
@@ -166,31 +176,31 @@ restOfLine =
         in  char '"' ⋫ (ю ⊳ many dq_chars) ⋪ char '"'
       quoted_word  = char '\'' ⋫ many (notChar '\'') ⋪ char '\''
       dollar_quoted_word =
-        let o_prefix      = oneOf "0123"
-            o_word_3      = (\ a b c → [a,b,c]) ⊳ o_prefix ⊵ octDigit  ⊵ octDigit
-            o_word_2_1    = (\ a mb → a : maybe [] pure mb) ⊳ octDigit ⊵ optional octDigit
-            o_8bit_string = try o_word_3 ∤ o_word_2_1
+        let o_word_3      = (:) ⊳ oneOf "0123" ⊵ upto 2 octDigit
+            o_8bit_string = try o_word_3 ∤ upto1 2 octDigit
             octal_8bit    = chr ∘ read ∘ ("0o" ⊕) ⊳ o_8bit_string
-
-            x_word_2_1    = (\ a mb → a : maybe [] pure mb) ⊳ hexDigit ⊵ optional hexDigit
-            x_8bit_string = x_word_2_1
-            hex_8bit      = chr ∘ read ∘ ("0x" ⊕) ⊳ x_8bit_string
+            read_hex      ∷ 𝕊 → ℂ
+            read_hex      = chr ∘ read ∘ ("0x" ⊕)
+            hex_8bit      = read_hex ⊳ upto1 2 hexDigit
+            hex_16bit     = read_hex ⊳ upto1 4 hexDigit
 
             chars =
-              choice [ some (noneOf "\'\\")
-                     , char '\\' ⋫ choice [ char 'a' ⋫ pure "\BEL"
-                                          , char 'b' ⋫ pure "\BS"
-                                          , char 'e' ⋫ pure "\ESC"
-                                          , char 'E' ⋫ pure "\ESC"
-                                          , char 'f' ⋫ pure "\FF"
-                                          , char 'n' ⋫ pure "\LF"
-                                          , char 'r' ⋫ pure "\CR"
-                                          , char 't' ⋫ pure "\HT"
-                                          , char 'v' ⋫ pure "\VT"
-                                          , pure ⊳ oneOf "'?\\\""
-                                          , pure ⊳ octal_8bit
-                                          , char 'x' ⋫ (pure ⊳ hex_8bit)
-                                          ]
+              let nhex n = pure ∘ read_hex ⊳ upto1 n hexDigit
+              in  choice [ some (noneOf "\'\\")
+                         , char '\\' ⋫ choice [ char 'a' ⋫ pure "\BEL"
+                                              , char 'b' ⋫ pure "\BS"
+                                              , char 'e' ⋫ pure "\ESC"
+                                              , char 'E' ⋫ pure "\ESC"
+                                              , char 'f' ⋫ pure "\FF"
+                                              , char 'n' ⋫ pure "\LF"
+                                              , char 'r' ⋫ pure "\CR"
+                                              , char 't' ⋫ pure "\HT"
+                                              , char 'v' ⋫ pure "\VT"
+                                              , pure ⊳ oneOf "'?\\\""
+                                              , pure ⊳ octal_8bit
+                                              , char 'x' ⋫ nhex 2
+                                              , char 'u' ⋫ (pure ⊳ hex_16bit)
+                                              ]
                            ]
         in  string "$'" ⋫ (ю ⊳ many chars) ⋪ char '\''
   in  many ∘ token $ choice [ dquoted_word, quoted_word, dollar_quoted_word ]
