@@ -267,15 +267,16 @@ restOfLineBash =
             traceShow ("W",w) $ return (w:ws,c)
           C c → traceShow ("C",c) $ return ([],𝕵 c)
 
-      xx ∷ [CW] → ([𝕊], 𝕄 𝕊)
-      xx (W w : xs) = (first (w:)) (xx xs)
-      xx [C c]        = ([], 𝕵 c)
-      xx []           = ([], 𝕹)
-      xx (C c : xs) = error $ "non-terminating comment '" ⊕ c ⊕ "'"
+      words_maybe_comment ∷ [CW] → ([𝕊], 𝕄 𝕊)
+      words_maybe_comment (W w : xs) = first (w:) (words_maybe_comment xs)
+      words_maybe_comment [C c]        = ([], 𝕵 c)
+      words_maybe_comment []           = ([], 𝕹)
+      words_maybe_comment (C c : xs) =
+        error $ "non-terminating comment '" ⊕ c ⊕ "'"
 
   in -- many ∘ token $ choice [ dquoted_word, quoted_word , dollar_quoted_word, dollar_double_quoted_word]
     -- nn -- sepEndBy word someSpace
-    xx ⊳ sepEndBy (C ⊳ comment ∤ W ⊳ word) someSpace
+    words_maybe_comment ⊳ sepEndBy (C ⊳ comment ∤ W ⊳ word) someSpace
 {- | Note that sway doesn't do inline comments; however, the exec cmdline is
      passed to 'sh', which does -}
 bindsym ∷ Parser BindSym
