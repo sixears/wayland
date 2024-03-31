@@ -1,5 +1,6 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE UnicodeSyntax #-}
+{-# LANGUAGE UnicodeSyntax     #-}
 
 import Debug.Trace  ( trace, traceShow )
 import Base1
@@ -259,11 +260,9 @@ restOfLineBash =
       next = BashComment ⊳ comment ∤ BashWord ⊳ word ⋪ spaces
 
       nn ∷ Parser ([𝕊],𝕄 𝕊)
-      nn = do
-        x ← next
-        case x of
-          BashWord    w → first (w:) ⊳ nn
-          BashComment c → return ([],𝕵 c)
+      nn = next ≫ \ case
+             BashWord    w → first (w:) ⊳ nn
+             BashComment c → return ([],𝕵 c)
 
       words_m_comment ∷ [CommentOrWord] → ([𝕊], 𝕄 𝕊)
       words_m_comment (BashWord w : xs)   = first (w:) (words_m_comment xs)
