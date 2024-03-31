@@ -164,7 +164,7 @@ floatingModifier =
 -- command_comment ∷ Parser 𝕊 (𝕄 𝕊)
 -- command_comment = many (noneOf "\n#") -- # in a command is okay, probably
 
-data CW = C 𝕊 | W 𝕊
+data CommentOrWord = BashComment 𝕊 | BashWord 𝕊
 
 {- | Parse the rest of the line as a list of of words, much as bash would -}
 restOfLineBash ∷ Parser ([𝕊], 𝕄 𝕊)
@@ -256,27 +256,23 @@ restOfLineBash =
       comment ∷ Parser 𝕊
       comment = char '#' ⋫ many (noneOf "#\n")
 
-      next = C ⊳ comment ∤ W ⊳ word ⋪ spaces
+      next = BashComment ⊳ comment ∤ BashWord ⊳ word ⋪ spaces
 
       nn ∷ Parser ([𝕊],𝕄 𝕊)
       nn = do
         x ← next
         case x of
-          W w → do
-            (ws,c) ← nn
-            traceShow ("W",w) $ return (w:ws,c)
-          C c → traceShow ("C",c) $ return ([],𝕵 c)
+          BashWord    w → first (w:) ⊳ nn
+          BashComment c → return ([],𝕵 c)
 
-      words_maybe_comment ∷ [CW] → ([𝕊], 𝕄 𝕊)
-      words_maybe_comment (W w : xs) = first (w:) (words_maybe_comment xs)
-      words_maybe_comment [C c]        = ([], 𝕵 c)
-      words_maybe_comment []           = ([], 𝕹)
-      words_maybe_comment (C c : xs) =
+      words_m_comment ∷ [CommentOrWord] → ([𝕊], 𝕄 𝕊)
+      words_m_comment (BashWord w : xs)   = first (w:) (words_m_comment xs)
+      words_m_comment [BashComment c]     = ([], 𝕵 c)
+      words_m_comment []                  = ([], 𝕹)
+      words_m_comment (BashComment c : _) =
         error $ "non-terminating comment '" ⊕ c ⊕ "'"
 
-  in -- many ∘ token $ choice [ dquoted_word, quoted_word , dollar_quoted_word, dollar_double_quoted_word]
-    -- nn -- sepEndBy word someSpace
-    words_maybe_comment ⊳ sepEndBy (C ⊳ comment ∤ W ⊳ word) someSpace
+  in words_m_comment ⊳ sepEndBy (BashComment ⊳ comment ∤ BashWord ⊳ word) someSpace
 {- | Note that sway doesn't do inline comments; however, the exec cmdline is
      passed to 'sh', which does -}
 bindsym ∷ Parser BindSym
