@@ -41,15 +41,12 @@ import Text.Trifecta.Result  ( Result( Failure, Success ) )
 
 --------------------------------------------------------------------------------
 
-swaymsgPath ∷ String
+swaymsgPath ∷ 𝕊
 swaymsgPath = "/run/current-system/sw/bin/swaymsg"
 
 ----------------------------------------
 
 data InputType = Keyboard | TouchPad
-  deriving Show
-
-data InputCommands = InputId (String,String,String) | InputType InputType
   deriving Show
 
 data AccelProfile = Adaptive | Flat
@@ -80,7 +77,7 @@ nonSpace = many ∘ satisfy $ not ∘ isSpace
 nonSpace' ∷ TokenParsing η ⇒ η 𝕊
 nonSpace' = token nonSpace
 
-comment ∷ Parser String
+comment ∷ Parser 𝕊
 comment = char '#' ⋫ many (noneOf "\n")
 
 data ClickMethod = ClickNone | ButtonAreas | ClickFinger
@@ -91,8 +88,8 @@ instance Parse ClickMethod where
                  , ClickFinger Ⓣ "clickfinger"
                  ]
 
-data InputSubCommands = XKBFile String
-                      | IComment String
+data InputSubCommands = XKBFile 𝕊
+                      | IComment 𝕊
                       | AccelProfile AccelProfile
                       | DWT Abled
                       | ClickMethod ClickMethod
@@ -108,20 +105,19 @@ instance Parse InputSubCommands where
                , ClickMethod ⊳ (ŧ "click_method" ⋫ parse)
                ]
 
-input ∷ Parser InputCommands
-input =
-  let input_id = (string "type:" ⋫ choice [InputType Keyboard <$ string "keyboard"
-                                          ,InputType TouchPad <$ string "touchpad"])
-               ∤ (InputId ⊳ deviceIdentifier)
-  in  ŧ "input" ⋫ (token input_id ⋪ braces (many $ token (parse @InputSubCommands)))
+data InputCommands = InputId (𝕊,𝕊,𝕊) | InputType InputType
+  deriving Show
 
+instance Parse InputCommands where
+  parse =
+    let input_id = (string "type:" ⋫ choice [InputType Keyboard <$ string "keyboard"
+                                            ,InputType TouchPad <$ string "touchpad"])
+                 ∤ (InputId ⊳ deviceIdentifier)
+    in  ŧ "input" ⋫ (token input_id ⋪ braces (many $ token (parse @InputSubCommands)))
 
-deviceIdentifier ∷ Parser (String, String, String)
+deviceIdentifier ∷ Parser (𝕊,𝕊,𝕊)
 deviceIdentifier = (,,) ⊳
   (many digit ⋪ char ':') ⊵ (many digit ⋪ char ':') ⊵ many (alphaNum ∤ oneOf "/:_")
-
-inputCommand ∷ Parser InputCommands
-inputCommand = input
 
 data Font = Pango 𝕊 | NonPango 𝕊
   deriving Show
@@ -136,7 +132,25 @@ data NormalOrInverse = Normal | Inverse
 instance Parse NormalOrInverse where
   parse = choice [ Normal Ⓣ "normal", Inverse Ⓣ "inverse" ]
 
-data Clause = Comment           𝕊
+data BindSymOrComment = BSOCBindSym BindSym | BSOCComment Comment
+  deriving Show
+
+instance Parse BindSymOrComment where
+  parse = choice [ BSOCBindSym ⊳ parse, BSOCComment ⊳ parse ]
+
+newtype Comment = Comment' 𝕊
+  deriving Show
+
+instance Parse Comment where
+  parse = Comment' ⊳ (ç '#' ⋫ many (noneOf "#\n"))
+
+data Mode = Mode' 𝕊 [ BindSymOrComment ]
+  deriving Show
+
+instance Parse Mode where
+  parse = Mode' ⊳ (ŧ "mode" ⋫ nonSpace') ⊵ braces (many $ token parse)
+
+data Clause = Comment           Comment
             | InputCommand      InputCommands
             | Font              Font
             | SetVariable       SetVariable
@@ -145,10 +159,11 @@ data Clause = Comment           𝕊
             | Output            𝕊 Output
             | BindSym           BindSym
             | FloatingModifier  𝕊 NormalOrInverse
-            | ModeStart         𝕊
-            | SubSectionStart   𝕊
-            | SubSectionEnd
-            | StatusBarPosition TopOrBottom
+--            | ModeStart         𝕊
+            | Mode              Mode
+--            | SubSectionStart   𝕊
+--            | SubSectionEnd
+--            | StatusBarPosition TopOrBottom
   deriving Show
 
 data BindSym = BindSymRegular 𝕊 𝕊 | BindSymExec 𝕊 ([𝕊], 𝕄 𝕊)
@@ -262,11 +277,10 @@ restOfLineBash =
 
   in words_m_comment ⊳ sepEndBy (BashComment ⊳ bash_comment ∤ BashWord ⊳ word) someNonNLSpace
 
-
 {- | Note that sway doesn't do inline comments; however, the exec cmdline is
      passed to 'sh', which does -}
 instance Parse BindSym where
-  parse = choice [ try $ BindSymExec ⊳ nonSpace' ⊵ token (string "exec") ⋫ restOfLineBash -- many (noneOf "\n")
+  parse = ŧ "bindsym" ⋫ choice [ try $ BindSymExec ⊳ nonSpace' ⊵ token (string "exec") ⋫ restOfLineBash -- many (noneOf "\n")
                  , BindSymRegular ⊳ nonSpace' ⊵ many (noneOf "\n") ]
 
 data SetVariable = SetV 𝕊 𝕊
@@ -303,19 +317,21 @@ instance Parse Abled where
   parse = choice [ Enabled Ⓣ "enabled", Disabled Ⓣ "disabled" ]
 
 clause ∷ Parser Clause
-clause =  choice [ Comment            ⊳ (token (char '#') ⋫ many (noneOf "#\n"))
-                 , InputCommand       ⊳ inputCommand
-                 , Font               ⊳ (ŧ "font" ⋫ font)
-                 , SetVariable        ⊳ (ŧ "set" ⋫ parse)
-                 , ExecAlways         ⊳ (ŧ "exec_always" ⋫ parse)
-                 , Output             ⊳ (ŧ "output" ⋫ token nonSpace) ⊵ parse
-                 , BindSym            ⊳ (ŧ "bindsym" ⋫ parse)
+clause =  choice [ Comment          ⊳ parse
+                 , InputCommand     ⊳ parse
+                 , Font             ⊳ (ŧ "font" ⋫ font)
+                 , SetVariable      ⊳ (ŧ "set" ⋫ parse)
+                 , ExecAlways       ⊳ (ŧ "exec_always" ⋫ parse)
+                 , Output           ⊳ (ŧ "output" ⋫ token nonSpace) ⊵ parse
+                 , BindSym          ⊳ parse
                  , floatingModifier
-                 , ModeStart          ⊳ (ŧ "mode" ⋫ nonSpace' ⋪ ç '{')
-                 , SubSectionStart    ⊳ (ŧ "bar" ⋪ ç '{')
-                 , SubSectionEnd © '}'
-                 , StatusCommand      ⊳ (ŧ "status_command" ⋫ parse)
-                 , StatusBarPosition  ⊳ (ŧ "position" ⋫ parse)
+                 , Mode             ⊳ parse
+--                 , ModeStart          ⊳ (ŧ "mode" ⋫ nonSpace' ⋪ ç '{')
+--                 , SubSectionStart    ⊳ (ŧ "bar" ⋪ ç '{')
+--                 , SubSectionEnd © '}'
+
+--                 , StatusCommand      ⊳ (ŧ "status_command" ⋫ parse)
+--                 , StatusBarPosition  ⊳ (ŧ "position" ⋫ parse)
                  ]
 
 main ∷ IO ()
