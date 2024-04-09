@@ -150,17 +150,31 @@ data Mode = Mode' 𝕊 [ BindSymOrComment ]
 instance Parse Mode where
   parse = Mode' ⊳ (ŧ "mode" ⋫ nonSpace') ⊵ braces (many $ token parse)
 
+data SwayBarCommand = SwayBarStatusCommand ShCommand
+                    | SwayBarPosition      TopOrBottom
+  deriving Show
+
+instance Parse SwayBarCommand where
+  parse = token $ choice [ SwayBarStatusCommand ⊳ (ŧ "status_command" ⋫ parse)
+                         , SwayBarPosition ⊳ (ŧ "position" ⋫ parse) ]
+
+data SwayBar = SwayBar' [ SwayBarCommand ]
+  deriving Show
+
+instance Parse SwayBar where
+  parse = SwayBar' ⊳ (ŧ "bar" ⋫ braces (many $ token parse))
+
 data Clause = Comment           Comment
             | InputCommand      InputCommands
             | Font              Font
             | SetVariable       SetVariable
             | ExecAlways        ShCommand
-            | StatusCommand     ShCommand
             | Output            𝕊 Output
             | BindSym           BindSym
             | FloatingModifier  𝕊 NormalOrInverse
 --            | ModeStart         𝕊
             | Mode              Mode
+            | SwayBar           SwayBar
 --            | SubSectionStart   𝕊
 --            | SubSectionEnd
 --            | StatusBarPosition TopOrBottom
@@ -326,11 +340,11 @@ clause =  choice [ Comment          ⊳ parse
                  , BindSym          ⊳ parse
                  , floatingModifier
                  , Mode             ⊳ parse
+                 , SwayBar          ⊳ parse
 --                 , ModeStart          ⊳ (ŧ "mode" ⋫ nonSpace' ⋪ ç '{')
 --                 , SubSectionStart    ⊳ (ŧ "bar" ⋪ ç '{')
 --                 , SubSectionEnd © '}'
 
---                 , StatusCommand      ⊳ (ŧ "status_command" ⋫ parse)
 --                 , StatusBarPosition  ⊳ (ŧ "position" ⋫ parse)
                  ]
 
