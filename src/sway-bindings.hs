@@ -11,7 +11,6 @@ import Prelude  ( error )
 import Data.Char         ( chr, isSpace, ord )
 import Data.Foldable     ( concat )
 import Data.Functor      ( (<$) )
-import Data.Maybe        ( catMaybes )
 import Data.Monoid       ( mempty )
 import GHC.Num           ( subtract )
 import System.IO.Unsafe  ( unsafePerformIO )
@@ -27,8 +26,8 @@ import Text.I18N.GetText  ( getText )
 import Text.Parser.Char         ( CharParsing, alphaNum, char, digit, hexDigit
                                 , noneOf, notChar, octDigit, oneOf, satisfy
                                 , satisfyRange, spaces, string )
-import Text.Parser.Combinators  ( choice, count, optional, sepEndBy, try )
-import Text.Parser.Token        ( TokenParsing, braces, someSpace, token )
+import Text.Parser.Combinators  ( choice, sepEndBy, try )
+import Text.Parser.Token        ( TokenParsing, braces, token )
 
 -- text --------------------------------
 
@@ -54,16 +53,18 @@ data InputCommands = InputId (String,String,String) | InputType InputType
   deriving Show
 
 data AccelProfile = Adaptive | Flat
-data Abled = Enabled | Disabled
+
+ç ∷ TokenParsing η ⇒ ℂ → η ℂ
+ç = token ∘ char
 
 ŧ ∷ TokenParsing η ⇒ 𝕊 → η 𝕊
 ŧ = token ∘ string
 
-ţ ∷ CharParsing η ⇒ α → 𝕊 → η α
-ţ a s = a <$ string s
-
 (Ⓣ) ∷ CharParsing η ⇒ α → 𝕊 → η α
 (Ⓣ) a s = a <$ string s
+
+(©) ∷ CharParsing η ⇒ α → ℂ → η α
+(©) a c = a <$ char c
 
 upto ∷ ℕ → Parser a → Parser [a]
 upto n p | n > 0 = (:) ⊳ try p ⊵ (upto (n-1) p ∤ return [])
@@ -79,8 +80,16 @@ nonSpace = many ∘ satisfy $ not ∘ isSpace
 nonSpace' ∷ TokenParsing η ⇒ η 𝕊
 nonSpace' = token nonSpace
 
-abled ∷ Parser Abled
-abled = choice [ Enabled Ⓣ "enabled", Disabled Ⓣ "disabled" ]
+comment ∷ Parser String
+comment = char '#' ⋫ many (noneOf "\n")
+
+data ClickMethod = ClickNone | ButtonAreas | ClickFinger
+
+instance Parse ClickMethod where
+  parse = choice [ ClickNone Ⓣ "none"
+                 , ButtonAreas Ⓣ "button_areas"
+                 , ClickFinger Ⓣ "clickfinger"
+                 ]
 
 data InputSubCommands = XKBFile String
                       | IComment String
@@ -88,35 +97,23 @@ data InputSubCommands = XKBFile String
                       | DWT Abled
                       | ClickMethod ClickMethod
 
-data ClickMethod = ClickNone | ButtonAreas | ClickFinger
-
-clickMethod ∷ Parser ClickMethod
-clickMethod = choice [ ClickNone Ⓣ "none"
-                     , ButtonAreas Ⓣ "button_areas"
-                     , ClickFinger Ⓣ "clickfinger"
-                     ]
-
-comment ∷ Parser String
-comment = char '#' ⋫ many (noneOf "\n")
-
-
-inputSubCommands ∷ Parser InputSubCommands
-inputSubCommands =
-  let accel_profile = choice [ Adaptive <$ string "adaptive"
-                             , Flat <$ string "flat" ]
-  in  choice [ XKBFile ⊳ (ŧ "xkb_file" ⋫ nonSpace)
-             , AccelProfile ⊳ (ŧ "accel_profile" ⋫ accel_profile)
-             , DWT ⊳ (ŧ "dwt" ⋫ abled)
-             , IComment ⊳ comment
-             , ClickMethod ⊳ (ŧ "click_method" ⋫ clickMethod)
-             ]
+instance Parse InputSubCommands where
+  parse =
+    let accel_profile = choice [ Adaptive <$ string "adaptive"
+                               , Flat <$ string "flat" ]
+    in  choice [ XKBFile ⊳ (ŧ "xkb_file" ⋫ nonSpace)
+               , AccelProfile ⊳ (ŧ "accel_profile" ⋫ accel_profile)
+               , DWT ⊳ (ŧ "dwt" ⋫ parse)
+               , IComment ⊳ comment
+               , ClickMethod ⊳ (ŧ "click_method" ⋫ parse)
+               ]
 
 input ∷ Parser InputCommands
 input =
   let input_id = (string "type:" ⋫ choice [InputType Keyboard <$ string "keyboard"
                                           ,InputType TouchPad <$ string "touchpad"])
                ∤ (InputId ⊳ deviceIdentifier)
-  in  ŧ "input" ⋫ (token input_id ⋪ braces (many $ token inputSubCommands))
+  in  ŧ "input" ⋫ (token input_id ⋪ braces (many $ token (parse @InputSubCommands)))
 
 
 deviceIdentifier ∷ Parser (String, String, String)
@@ -136,25 +133,30 @@ font = token $ choice [ Pango ⊳ try (string "pango:" ⋫ nonSpace)
 data NormalOrInverse = Normal | Inverse
   deriving Show
 
-data Clause = Comment      𝕊
-            | InputCommand InputCommands
-            | Font         Font
-            | SetVariable  SetVariable
-            | ExecAlways   Command
-            | Output       𝕊 Output
-            | BindSym      BindSym
-            | FloatingModifier 𝕊 NormalOrInverse
+instance Parse NormalOrInverse where
+  parse = choice [ Normal Ⓣ "normal", Inverse Ⓣ "inverse" ]
+
+data Clause = Comment           𝕊
+            | InputCommand      InputCommands
+            | Font              Font
+            | SetVariable       SetVariable
+            | ExecAlways        ShCommand
+            | StatusCommand     ShCommand
+            | Output            𝕊 Output
+            | BindSym           BindSym
+            | FloatingModifier  𝕊 NormalOrInverse
+            | ModeStart         𝕊
+            | SubSectionStart   𝕊
+            | SubSectionEnd
+            | StatusBarPosition TopOrBottom
   deriving Show
 
-data BindSym = BindSym' 𝕊 𝕊
+data BindSym = BindSymRegular 𝕊 𝕊 | BindSymExec 𝕊 ([𝕊], 𝕄 𝕊)
   deriving Show
-
-normalOrInverse ∷ Parser NormalOrInverse
-normalOrInverse = choice [ Normal Ⓣ "normal", Inverse Ⓣ "inverse" ]
 
 floatingModifier ∷ Parser Clause
 floatingModifier =
-  FloatingModifier ⊳ (ŧ "floating_modifier" ⋫ nonSpace') ⊵ normalOrInverse
+  FloatingModifier ⊳ (ŧ "floating_modifier" ⋫ nonSpace') ⊵ parse
 
 -- (shell parsing; note that sway just passes the whole line, including apparent
 --  comments, to `sh`; thence, (ba)sh does any comment interpretation)
@@ -166,6 +168,7 @@ floatingModifier =
 -- command_comment = many (noneOf "\n#") -- # in a command is okay, probably
 
 data CommentOrWord = BashComment 𝕊 | BashWord 𝕊
+  deriving Show
 
 {- | Parse the rest of the line as a list of of words, much as bash would -}
 restOfLineBash ∷ Parser ([𝕊], 𝕄 𝕊)
@@ -187,17 +190,8 @@ restOfLineBash =
 
       -}
 
-      blank ∷ Parser ℂ
-      blank = oneOf " \t"
-
-      blanks ∷ Parser 𝕊
-      blanks = some blank
-
       metachars ∷ [ℂ]
       metachars = "|&;()<> \t\n"
-
-      metachar ∷ Parser ℂ
-      metachar = oneOf metachars
 
       unquoted_word ∷ Parser 𝕊
       unquoted_word = some (noneOf metachars)
@@ -215,8 +209,6 @@ restOfLineBash =
             octal_8bit    = chr ∘ read ∘ ("0o" ⊕) ⊳ o_8bit_string
             read_hex      ∷ 𝕊 → ℂ
             read_hex      = chr ∘ read ∘ ("0x" ⊕)
-            hex_8bit      = read_hex ⊳ upto1 2 hexDigit
-            hex_16bit     = read_hex ⊳ upto1 4 hexDigit
 
             c_range a   z =
               let offset_ord = ord a - 1
@@ -254,57 +246,76 @@ restOfLineBash =
       word = concat ⊳ some (choice [ unquoted_word, dquoted_word, quoted_word
                           , dollar_quoted_word, dollar_double_quoted_word ])
 
-      comment ∷ Parser 𝕊
-      comment = char '#' ⋫ many (noneOf "#\n")
-
-      next = BashComment ⊳ comment ∤ BashWord ⊳ word ⋪ spaces
-
-      nn ∷ Parser ([𝕊],𝕄 𝕊)
-      nn = next ≫ \ case
-             BashWord    w → first (w:) ⊳ nn
-             BashComment c → return ([],𝕵 c)
+      bash_comment ∷ Parser 𝕊
+      bash_comment = char '#' ⋫ many (noneOf "#\n")
 
       words_m_comment ∷ [CommentOrWord] → ([𝕊], 𝕄 𝕊)
       words_m_comment (BashWord w : xs)   = first (w:) (words_m_comment xs)
       words_m_comment [BashComment c]     = ([], 𝕵 c)
       words_m_comment []                  = ([], 𝕹)
-      words_m_comment (BashComment c : _) =
-        error $ "non-terminating comment '" ⊕ c ⊕ "'"
+      words_m_comment (BashComment c : x) =
+        error $ "non-terminating comment '" ⊕ c ⊕ "' (" ⊕ show x ⊕ ")"
 
-  in words_m_comment ⊳ sepEndBy (BashComment ⊳ comment ∤ BashWord ⊳ word) someSpace
+      isNonNLSpace c = isSpace c ∧ c ≢ '\n'
+      nonNLSpace = satisfy isNonNLSpace
+      someNonNLSpace = some nonNLSpace
+
+  in words_m_comment ⊳ sepEndBy (BashComment ⊳ bash_comment ∤ BashWord ⊳ word) someNonNLSpace
+
+
 {- | Note that sway doesn't do inline comments; however, the exec cmdline is
      passed to 'sh', which does -}
-bindsym ∷ Parser BindSym
-bindsym = BindSym' ⊳ nonSpace' ⊵ (many (noneOf "\n"))
+instance Parse BindSym where
+  parse = choice [ try $ BindSymExec ⊳ nonSpace' ⊵ token (string "exec") ⋫ restOfLineBash -- many (noneOf "\n")
+                 , BindSymRegular ⊳ nonSpace' ⊵ many (noneOf "\n") ]
 
 data SetVariable = SetV 𝕊 𝕊
   deriving Show
 
-setVariable ∷ Parser SetVariable
-setVariable = SetV ⊳ token (char '$' ⋫ nonSpace) ⊵ token (many (noneOf "\n"))
+instance Parse SetVariable where
+  parse = SetV ⊳ token (char '$' ⋫ nonSpace) ⊵ token (many (noneOf "\n"))
 
 data Output = OutputBG 𝕊 𝕊 𝕊
   deriving Show
 
-output ∷ Parser Output
-output = choice [ OutputBG Ⓣ "bg" ⊵ nonSpace' ⊵ nonSpace' ⊵ nonSpace'
-                ]
+instance Parse Output where
+  parse = choice [ OutputBG Ⓣ "bg" ⊵ nonSpace' ⊵ nonSpace' ⊵ nonSpace'
+                 ]
 
-newtype Command = Command 𝕊
+newtype ShCommand = ShCommand ([𝕊], 𝕄 𝕊)
   deriving Show
 
-command ∷ Parser Command
-command = Command ⊳ many (noneOf "\n")
+instance Parse ShCommand where
+  parse = ShCommand ⊳ restOfLineBash
+
+data TopOrBottom = Top | Bottom
+  deriving Show
+
+class Parse α where
+  parse ∷ Parser α
+
+instance Parse TopOrBottom where
+  parse = choice [ Top Ⓣ "top", Bottom Ⓣ "bottom" ]
+
+data Abled = Enabled | Disabled
+
+instance Parse Abled where
+  parse = choice [ Enabled Ⓣ "enabled", Disabled Ⓣ "disabled" ]
 
 clause ∷ Parser Clause
-clause =  choice [ Comment      ⊳ ((token (char '#') ⋫ many (noneOf "#\n")))
-                 , InputCommand ⊳ inputCommand
-                 , Font         ⊳ (ŧ "font" ⋫ font)
-                 , SetVariable  ⊳ (ŧ "set" ⋫ setVariable)
-                 , ExecAlways   ⊳ (ŧ "exec_always" ⋫ command)
-                 , Output       ⊳ (ŧ "output" ⋫ token nonSpace) ⊵ output
-                 , BindSym      ⊳ (ŧ "bindsym" ⋫ bindsym)
+clause =  choice [ Comment            ⊳ (token (char '#') ⋫ many (noneOf "#\n"))
+                 , InputCommand       ⊳ inputCommand
+                 , Font               ⊳ (ŧ "font" ⋫ font)
+                 , SetVariable        ⊳ (ŧ "set" ⋫ parse)
+                 , ExecAlways         ⊳ (ŧ "exec_always" ⋫ parse)
+                 , Output             ⊳ (ŧ "output" ⋫ token nonSpace) ⊵ parse
+                 , BindSym            ⊳ (ŧ "bindsym" ⋫ parse)
                  , floatingModifier
+                 , ModeStart          ⊳ (ŧ "mode" ⋫ nonSpace' ⋪ ç '{')
+                 , SubSectionStart    ⊳ (ŧ "bar" ⋪ ç '{')
+                 , SubSectionEnd © '}'
+                 , StatusCommand      ⊳ (ŧ "status_command" ⋫ parse)
+                 , StatusBarPosition  ⊳ (ŧ "position" ⋫ parse)
                  ]
 
 main ∷ IO ()
