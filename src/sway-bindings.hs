@@ -8,7 +8,7 @@ import Prelude  ( error )
 
 -- base --------------------------------
 
-import Data.Char         ( chr, isSpace, ord )
+import Data.Char         ( chr, isAlpha, isSpace, ord )
 import Data.Foldable     ( concat )
 import Data.Functor      ( (<$) )
 import Data.Monoid       ( mempty )
@@ -26,7 +26,7 @@ import Text.I18N.GetText  ( getText )
 import Text.Parser.Char         ( CharParsing, alphaNum, char, digit, hexDigit
                                 , noneOf, notChar, octDigit, oneOf, satisfy
                                 , satisfyRange, spaces, string )
-import Text.Parser.Combinators  ( choice, sepEndBy, try )
+import Text.Parser.Combinators  ( choice, count, sepEndBy, try )
 import Text.Parser.Token        ( TokenParsing, braces, token )
 
 -- text --------------------------------
@@ -122,9 +122,9 @@ deviceIdentifier = (,,) ⊳
 data Font = Pango 𝕊 | NonPango 𝕊
   deriving Show
 
-font ∷ Parser Font
-font = token $ choice [ Pango ⊳ try (string "pango:" ⋫ nonSpace)
-                      , NonPango ⊳ nonSpace ]
+instance Parse Font where
+  parse = token $ choice [ Pango ⊳ (string "pango:" ⋫ some (noneOf "\n"))
+                         , NonPango ⊳ (some $ noneOf "\n") ]
 
 data NormalOrInverse = Normal | Inverse
   deriving Show
@@ -142,7 +142,7 @@ newtype Comment = Comment' 𝕊
   deriving Show
 
 instance Parse Comment where
-  parse = Comment' ⊳ (ç '#' ⋫ many (noneOf "#\n"))
+  parse = Comment' ⊳ (ç '#' ⋫ many (noneOf "\n"))
 
 data Mode = Mode' 𝕊 [ BindSymOrComment ]
   deriving Show
@@ -150,13 +150,58 @@ data Mode = Mode' 𝕊 [ BindSymOrComment ]
 instance Parse Mode where
   parse = Mode' ⊳ (ŧ "mode" ⋫ nonSpace') ⊵ braces (many $ token parse)
 
+data SwayBarMode = SwayBarModeDock      | SwayBarModeHide
+                 | SwayBarModeInvisible | SwayBarModeOverlay
+  deriving Show
+
+instance Parse SwayBarMode where
+  parse = choice [ SwayBarModeDock      Ⓣ "dock"
+                 , SwayBarModeHide      Ⓣ "hide"
+                 , SwayBarModeInvisible Ⓣ "invisible"
+                 , SwayBarModeOverlay   Ⓣ "overlay"
+                 ]
+
+data Color = Color Word8 Word8 Word8
+  deriving Show
+
+instance Parse Color where
+  parse = let readHex = read ∘ ("0x" ⊕) ⊳ count 2 hexDigit
+          in  Color ⊳ (char '#' ⋫ readHex) ⊵ readHex ⊵ readHex
+
+newtype Identifier = Identifier 𝕊
+  deriving Show
+
+instance Parse Identifier where
+  parse = Identifier ⊳ some (satisfy (\ c → isAlpha c ∨ c ≡ '_'))
+
+data ColorAssignment = ColorAssignment Identifier Color
+  deriving Show
+
+instance Parse ColorAssignment where
+  parse = ColorAssignment ⊳ token parse ⊵ token parse
+
+instance Parse α ⇒ Parse [α] where
+  parse = many (token parse)
+
+instance (Parse α, Parse β) ⇒ Parse (𝔼 α β) where
+  parse = token $ choice [ 𝕷 ⊳ try parse, 𝕽 ⊳ parse ]
+
 data SwayBarCommand = SwayBarStatusCommand ShCommand
                     | SwayBarPosition      TopOrBottom
+                    | SwayBarFont          Font
+                    | SwayBarComment       Comment
+                    | SwayBarMode          SwayBarMode
+                    | SwayBarColors        [ 𝔼 ColorAssignment Comment ]
   deriving Show
 
 instance Parse SwayBarCommand where
   parse = token $ choice [ SwayBarStatusCommand ⊳ (ŧ "status_command" ⋫ parse)
-                         , SwayBarPosition ⊳ (ŧ "position" ⋫ parse) ]
+                         , SwayBarPosition      ⊳ (ŧ "position" ⋫ parse)
+                         , SwayBarFont          ⊳ (ŧ "font" ⋫ parse)
+                         , SwayBarComment       ⊳ parse
+                         , SwayBarMode          ⊳ (ŧ "mode" ⋫ parse)
+                         , SwayBarColors        ⊳ (ŧ "colors" ⋫ braces parse)
+                         ]
 
 data SwayBar = SwayBar' [ SwayBarCommand ]
   deriving Show
@@ -333,7 +378,7 @@ instance Parse Abled where
 clause ∷ Parser Clause
 clause =  choice [ Comment          ⊳ parse
                  , InputCommand     ⊳ parse
-                 , Font             ⊳ (ŧ "font" ⋫ font)
+                 , Font             ⊳ (ŧ "font" ⋫ parse)
                  , SetVariable      ⊳ (ŧ "set" ⋫ parse)
                  , ExecAlways       ⊳ (ŧ "exec_always" ⋫ parse)
                  , Output           ⊳ (ŧ "output" ⋫ token nonSpace) ⊵ parse
