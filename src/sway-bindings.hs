@@ -41,83 +41,116 @@ import Text.Trifecta.Result  ( Result( Failure, Success ) )
 
 --------------------------------------------------------------------------------
 
-swaymsgPath ∷ 𝕊
-swaymsgPath = "/run/current-system/sw/bin/swaymsg"
+class Parse α where
+  parse ∷ Parser α
 
 ----------------------------------------
-
-data InputType = Keyboard | TouchPad
-  deriving Show
-
-data AccelProfile = Adaptive | Flat
 
 ç ∷ TokenParsing η ⇒ ℂ → η ℂ
 ç = token ∘ char
 
+----------------------------------------
+
 ŧ ∷ TokenParsing η ⇒ 𝕊 → η 𝕊
 ŧ = token ∘ string
+
+----------------------------------------
 
 (Ⓣ) ∷ CharParsing η ⇒ α → 𝕊 → η α
 (Ⓣ) a s = a <$ string s
 
-(©) ∷ CharParsing η ⇒ α → ℂ → η α
-(©) a c = a <$ char c
+----------------------------------------
 
-upto ∷ ℕ → Parser a → Parser [a]
-upto n p | n > 0 = (:) ⊳ try p ⊵ (upto (n-1) p ∤ return [])
-          | otherwise = return []
+namedParse ∷ TokenParsing η ⇒ (α → β) → 𝕊 → η α → η β
+namedParse f s p = f ⊳ (ŧ s ⋫ p)
 
-upto1 ∷ ℕ → Parser a → Parser [a]
-upto1 n p | n > 0 = (:) ⊳ p ⊵ upto (n-1) p
-          | otherwise = return []
+--------------------
+
+(⇨) ∷ Parse α ⇒ 𝕊 → (α → β) → Parser β
+s ⇨ f = namedParse f s parse
+
+----------------------------------------
 
 nonSpace ∷ CharParsing η ⇒ η 𝕊
 nonSpace = many ∘ satisfy $ not ∘ isSpace
 
+--------------------
+
 nonSpace' ∷ TokenParsing η ⇒ η 𝕊
 nonSpace' = token nonSpace
 
-comment ∷ Parser 𝕊
-comment = char '#' ⋫ many (noneOf "\n")
+------------------------------------------------------------
+--                         types                          --
+------------------------------------------------------------
+
+data InputType = Keyboard | TouchPad
+  deriving Show
+
+instance Parse InputType where
+  parse ∷ Parser InputType
+  parse = choice [ Keyboard Ⓣ "keyboard",  TouchPad Ⓣ "touchpad" ]
+
+------------------------------------------------------------
+
+data AccelProfile = Adaptive | Flat
+
+instance Parse AccelProfile where
+  parse = choice [ Adaptive Ⓣ "adaptive", Flat Ⓣ "flat" ]
+
+------------------------------------------------------------
 
 data ClickMethod = ClickNone | ButtonAreas | ClickFinger
 
 instance Parse ClickMethod where
-  parse = choice [ ClickNone Ⓣ "none"
+  parse = choice [ ClickNone   Ⓣ "none"
                  , ButtonAreas Ⓣ "button_areas"
                  , ClickFinger Ⓣ "clickfinger"
                  ]
 
-data InputSubCommands = XKBFile 𝕊
-                      | IComment 𝕊
+------------------------------------------------------------
+
+data InputSubCommands = XKBFile      𝕊
+                      | IComment     Comment
                       | AccelProfile AccelProfile
-                      | DWT Abled
-                      | ClickMethod ClickMethod
+                      | DWT          Abled
+                      | ClickMethod  ClickMethod
 
 instance Parse InputSubCommands where
   parse =
-    let accel_profile = choice [ Adaptive <$ string "adaptive"
-                               , Flat <$ string "flat" ]
-    in  choice [ XKBFile ⊳ (ŧ "xkb_file" ⋫ nonSpace)
-               , AccelProfile ⊳ (ŧ "accel_profile" ⋫ accel_profile)
-               , DWT ⊳ (ŧ "dwt" ⋫ parse)
-               , IComment ⊳ comment
-               , ClickMethod ⊳ (ŧ "click_method" ⋫ parse)
-               ]
+    choice [ namedParse XKBFile "xkb_file" nonSpace
+           , "accel_profile" ⇨ AccelProfile
+           , "dwt"           ⇨ DWT
+           , "click_method"  ⇨ ClickMethod
+           , IComment        ⊳ parse
+           ]
+
+----------------------------------------
+
+data InputSpecifier = InputId_ (𝕊,𝕊,𝕊) | InputType_ InputType
+
+instance Parse InputSpecifier where
+  parse = let deviceIdentifier ∷ Parser (𝕊,𝕊,𝕊)
+              deviceIdentifier = (,,) ⊳ (many digit ⋪ char ':')
+                                      ⊵ (many digit ⋪ char ':')
+                                      ⊵ many (alphaNum ∤ oneOf "/:_")
+          in  (string "type:" ⋫ (InputType_ ⊳ parse)) ∤ (InputId_ ⊳ deviceIdentifier)
+
+----------------------------------------
 
 data InputCommands = InputId (𝕊,𝕊,𝕊) | InputType InputType
   deriving Show
 
 instance Parse InputCommands where
-  parse =
-    let input_id = (string "type:" ⋫ choice [InputType Keyboard <$ string "keyboard"
-                                            ,InputType TouchPad <$ string "touchpad"])
-                 ∤ (InputId ⊳ deviceIdentifier)
-    in  ŧ "input" ⋫ (token input_id ⋪ braces (many $ token (parse @InputSubCommands)))
+  parse = let deviceIdentifier ∷ Parser (𝕊,𝕊,𝕊)
+              deviceIdentifier = (,,) ⊳ (many digit ⋪ char ':')
+                                      ⊵ (many digit ⋪ char ':')
+                                      ⊵ many (alphaNum ∤ oneOf "/:_")
 
-deviceIdentifier ∷ Parser (𝕊,𝕊,𝕊)
-deviceIdentifier = (,,) ⊳
-  (many digit ⋪ char ':') ⊵ (many digit ⋪ char ':') ⊵ many (alphaNum ∤ oneOf "/:_")
+              input_id = (string "type:" ⋫ (InputType ⊳ parse))
+                       ∤ (InputId ⊳ deviceIdentifier)
+          in  ŧ "input" ⋫ (token input_id ⋪ braces (many $ token (parse @InputSubCommands)))
+
+------------------------------------------------------------
 
 data Font = Pango 𝕊 | NonPango 𝕊
   deriving Show
@@ -126,11 +159,15 @@ instance Parse Font where
   parse = token $ choice [ Pango ⊳ (string "pango:" ⋫ some (noneOf "\n"))
                          , NonPango ⊳ (some $ noneOf "\n") ]
 
+------------------------------------------------------------
+
 data NormalOrInverse = Normal | Inverse
   deriving Show
 
 instance Parse NormalOrInverse where
   parse = choice [ Normal Ⓣ "normal", Inverse Ⓣ "inverse" ]
+
+------------------------------------------------------------
 
 data BindSymOrComment = BSOCBindSym BindSym | BSOCComment Comment
   deriving Show
@@ -138,17 +175,23 @@ data BindSymOrComment = BSOCBindSym BindSym | BSOCComment Comment
 instance Parse BindSymOrComment where
   parse = choice [ BSOCBindSym ⊳ parse, BSOCComment ⊳ parse ]
 
+------------------------------------------------------------
+
 newtype Comment = Comment' 𝕊
   deriving Show
 
 instance Parse Comment where
   parse = Comment' ⊳ (ç '#' ⋫ many (noneOf "\n"))
 
+------------------------------------------------------------
+
 data Mode = Mode' 𝕊 [ BindSymOrComment ]
   deriving Show
 
 instance Parse Mode where
   parse = Mode' ⊳ (ŧ "mode" ⋫ nonSpace') ⊵ braces (many $ token parse)
+
+------------------------------------------------------------
 
 data SwayBarMode = SwayBarModeDock      | SwayBarModeHide
                  | SwayBarModeInvisible | SwayBarModeOverlay
@@ -160,6 +203,19 @@ instance Parse SwayBarMode where
                  , SwayBarModeInvisible Ⓣ "invisible"
                  , SwayBarModeOverlay   Ⓣ "overlay"
                  ]
+
+------------------------------------------------------------
+
+swaymsgPath ∷ 𝕊
+swaymsgPath = "/run/current-system/sw/bin/swaymsg"
+
+upto ∷ ℕ → Parser a → Parser [a]
+upto n p | n > 0 = (:) ⊳ try p ⊵ (upto (n-1) p ∤ return [])
+          | otherwise = return []
+
+upto1 ∷ ℕ → Parser a → Parser [a]
+upto1 n p | n > 0 = (:) ⊳ p ⊵ upto (n-1) p
+          | otherwise = return []
 
 data Color = Color Word8 Word8 Word8
   deriving Show
@@ -363,9 +419,6 @@ instance Parse ShCommand where
 
 data TopOrBottom = Top | Bottom
   deriving Show
-
-class Parse α where
-  parse ∷ Parser α
 
 instance Parse TopOrBottom where
   parse = choice [ Top Ⓣ "top", Bottom Ⓣ "bottom" ]
