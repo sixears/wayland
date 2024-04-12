@@ -253,17 +253,6 @@ instance Parse SwayBarMode where
 
 ------------------------------------------------------------
 
-swaymsgPath ∷ 𝕊
-swaymsgPath = "/run/current-system/sw/bin/swaymsg"
-
-upto ∷ ℕ → Parser a → Parser [a]
-upto n p | n > 0 = (:) ⊳ try p ⊵ (upto (n-1) p ∤ return [])
-          | otherwise = return []
-
-upto1 ∷ ℕ → Parser a → Parser [a]
-upto1 n p | n > 0 = (:) ⊳ p ⊵ upto (n-1) p
-          | otherwise = return []
-
 data SwayBarCommand = SwayBarStatusCommand ShCommand
                     | SwayBarPosition      TopOrBottom
                     | SwayBarFont          Font
@@ -276,16 +265,32 @@ instance Parse SwayBarCommand where
   parse = token $ choice [ SwayBarStatusCommand ⊳ (ѧ "status_command")
                          , SwayBarPosition      ⊳ (ѧ "position")
                          , SwayBarFont          ⊳ (ѧ "font")
-                         , SwayBarComment       ⊳ parse
                          , SwayBarMode          ⊳ (ѧ "mode")
                          , SwayBarColors        ⊳ (ŧ "colors" ⋫ braces parse)
+                         , SwayBarComment       ⊳ parse
                          ]
+
+------------------------------------------------------------
 
 data SwayBar = SwayBar' [ SwayBarCommand ]
   deriving Show
 
 instance Parse SwayBar where
   parse = SwayBar' ⊳ (ŧ "bar" ⋫ braces parse)
+
+------------------------------------------------------------
+
+swaymsgPath ∷ 𝕊
+swaymsgPath = "/run/current-system/sw/bin/swaymsg"
+
+upto ∷ ℕ → Parser a → Parser [a]
+upto n p | n > 0 = (:) ⊳ try p ⊵ (upto (n-1) p ∤ return [])
+          | otherwise = return []
+
+upto1 ∷ ℕ → Parser a → Parser [a]
+upto1 n p | n > 0 = (:) ⊳ p ⊵ upto (n-1) p
+          | otherwise = return []
+
 
 data Clause = Comment           Comment
             | InputCommand      InputCommands
@@ -457,11 +462,6 @@ clause =  choice [ Comment          ⊳ parse
                  , floatingModifier
                  , Mode             ⊳ parse
                  , SwayBar          ⊳ parse
---                 , ModeStart          ⊳ (ŧ "mode" ⋫ nonSpace' ⋪ ç '{')
---                 , SubSectionStart    ⊳ (ŧ "bar" ⋪ ç '{')
---                 , SubSectionEnd © '}'
-
---                 , StatusBarPosition  ⊳ (ѧ "position")
                  ]
 
 main ∷ IO ()
@@ -469,7 +469,7 @@ main = do
   cfg ← readProcess swaymsgPath [ "-t", "get_config", "--pretty" ] ""
 
   let prsr = spaces ⋫ (many $ token clause)
-  let r = parseString prsr mempty cfg -- " # foo\n # bar"
+  let r = parseString prsr mempty cfg
   case r of
     Success s → forM_ s (putStrLn ∘ pack ∘ show)
     Failure e → putStrLn ∘ pack $ show e
