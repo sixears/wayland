@@ -43,8 +43,20 @@ import Text.Trifecta.Result  ( Result( Failure, Success ) )
 
 class Parse α where
   parse ∷ Parser α
+  tparse ∷ Parser α
+  tparse = token parse
 
-----------------------------------------
+--------------------
+
+instance Parse α ⇒ Parse [α] where
+  parse = many tparse
+
+--------------------
+
+instance (Parse α, Parse β) ⇒ Parse (𝔼 α β) where
+  parse = token $ choice [ 𝕷 ⊳ try parse, 𝕽 ⊳ parse ]
+
+------------------------------------------------------------
 
 ç ∷ TokenParsing η ⇒ ℂ → η ℂ
 ç = token ∘ char
@@ -56,8 +68,13 @@ class Parse α where
 
 ----------------------------------------
 
-(Ⓣ) ∷ CharParsing η ⇒ α → 𝕊 → η α
-(Ⓣ) a s = a <$ string s
+ѧ ∷ Parse α ⇒ 𝕊 → Parser α
+ѧ s = ŧ s ⋫ tparse
+
+----------------------------------------
+
+(↦) ∷ CharParsing η ⇒ 𝕊 → α → η α
+s ↦ a = a <$ string s
 
 ----------------------------------------
 
@@ -67,7 +84,7 @@ namedParse f s p = f ⊳ (ŧ s ⋫ p)
 --------------------
 
 (⇨) ∷ Parse α ⇒ 𝕊 → (α → β) → Parser β
-s ⇨ f = namedParse f s parse
+s ⇨ f = namedParse f s tparse
 
 ----------------------------------------
 
@@ -83,39 +100,58 @@ nonSpace' = token nonSpace
 --                         types                          --
 ------------------------------------------------------------
 
+newtype Identifier = Identifier 𝕊
+  deriving Show
+
+instance Parse Identifier where
+  parse = Identifier ⊳ some (satisfy (\ c → isAlpha c ∨ c ≡ '_'))
+
+------------------------------------------------------------
+
 data InputType = Keyboard | TouchPad
   deriving Show
 
 instance Parse InputType where
   parse ∷ Parser InputType
-  parse = choice [ Keyboard Ⓣ "keyboard",  TouchPad Ⓣ "touchpad" ]
+  parse = choice [ "keyboard" ↦ Keyboard,  "touchpad" ↦ TouchPad ]
 
 ------------------------------------------------------------
 
 data AccelProfile = Adaptive | Flat
+  deriving Show
 
 instance Parse AccelProfile where
-  parse = choice [ Adaptive Ⓣ "adaptive", Flat Ⓣ "flat" ]
+  parse = choice [ "adaptive" ↦ Adaptive, "flat" ↦ Flat ]
 
 ------------------------------------------------------------
 
 data ClickMethod = ClickNone | ButtonAreas | ClickFinger
+  deriving Show
 
 instance Parse ClickMethod where
-  parse = choice [ ClickNone   Ⓣ "none"
-                 , ButtonAreas Ⓣ "button_areas"
-                 , ClickFinger Ⓣ "clickfinger"
+  parse = choice [ "none"         ↦ ClickNone
+                 , "button_areas" ↦ ButtonAreas
+                 , "clickfinger"  ↦ ClickFinger
                  ]
 
 ------------------------------------------------------------
 
-data InputSubCommands = XKBFile      𝕊
-                      | IComment     Comment
-                      | AccelProfile AccelProfile
-                      | DWT          Abled
-                      | ClickMethod  ClickMethod
+data Abled = Enabled | Disabled
+  deriving Show
 
-instance Parse InputSubCommands where
+instance Parse Abled where
+  parse = choice [ "enabled" ↦ Enabled, "disabled" ↦ Disabled ]
+
+------------------------------------------------------------
+
+data InputSubCommand = XKBFile      𝕊
+                     | IComment     Comment
+                     | AccelProfile AccelProfile
+                     | DWT          Abled
+                     | ClickMethod  ClickMethod
+  deriving Show
+
+instance Parse InputSubCommand where
   parse =
     choice [ namedParse XKBFile "xkb_file" nonSpace
            , "accel_profile" ⇨ AccelProfile
@@ -126,29 +162,23 @@ instance Parse InputSubCommands where
 
 ----------------------------------------
 
-data InputSpecifier = InputId_ (𝕊,𝕊,𝕊) | InputType_ InputType
+data InputSpecifier = InputId (𝕊,𝕊,𝕊) | InputType InputType
+  deriving Show
 
 instance Parse InputSpecifier where
   parse = let deviceIdentifier ∷ Parser (𝕊,𝕊,𝕊)
               deviceIdentifier = (,,) ⊳ (many digit ⋪ char ':')
                                       ⊵ (many digit ⋪ char ':')
                                       ⊵ many (alphaNum ∤ oneOf "/:_")
-          in  (string "type:" ⋫ (InputType_ ⊳ parse)) ∤ (InputId_ ⊳ deviceIdentifier)
+          in  (string "type:" ⋫ (InputType ⊳ parse)) ∤ (InputId ⊳ deviceIdentifier)
 
 ----------------------------------------
 
-data InputCommands = InputId (𝕊,𝕊,𝕊) | InputType InputType
+data InputCommands = InputCommands InputSpecifier [InputSubCommand]
   deriving Show
 
 instance Parse InputCommands where
-  parse = let deviceIdentifier ∷ Parser (𝕊,𝕊,𝕊)
-              deviceIdentifier = (,,) ⊳ (many digit ⋪ char ':')
-                                      ⊵ (many digit ⋪ char ':')
-                                      ⊵ many (alphaNum ∤ oneOf "/:_")
-
-              input_id = (string "type:" ⋫ (InputType ⊳ parse))
-                       ∤ (InputId ⊳ deviceIdentifier)
-          in  ŧ "input" ⋫ (token input_id ⋪ braces (many $ token (parse @InputSubCommands)))
+  parse = InputCommands ⊳ ѧ "input" ⊵ braces parse
 
 ------------------------------------------------------------
 
@@ -165,7 +195,7 @@ data NormalOrInverse = Normal | Inverse
   deriving Show
 
 instance Parse NormalOrInverse where
-  parse = choice [ Normal Ⓣ "normal", Inverse Ⓣ "inverse" ]
+  parse = choice [ "normal" ↦ Normal, "inverse" ↦ Inverse ]
 
 ------------------------------------------------------------
 
@@ -189,7 +219,24 @@ data Mode = Mode' 𝕊 [ BindSymOrComment ]
   deriving Show
 
 instance Parse Mode where
-  parse = Mode' ⊳ (ŧ "mode" ⋫ nonSpace') ⊵ braces (many $ token parse)
+  parse = Mode' ⊳ (ŧ "mode" ⋫ nonSpace') ⊵ braces parse
+
+------------------------------------------------------------
+
+data Color = Color Word8 Word8 Word8
+  deriving Show
+
+instance Parse Color where
+  parse = let readHex = read ∘ ("0x" ⊕) ⊳ count 2 hexDigit
+          in  Color ⊳ (char '#' ⋫ readHex) ⊵ readHex ⊵ readHex
+
+------------------------------------------------------------
+
+data ColorAssignment = ColorAssignment Identifier Color
+  deriving Show
+
+instance Parse ColorAssignment where
+  parse = ColorAssignment ⊳ tparse ⊵ tparse
 
 ------------------------------------------------------------
 
@@ -198,10 +245,10 @@ data SwayBarMode = SwayBarModeDock      | SwayBarModeHide
   deriving Show
 
 instance Parse SwayBarMode where
-  parse = choice [ SwayBarModeDock      Ⓣ "dock"
-                 , SwayBarModeHide      Ⓣ "hide"
-                 , SwayBarModeInvisible Ⓣ "invisible"
-                 , SwayBarModeOverlay   Ⓣ "overlay"
+  parse = choice [ "dock"      ↦ SwayBarModeDock
+                 , "hide"      ↦ SwayBarModeHide
+                 , "invisible" ↦ SwayBarModeInvisible
+                 , "overlay"   ↦ SwayBarModeOverlay
                  ]
 
 ------------------------------------------------------------
@@ -217,31 +264,6 @@ upto1 ∷ ℕ → Parser a → Parser [a]
 upto1 n p | n > 0 = (:) ⊳ p ⊵ upto (n-1) p
           | otherwise = return []
 
-data Color = Color Word8 Word8 Word8
-  deriving Show
-
-instance Parse Color where
-  parse = let readHex = read ∘ ("0x" ⊕) ⊳ count 2 hexDigit
-          in  Color ⊳ (char '#' ⋫ readHex) ⊵ readHex ⊵ readHex
-
-newtype Identifier = Identifier 𝕊
-  deriving Show
-
-instance Parse Identifier where
-  parse = Identifier ⊳ some (satisfy (\ c → isAlpha c ∨ c ≡ '_'))
-
-data ColorAssignment = ColorAssignment Identifier Color
-  deriving Show
-
-instance Parse ColorAssignment where
-  parse = ColorAssignment ⊳ token parse ⊵ token parse
-
-instance Parse α ⇒ Parse [α] where
-  parse = many (token parse)
-
-instance (Parse α, Parse β) ⇒ Parse (𝔼 α β) where
-  parse = token $ choice [ 𝕷 ⊳ try parse, 𝕽 ⊳ parse ]
-
 data SwayBarCommand = SwayBarStatusCommand ShCommand
                     | SwayBarPosition      TopOrBottom
                     | SwayBarFont          Font
@@ -251,11 +273,11 @@ data SwayBarCommand = SwayBarStatusCommand ShCommand
   deriving Show
 
 instance Parse SwayBarCommand where
-  parse = token $ choice [ SwayBarStatusCommand ⊳ (ŧ "status_command" ⋫ parse)
-                         , SwayBarPosition      ⊳ (ŧ "position" ⋫ parse)
-                         , SwayBarFont          ⊳ (ŧ "font" ⋫ parse)
+  parse = token $ choice [ SwayBarStatusCommand ⊳ (ѧ "status_command")
+                         , SwayBarPosition      ⊳ (ѧ "position")
+                         , SwayBarFont          ⊳ (ѧ "font")
                          , SwayBarComment       ⊳ parse
-                         , SwayBarMode          ⊳ (ŧ "mode" ⋫ parse)
+                         , SwayBarMode          ⊳ (ѧ "mode")
                          , SwayBarColors        ⊳ (ŧ "colors" ⋫ braces parse)
                          ]
 
@@ -263,7 +285,7 @@ data SwayBar = SwayBar' [ SwayBarCommand ]
   deriving Show
 
 instance Parse SwayBar where
-  parse = SwayBar' ⊳ (ŧ "bar" ⋫ braces (many $ token parse))
+  parse = SwayBar' ⊳ (ŧ "bar" ⋫ braces parse)
 
 data Clause = Comment           Comment
             | InputCommand      InputCommands
@@ -408,7 +430,7 @@ data Output = OutputBG 𝕊 𝕊 𝕊
   deriving Show
 
 instance Parse Output where
-  parse = choice [ OutputBG Ⓣ "bg" ⊵ nonSpace' ⊵ nonSpace' ⊵ nonSpace'
+  parse = choice [ "bg" ↦ OutputBG ⊵ nonSpace' ⊵ nonSpace' ⊵ nonSpace'
                  ]
 
 newtype ShCommand = ShCommand ([𝕊], 𝕄 𝕊)
@@ -421,19 +443,15 @@ data TopOrBottom = Top | Bottom
   deriving Show
 
 instance Parse TopOrBottom where
-  parse = choice [ Top Ⓣ "top", Bottom Ⓣ "bottom" ]
+  parse = choice [ "top" ↦ Top, "bottom" ↦ Bottom ]
 
-data Abled = Enabled | Disabled
-
-instance Parse Abled where
-  parse = choice [ Enabled Ⓣ "enabled", Disabled Ⓣ "disabled" ]
 
 clause ∷ Parser Clause
 clause =  choice [ Comment          ⊳ parse
                  , InputCommand     ⊳ parse
-                 , Font             ⊳ (ŧ "font" ⋫ parse)
-                 , SetVariable      ⊳ (ŧ "set" ⋫ parse)
-                 , ExecAlways       ⊳ (ŧ "exec_always" ⋫ parse)
+                 , Font             ⊳ (ѧ "font")
+                 , SetVariable      ⊳ (ѧ "set")
+                 , ExecAlways       ⊳ (ѧ "exec_always")
                  , Output           ⊳ (ŧ "output" ⋫ token nonSpace) ⊵ parse
                  , BindSym          ⊳ parse
                  , floatingModifier
@@ -443,7 +461,7 @@ clause =  choice [ Comment          ⊳ parse
 --                 , SubSectionStart    ⊳ (ŧ "bar" ⋪ ç '{')
 --                 , SubSectionEnd © '}'
 
---                 , StatusBarPosition  ⊳ (ŧ "position" ⋫ parse)
+--                 , StatusBarPosition  ⊳ (ѧ "position")
                  ]
 
 main ∷ IO ()
