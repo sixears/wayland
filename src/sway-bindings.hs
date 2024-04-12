@@ -300,16 +300,18 @@ data Clause = Comment           Comment
             | Output            𝕊 Output
             | BindSym           BindSym
             | FloatingModifier  𝕊 NormalOrInverse
---            | ModeStart         𝕊
             | Mode              Mode
             | SwayBar           SwayBar
---            | SubSectionStart   𝕊
---            | SubSectionEnd
---            | StatusBarPosition TopOrBottom
   deriving Show
 
 data BindSym = BindSymRegular 𝕊 𝕊 | BindSymExec 𝕊 ([𝕊], 𝕄 𝕊)
   deriving Show
+
+{- | Note that sway doesn't do inline comments; however, the exec cmdline is
+     passed to 'sh', which does -}
+instance Parse BindSym where
+  parse = ŧ "bindsym" ⋫ choice [ try $ BindSymExec ⊳ nonSpace' ⊵ token (string "exec") ⋫ restOfLineBash -- many (noneOf "\n")
+                 , BindSymRegular ⊳ nonSpace' ⊵ many (noneOf "\n") ]
 
 floatingModifier ∷ Parser Clause
 floatingModifier =
@@ -326,6 +328,12 @@ floatingModifier =
 
 data CommentOrWord = BashComment 𝕊 | BashWord 𝕊
   deriving Show
+
+(↝) ∷ CharParsing φ ⇒ ℂ → α → φ α
+c ↝ x = char c ⋫ pure x
+
+(↬) ∷ CharParsing φ ⇒ ℂ → φ α → φ α
+c ↬ x = char c ⋫ x
 
 {- | Parse the rest of the line as a list of of words, much as bash would -}
 restOfLineBash ∷ Parser ([𝕊], 𝕄 𝕊)
@@ -374,22 +382,22 @@ restOfLineBash =
             chars =
               let nhex n = pure ∘ read_hex ⊳ upto1 n hexDigit
               in  choice [ some (noneOf "\'\\")
-                         , char '\\' ⋫ choice [ char 'a' ⋫ pure "\BEL"
-                                              , char 'b' ⋫ pure "\BS"
-                                              , char 'e' ⋫ pure "\ESC"
-                                              , char 'E' ⋫ pure "\ESC"
-                                              , char 'f' ⋫ pure "\FF"
-                                              , char 'n' ⋫ pure "\LF"
-                                              , char 'r' ⋫ pure "\CR"
-                                              , char 't' ⋫ pure "\HT"
-                                              , char 'v' ⋫ pure "\VT"
+                         , char '\\' ⋫ choice [ 'a' ↝ "\BEL"
+                                              , 'b' ↝ "\BS"
+                                              , 'e' ↝ "\ESC"
+                                              , 'E' ↝ "\ESC"
+                                              , 'f' ↝ "\FF"
+                                              , 'n' ↝ "\LF"
+                                              , 'r' ↝ "\CR"
+                                              , 't' ↝ "\HT"
+                                              , 'v' ↝ "\VT"
                                               , pure ⊳ oneOf "'?\\\""
                                               , pure ⊳ octal_8bit
-                                              , char 'x' ⋫ nhex 2
-                                              , char 'u' ⋫ nhex 4
-                                              , char 'U' ⋫ nhex 8
-                                              , char 'c' ⋫ (c_range 'a' 'z' ∤
-                                                            c_range 'A' 'Z')
+                                              , 'x' ↬ nhex 2
+                                              , 'u' ↬ nhex 4
+                                              , 'U' ↬ nhex 8
+                                              , 'c' ↬ (c_range 'a' 'z' ∤
+                                                       c_range 'A' 'Z')
                                               ]
                            ]
         in  string "$'" ⋫ (ю ⊳ many chars) ⋪ char '\''
@@ -400,8 +408,12 @@ restOfLineBash =
 -- this needs to interpolate quoted things, too
 -- and then handle comments
       word ∷ Parser 𝕊
-      word = concat ⊳ some (choice [ unquoted_word, dquoted_word, quoted_word
-                          , dollar_quoted_word, dollar_double_quoted_word ])
+      word = concat ⊳ some (choice [ unquoted_word
+                                   , dquoted_word
+                                   , quoted_word
+                                   , dollar_quoted_word
+                                   , dollar_double_quoted_word
+                                   ])
 
       bash_comment ∷ Parser 𝕊
       bash_comment = char '#' ⋫ many (noneOf "#\n")
@@ -417,13 +429,10 @@ restOfLineBash =
       nonNLSpace = satisfy isNonNLSpace
       someNonNLSpace = some nonNLSpace
 
-  in words_m_comment ⊳ sepEndBy (BashComment ⊳ bash_comment ∤ BashWord ⊳ word) someNonNLSpace
+      bc ∷ Parser CommentOrWord
+      bc = BashComment ⊳ bash_comment ∤ BashWord ⊳ word
 
-{- | Note that sway doesn't do inline comments; however, the exec cmdline is
-     passed to 'sh', which does -}
-instance Parse BindSym where
-  parse = ŧ "bindsym" ⋫ choice [ try $ BindSymExec ⊳ nonSpace' ⊵ token (string "exec") ⋫ restOfLineBash -- many (noneOf "\n")
-                 , BindSymRegular ⊳ nonSpace' ⊵ many (noneOf "\n") ]
+  in words_m_comment ⊳ sepEndBy (BashComment ⊳ bash_comment ∤ BashWord ⊳ word) someNonNLSpace
 
 data SetVariable = SetV 𝕊 𝕊
   deriving Show
