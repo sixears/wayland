@@ -342,59 +342,57 @@ newtype BashWord = BashWord' 𝕊
   deriving Show
 
 instance Parse BashWord where
-  parse = BashWord' ⊳ bashWord
+  {- | Parse the rest of the line as a list of of words, much as bash would -}
+  -- a single bash word, which may consist of (say),
+  -- bare-stuff"followed by"$'quoted things'
+  parse = BashWord' ⊳
+    concat ⊳ some (choice [ unquoted_word, dquoted_word, quoted_word
+                          , dollar_quoted_word, dollar_double_quoted_word
+                          ])
+    where metachars = "|&;()<> \t\n"
+          unquoted_word = some (noneOf metachars)
+          dq_chars = choice [ some (noneOf "\\\"\n")
+                            , pure ⊳ (char '\\' ⋫ char '\\')
+                            , (:) ⊳ char '\\' ⊵ (pure ⊳ notChar '\n')
+                            ]
+          dquoted_word = char '"'  ⋫ (ю ⊳ many dq_chars) ⋪ char '"'
+          quoted_word  = char '\'' ⋫ many (notChar '\'') ⋪ char '\''
 
-{- | Parse the rest of the line as a list of of words, much as bash would -}
--- a single bash word, which may consist of (say),
--- bare-stuff"followed by"$'quoted things'
-bashWord ∷ Parser 𝕊
-bashWord = concat ⊳ some (choice [ unquoted_word, dquoted_word, quoted_word
-                                 , dollar_quoted_word, dollar_double_quoted_word
-                                 ])
-  where metachars = "|&;()<> \t\n"
-        unquoted_word = some (noneOf metachars)
-        dq_chars = choice [ some (noneOf "\\\"\n")
-                          , pure ⊳ (char '\\' ⋫ char '\\')
-                          , (:) ⊳ char '\\' ⊵ (pure ⊳ notChar '\n')
-                          ]
-        dquoted_word = char '"'  ⋫ (ю ⊳ many dq_chars) ⋪ char '"'
-        quoted_word  = char '\'' ⋫ many (notChar '\'') ⋪ char '\''
+          dollar_quoted_word =
+            let o_word_3      = (:) ⊳ oneOf "0123" ⊵ upto 2 octDigit
+                o_8bit_string = try o_word_3 ∤ upto1 2 octDigit
+                octal_8bit    = chr ∘ read ∘ ("0o" ⊕) ⊳ o_8bit_string
+                read_hex      = chr ∘ read ∘ ("0x" ⊕)
 
-        dollar_quoted_word =
-          let o_word_3      = (:) ⊳ oneOf "0123" ⊵ upto 2 octDigit
-              o_8bit_string = try o_word_3 ∤ upto1 2 octDigit
-              octal_8bit    = chr ∘ read ∘ ("0o" ⊕) ⊳ o_8bit_string
-              read_hex      = chr ∘ read ∘ ("0x" ⊕)
+                c_range a   z =
+                  let offset_ord = ord a - 1
+                  in  pure ∘ chr ∘ subtract offset_ord ∘ ord ⊳ satisfyRange a z
 
-              c_range a   z =
-                let offset_ord = ord a - 1
-                in  pure ∘ chr ∘ subtract offset_ord ∘ ord ⊳ satisfyRange a z
+                chars =
+                  let nhex n = pure ∘ read_hex ⊳ upto1 n hexDigit
+                  in  choice [ some (noneOf "\'\\")
+                             , char '\\' ⋫ choice [ 'a' ↝ "\BEL"
+                                                  , 'b' ↝ "\BS"
+                                                  , 'e' ↝ "\ESC"
+                                                  , 'E' ↝ "\ESC"
+                                                  , 'f' ↝ "\FF"
+                                                  , 'n' ↝ "\LF"
+                                                  , 'r' ↝ "\CR"
+                                                  , 't' ↝ "\HT"
+                                                  , 'v' ↝ "\VT"
+                                                  , 'x' ↬ nhex 2
+                                                  , 'u' ↬ nhex 4
+                                                  , 'U' ↬ nhex 8
+                                                  , 'c' ↬ (c_range 'a' 'z' ∤
+                                                           c_range 'A' 'Z')
+                                                  , pure ⊳ oneOf "'?\\\""
+                                                  , pure ⊳ octal_8bit
+                                                  ]
+                               ]
+            in  string "$'" ⋫ (ю ⊳ many chars) ⋪ char '\''
 
-              chars =
-                let nhex n = pure ∘ read_hex ⊳ upto1 n hexDigit
-                in  choice [ some (noneOf "\'\\")
-                           , char '\\' ⋫ choice [ 'a' ↝ "\BEL"
-                                                , 'b' ↝ "\BS"
-                                                , 'e' ↝ "\ESC"
-                                                , 'E' ↝ "\ESC"
-                                                , 'f' ↝ "\FF"
-                                                , 'n' ↝ "\LF"
-                                                , 'r' ↝ "\CR"
-                                                , 't' ↝ "\HT"
-                                                , 'v' ↝ "\VT"
-                                                , 'x' ↬ nhex 2
-                                                , 'u' ↬ nhex 4
-                                                , 'U' ↬ nhex 8
-                                                , 'c' ↬ (c_range 'a' 'z' ∤
-                                                         c_range 'A' 'Z')
-                                                , pure ⊳ oneOf "'?\\\""
-                                                , pure ⊳ octal_8bit
-                                                ]
-                             ]
-          in  string "$'" ⋫ (ю ⊳ many chars) ⋪ char '\''
-
-        dollar_double_quoted_word =
-          string "$\"" ⋫ (unsafePerformIO ∘ getText ⊳ dq_chars) ⋪ char '"'
+          dollar_double_quoted_word =
+            string "$\"" ⋫ (unsafePerformIO ∘ getText ⊳ dq_chars) ⋪ char '"'
 
 data BashWordOrComment = BashComment Comment | BashWord BashWord
   deriving Show
