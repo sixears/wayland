@@ -309,13 +309,13 @@ data Clause = Comment           Comment
             | SwayBar           SwayBar
   deriving Show
 
-data BindSym = BindSymRegular 𝕊 𝕊 | BindSymExec 𝕊 ([𝕊], 𝕄 𝕊)
+data BindSym = BindSymRegular 𝕊 𝕊 | BindSymExec 𝕊 BashLine
   deriving Show
 
 {- | Note that sway doesn't do inline comments; however, the exec cmdline is
      passed to 'sh', which does -}
 instance Parse BindSym where
-  parse = ŧ "bindsym" ⋫ choice [ try $ BindSymExec ⊳ nonSpace' ⊵ token (string "exec") ⋫ bashLine -- many (noneOf "\n")
+  parse = ŧ "bindsym" ⋫ choice [ try $ BindSymExec ⊳ nonSpace' ⊵ token (string "exec") ⋫ parse
                  , BindSymRegular ⊳ nonSpace' ⊵ many (noneOf "\n") ]
 
 floatingModifier ∷ Parser Clause
@@ -395,21 +395,24 @@ bashWord = concat ⊳ some (choice [ unquoted_word, dquoted_word, quoted_word
         dollar_double_quoted_word =
           string "$\"" ⋫ (unsafePerformIO ∘ getText ⊳ dq_chars) ⋪ char '"'
 
-bashLine ∷ Parser ([𝕊], 𝕄 𝕊)
-bashLine =
-  let words_m_comment ∷ [BashWordOrComment] → ([𝕊], 𝕄 𝕊)
-      words_m_comment (BashWord w : xs)   = first (w:) (words_m_comment xs)
-      words_m_comment [BashComment c]     = ([], 𝕵 c)
-      words_m_comment []                  = ([], 𝕹)
-      words_m_comment (BashComment c : x) =
-        error $ "non-terminating comment '" ⊕ c ⊕ "' (" ⊕ show x ⊕ ")"
+data BashLine = BashLine [𝕊] (𝕄 𝕊)
+  deriving Show
 
-      isNonNLSpace c = isSpace c ∧ c ≢ '\n'
-      nonNLSpace = satisfy isNonNLSpace
-      someNonNLSpace = some nonNLSpace
+instance Parse BashLine where
+  parse =
+    let words_m_comment ∷ [BashWordOrComment] → BashLine
+        words_m_comment (BashWord w : xs)   =
+          let BashLine ws c = words_m_comment xs
+          in  BashLine (w:ws) c
+        words_m_comment [BashComment c]     = BashLine [] (𝕵 c)
+        words_m_comment []                  = BashLine [] 𝕹
+        words_m_comment (BashComment c : x) =
+          error $ "non-terminating comment '" ⊕ c ⊕ "' (" ⊕ show x ⊕ ")"
 
-  in words_m_comment ⊳ sepEndBy parse someNonNLSpace
-
+        isNonNLSpace c = isSpace c ∧ c ≢ '\n'
+        nonNLSpace = satisfy isNonNLSpace
+        someNonNLSpace = some nonNLSpace
+    in words_m_comment ⊳ sepEndBy parse someNonNLSpace
 
 data SetVariable = SetV 𝕊 𝕊
   deriving Show
@@ -424,11 +427,12 @@ instance Parse Output where
   parse = choice [ "bg" ↦ OutputBG ⊵ nonSpace' ⊵ nonSpace' ⊵ nonSpace'
                  ]
 
-newtype ShCommand = ShCommand ([𝕊], 𝕄 𝕊)
+-- newtype ShCommand = ShCommand ([𝕊], 𝕄 𝕊)
+newtype ShCommand = ShCommand BashLine
   deriving Show
 
 instance Parse ShCommand where
-  parse = ShCommand ⊳ bashLine
+  parse = ShCommand ⊳ parse
 
 data TopOrBottom = Top | Bottom
   deriving Show
