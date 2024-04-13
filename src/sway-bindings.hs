@@ -61,6 +61,12 @@ instance (Parse α, Parse β) ⇒ Parse (𝔼 α β) where
 ç ∷ TokenParsing η ⇒ ℂ → η ℂ
 ç = token ∘ char
 
+(↝) ∷ CharParsing φ ⇒ ℂ → α → φ α
+c ↝ x = char c ⋫ pure x
+
+(↬) ∷ CharParsing φ ⇒ ℂ → φ α → φ α
+c ↬ x = char c ⋫ x
+
 ----------------------------------------
 
 ŧ ∷ TokenParsing η ⇒ 𝕊 → η 𝕊
@@ -68,13 +74,13 @@ instance (Parse α, Parse β) ⇒ Parse (𝔼 α β) where
 
 ----------------------------------------
 
-ѧ ∷ Parse α ⇒ 𝕊 → Parser α
-ѧ s = ŧ s ⋫ tparse
+þ ∷ Parse α ⇒ 𝕊 → Parser α
+þ s = ŧ s ⋫ tparse
 
 ----------------------------------------
 
-(↦) ∷ CharParsing η ⇒ 𝕊 → α → η α
-s ↦ a = a <$ string s
+(⟹) ∷ CharParsing η ⇒ 𝕊 → α → η α
+s ⟹ a = a <$ string s
 
 ----------------------------------------
 
@@ -118,7 +124,7 @@ data InputType = Keyboard | TouchPad
 
 instance Parse InputType where
   parse ∷ Parser InputType
-  parse = choice [ "keyboard" ↦ Keyboard,  "touchpad" ↦ TouchPad ]
+  parse = choice [ "keyboard" ⟹ Keyboard,  "touchpad" ⟹ TouchPad ]
 
 ------------------------------------------------------------
 
@@ -126,7 +132,7 @@ data AccelProfile = Adaptive | Flat
   deriving Show
 
 instance Parse AccelProfile where
-  parse = choice [ "adaptive" ↦ Adaptive, "flat" ↦ Flat ]
+  parse = choice [ "adaptive" ⟹ Adaptive, "flat" ⟹ Flat ]
 
 ------------------------------------------------------------
 
@@ -134,9 +140,9 @@ data ClickMethod = ButtonAreas | ClickNone | ClickFinger
   deriving Show
 
 instance Parse ClickMethod where
-  parse = choice [ "none"         ↦ ClickNone
-                 , "button_areas" ↦ ButtonAreas
-                 , "clickfinger"  ↦ ClickFinger
+  parse = choice [ "none"         ⟹ ClickNone
+                 , "button_areas" ⟹ ButtonAreas
+                 , "clickfinger"  ⟹ ClickFinger
                  ]
 
 ------------------------------------------------------------
@@ -145,7 +151,7 @@ data Abled = Enabled | Disabled
   deriving Show
 
 instance Parse Abled where
-  parse = choice [ "enabled" ↦ Enabled, "disabled" ↦ Disabled ]
+  parse = choice [ "enabled" ⟹ Enabled, "disabled" ⟹ Disabled ]
 
 ------------------------------------------------------------
 
@@ -175,7 +181,8 @@ instance Parse InputSpecifier where
               deviceIdentifier = (,,) ⊳ (many digit ⋪ char ':')
                                       ⊵ (many digit ⋪ char ':')
                                       ⊵ many (alphaNum ∤ oneOf "/:_")
-          in  (string "type:" ⋫ (InputType ⊳ parse)) ∤ (InputId ⊳ deviceIdentifier)
+          in    (string "type:" ⋫ (InputType ⊳ parse))
+              ∤ (InputId ⊳ deviceIdentifier)
 
 ----------------------------------------
 
@@ -183,7 +190,7 @@ data InputCommands = InputCommands InputSpecifier [InputSubCommand]
   deriving Show
 
 instance Parse InputCommands where
-  parse = InputCommands ⊳ ѧ "input" ⊵ braces parse
+  parse = InputCommands ⊳ þ "input" ⊵ braces parse
 
 ------------------------------------------------------------
 
@@ -200,7 +207,7 @@ data NormalOrInverse = Normal | Inverse
   deriving Show
 
 instance Parse NormalOrInverse where
-  parse = choice [ "normal" ↦ Normal, "inverse" ↦ Inverse ]
+  parse = choice [ "normal" ⟹ Normal, "inverse" ⟹ Inverse ]
 
 ------------------------------------------------------------
 
@@ -250,10 +257,10 @@ data SwayBarMode = SwayBarModeDock      | SwayBarModeHide
   deriving Show
 
 instance Parse SwayBarMode where
-  parse = choice [ "dock"      ↦ SwayBarModeDock
-                 , "hide"      ↦ SwayBarModeHide
-                 , "invisible" ↦ SwayBarModeInvisible
-                 , "overlay"   ↦ SwayBarModeOverlay
+  parse = choice [ "dock"      ⟹ SwayBarModeDock
+                 , "hide"      ⟹ SwayBarModeHide
+                 , "invisible" ⟹ SwayBarModeInvisible
+                 , "overlay"   ⟹ SwayBarModeOverlay
                  ]
 
 ------------------------------------------------------------
@@ -267,10 +274,10 @@ data SwayBarCommand = SwayBarStatusCommand ShCommand
   deriving Show
 
 instance Parse SwayBarCommand where
-  parse = token $ choice [ SwayBarStatusCommand ⊳ (ѧ "status_command")
-                         , SwayBarPosition      ⊳ (ѧ "position")
-                         , SwayBarFont          ⊳ (ѧ "font")
-                         , SwayBarMode          ⊳ (ѧ "mode")
+  parse = token $ choice [ SwayBarStatusCommand ⊳ (þ "status_command")
+                         , SwayBarPosition      ⊳ (þ "position")
+                         , SwayBarFont          ⊳ (þ "font")
+                         , SwayBarMode          ⊳ (þ "mode")
                          , SwayBarColors        ⊳ (ŧ "colors" ⋫ braces parse)
                          , SwayBarComment       ⊳ parse
                          ]
@@ -331,17 +338,11 @@ floatingModifier =
 -- command_comment ∷ Parser 𝕊 (𝕄 𝕊)
 -- command_comment = many (noneOf "\n#") -- # in a command is okay, probably
 
-data BashWordOrComment = BashComment 𝕊 | BashWord 𝕊
+newtype BashWord = BashWord' 𝕊
   deriving Show
 
-instance Parse BashWordOrComment where
-  parse = BashComment ⊳ comment ∤ BashWord ⊳ bashWord
-
-(↝) ∷ CharParsing φ ⇒ ℂ → α → φ α
-c ↝ x = char c ⋫ pure x
-
-(↬) ∷ CharParsing φ ⇒ ℂ → φ α → φ α
-c ↬ x = char c ⋫ x
+instance Parse BashWord where
+  parse = BashWord' ⊳ bashWord
 
 {- | Parse the rest of the line as a list of of words, much as bash would -}
 -- a single bash word, which may consist of (say),
@@ -395,7 +396,13 @@ bashWord = concat ⊳ some (choice [ unquoted_word, dquoted_word, quoted_word
         dollar_double_quoted_word =
           string "$\"" ⋫ (unsafePerformIO ∘ getText ⊳ dq_chars) ⋪ char '"'
 
-data BashLine = BashLine [𝕊] (𝕄 𝕊)
+data BashWordOrComment = BashComment Comment | BashWord BashWord
+  deriving Show
+
+instance Parse BashWordOrComment where
+  parse = BashComment ⊳ parse ∤ BashWord ⊳ parse
+
+data BashLine = BashLine [BashWord] (𝕄 Comment)
   deriving Show
 
 instance Parse BashLine where
@@ -407,7 +414,7 @@ instance Parse BashLine where
         words_m_comment [BashComment c]     = BashLine [] (𝕵 c)
         words_m_comment []                  = BashLine [] 𝕹
         words_m_comment (BashComment c : x) =
-          error $ "non-terminating comment '" ⊕ c ⊕ "' (" ⊕ show x ⊕ ")"
+          error $ "non-terminating comment '" ⊕ show c ⊕ "' (" ⊕ show x ⊕ ")"
 
         isNonNLSpace c = isSpace c ∧ c ≢ '\n'
         nonNLSpace = satisfy isNonNLSpace
@@ -424,7 +431,7 @@ data Output = OutputBG 𝕊 𝕊 𝕊
   deriving Show
 
 instance Parse Output where
-  parse = choice [ "bg" ↦ OutputBG ⊵ nonSpace' ⊵ nonSpace' ⊵ nonSpace'
+  parse = choice [ "bg" ⟹ OutputBG ⊵ nonSpace' ⊵ nonSpace' ⊵ nonSpace'
                  ]
 
 -- newtype ShCommand = ShCommand ([𝕊], 𝕄 𝕊)
@@ -438,15 +445,15 @@ data TopOrBottom = Top | Bottom
   deriving Show
 
 instance Parse TopOrBottom where
-  parse = choice [ "top" ↦ Top, "bottom" ↦ Bottom ]
+  parse = choice [ "top" ⟹ Top, "bottom" ⟹ Bottom ]
 
 
 clause ∷ Parser Clause
 clause =  choice [ Comment          ⊳ parse
                  , InputCommand     ⊳ parse
-                 , Font             ⊳ (ѧ "font")
-                 , SetVariable      ⊳ (ѧ "set")
-                 , ExecAlways       ⊳ (ѧ "exec_always")
+                 , Font             ⊳ (þ "font")
+                 , SetVariable      ⊳ (þ "set")
+                 , ExecAlways       ⊳ (þ "exec_always")
                  , Output           ⊳ (ŧ "output" ⋫ token nonSpace) ⊵ parse
                  , BindSym          ⊳ parse
                  , floatingModifier
