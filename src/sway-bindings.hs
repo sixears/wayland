@@ -96,6 +96,11 @@ nonSpace = many ∘ satisfy $ not ∘ isSpace
 nonSpace' ∷ TokenParsing η ⇒ η 𝕊
 nonSpace' = token nonSpace
 
+----------------------------------------
+
+comment ∷ Parser 𝕊
+comment = ç '#' ⋫ many (noneOf "\n")
+
 ------------------------------------------------------------
 --                         types                          --
 ------------------------------------------------------------
@@ -125,7 +130,7 @@ instance Parse AccelProfile where
 
 ------------------------------------------------------------
 
-data ClickMethod = ClickNone | ButtonAreas | ClickFinger
+data ClickMethod = ButtonAreas | ClickNone | ClickFinger
   deriving Show
 
 instance Parse ClickMethod where
@@ -211,7 +216,7 @@ newtype Comment = Comment' 𝕊
   deriving Show
 
 instance Parse Comment where
-  parse = Comment' ⊳ (ç '#' ⋫ many (noneOf "\n"))
+  parse = Comment' ⊳ comment
 
 ------------------------------------------------------------
 
@@ -310,7 +315,7 @@ data BindSym = BindSymRegular 𝕊 𝕊 | BindSymExec 𝕊 ([𝕊], 𝕄 𝕊)
 {- | Note that sway doesn't do inline comments; however, the exec cmdline is
      passed to 'sh', which does -}
 instance Parse BindSym where
-  parse = ŧ "bindsym" ⋫ choice [ try $ BindSymExec ⊳ nonSpace' ⊵ token (string "exec") ⋫ restOfLineBash -- many (noneOf "\n")
+  parse = ŧ "bindsym" ⋫ choice [ try $ BindSymExec ⊳ nonSpace' ⊵ token (string "exec") ⋫ bashLine -- many (noneOf "\n")
                  , BindSymRegular ⊳ nonSpace' ⊵ many (noneOf "\n") ]
 
 floatingModifier ∷ Parser Clause
@@ -336,89 +341,60 @@ c ↝ x = char c ⋫ pure x
 c ↬ x = char c ⋫ x
 
 {- | Parse the rest of the line as a list of of words, much as bash would -}
-restOfLineBash ∷ Parser ([𝕊], 𝕄 𝕊)
-restOfLineBash =
-  let {- bash definitions (from DEFINITIONS in the man page)
+-- a single bash word, which may consist of (say),
+-- bare-stuff"followed by"$'quoted things'
+bashWord ∷ Parser 𝕊
+bashWord = concat ⊳ some (choice [ unquoted_word, dquoted_word, quoted_word
+                                 , dollar_quoted_word, dollar_double_quoted_word
+                                 ])
+  where metachars = "|&;()<> \t\n"
+        unquoted_word = some (noneOf metachars)
+        dq_chars = choice [ some (noneOf "\\\"\n")
+                          , pure ⊳ (char '\\' ⋫ char '\\')
+                          , (:) ⊳ char '\\' ⊵ (pure ⊳ notChar '\n')
+                          ]
+        dquoted_word = char '"'  ⋫ (ю ⊳ many dq_chars) ⋪ char '"'
+        quoted_word  = char '\'' ⋫ many (notChar '\'') ⋪ char '\''
 
-       blank  A space or tab.
-       word   A sequence of characters considered as a single unit by the shell.
-              Also known as a token.
-       name   A word consisting only of alphanumeric characters and underscores,
-              and beginning with an alphabetic character or  an  underscore.
-              Also referred to as an identifier.
-       metacharacter
-              A character that, when unquoted, separates words.  One of the
-              following: |  & ; ( ) < > space tab newline
-       control operator
-              A token that performs a control function.  It is one of the
-              following symbols: || & && ; ;; ;& ;;& ( ) | |& <newline>
+        dollar_quoted_word =
+          let o_word_3      = (:) ⊳ oneOf "0123" ⊵ upto 2 octDigit
+              o_8bit_string = try o_word_3 ∤ upto1 2 octDigit
+              octal_8bit    = chr ∘ read ∘ ("0o" ⊕) ⊳ o_8bit_string
+              read_hex      = chr ∘ read ∘ ("0x" ⊕)
 
-      -}
+              c_range a   z =
+                let offset_ord = ord a - 1
+                in  pure ∘ chr ∘ subtract offset_ord ∘ ord ⊳ satisfyRange a z
 
-      metachars ∷ [ℂ]
-      metachars = "|&;()<> \t\n"
+              chars =
+                let nhex n = pure ∘ read_hex ⊳ upto1 n hexDigit
+                in  choice [ some (noneOf "\'\\")
+                           , char '\\' ⋫ choice [ 'a' ↝ "\BEL"
+                                                , 'b' ↝ "\BS"
+                                                , 'e' ↝ "\ESC"
+                                                , 'E' ↝ "\ESC"
+                                                , 'f' ↝ "\FF"
+                                                , 'n' ↝ "\LF"
+                                                , 'r' ↝ "\CR"
+                                                , 't' ↝ "\HT"
+                                                , 'v' ↝ "\VT"
+                                                , 'x' ↬ nhex 2
+                                                , 'u' ↬ nhex 4
+                                                , 'U' ↬ nhex 8
+                                                , 'c' ↬ (c_range 'a' 'z' ∤
+                                                         c_range 'A' 'Z')
+                                                , pure ⊳ oneOf "'?\\\""
+                                                , pure ⊳ octal_8bit
+                                                ]
+                             ]
+          in  string "$'" ⋫ (ю ⊳ many chars) ⋪ char '\''
 
-      unquoted_word ∷ Parser 𝕊
-      unquoted_word = some (noneOf metachars)
+        dollar_double_quoted_word =
+          string "$\"" ⋫ (unsafePerformIO ∘ getText ⊳ dq_chars) ⋪ char '"'
 
-      dq_chars ∷ Parser 𝕊
-      dq_chars = choice [ some (noneOf "\\\"\n")
-                        , pure ⊳ (char '\\' ⋫ char '\\')
-                        , (:) ⊳ char '\\' ⊵ (pure ⊳ notChar '\n')
-                        ]
-      dquoted_word = char '"' ⋫ (ю ⊳ many dq_chars) ⋪ char '"'
-      quoted_word  = char '\'' ⋫ many (notChar '\'') ⋪ char '\''
-      dollar_quoted_word =
-        let o_word_3      = (:) ⊳ oneOf "0123" ⊵ upto 2 octDigit
-            o_8bit_string = try o_word_3 ∤ upto1 2 octDigit
-            octal_8bit    = chr ∘ read ∘ ("0o" ⊕) ⊳ o_8bit_string
-            read_hex      ∷ 𝕊 → ℂ
-            read_hex      = chr ∘ read ∘ ("0x" ⊕)
-
-            c_range a   z =
-              let offset_ord = ord a - 1
-              in  pure ∘ chr ∘ subtract offset_ord ∘ ord ⊳ satisfyRange a z
-
-            chars =
-              let nhex n = pure ∘ read_hex ⊳ upto1 n hexDigit
-              in  choice [ some (noneOf "\'\\")
-                         , char '\\' ⋫ choice [ 'a' ↝ "\BEL"
-                                              , 'b' ↝ "\BS"
-                                              , 'e' ↝ "\ESC"
-                                              , 'E' ↝ "\ESC"
-                                              , 'f' ↝ "\FF"
-                                              , 'n' ↝ "\LF"
-                                              , 'r' ↝ "\CR"
-                                              , 't' ↝ "\HT"
-                                              , 'v' ↝ "\VT"
-                                              , pure ⊳ oneOf "'?\\\""
-                                              , pure ⊳ octal_8bit
-                                              , 'x' ↬ nhex 2
-                                              , 'u' ↬ nhex 4
-                                              , 'U' ↬ nhex 8
-                                              , 'c' ↬ (c_range 'a' 'z' ∤
-                                                       c_range 'A' 'Z')
-                                              ]
-                           ]
-        in  string "$'" ⋫ (ю ⊳ many chars) ⋪ char '\''
-
-      dollar_double_quoted_word =
-        string "$\"" ⋫ (unsafePerformIO ∘ getText ⊳ dq_chars) ⋪ char '"'
-
--- this needs to interpolate quoted things, too
--- and then handle comments
-      word ∷ Parser 𝕊
-      word = concat ⊳ some (choice [ unquoted_word
-                                   , dquoted_word
-                                   , quoted_word
-                                   , dollar_quoted_word
-                                   , dollar_double_quoted_word
-                                   ])
-
-      bash_comment ∷ Parser 𝕊
-      bash_comment = char '#' ⋫ many (noneOf "#\n")
-
-      words_m_comment ∷ [CommentOrWord] → ([𝕊], 𝕄 𝕊)
+bashLine ∷ Parser ([𝕊], 𝕄 𝕊)
+bashLine =
+  let words_m_comment ∷ [CommentOrWord] → ([𝕊], 𝕄 𝕊)
       words_m_comment (BashWord w : xs)   = first (w:) (words_m_comment xs)
       words_m_comment [BashComment c]     = ([], 𝕵 c)
       words_m_comment []                  = ([], 𝕹)
@@ -430,9 +406,10 @@ restOfLineBash =
       someNonNLSpace = some nonNLSpace
 
       bc ∷ Parser CommentOrWord
-      bc = BashComment ⊳ bash_comment ∤ BashWord ⊳ word
+      bc = BashComment ⊳ comment ∤ BashWord ⊳ bashWord
 
-  in words_m_comment ⊳ sepEndBy (BashComment ⊳ bash_comment ∤ BashWord ⊳ word) someNonNLSpace
+  in words_m_comment ⊳ sepEndBy (BashComment ⊳ comment ∤ BashWord ⊳ bashWord) someNonNLSpace
+
 
 data SetVariable = SetV 𝕊 𝕊
   deriving Show
@@ -451,7 +428,7 @@ newtype ShCommand = ShCommand ([𝕊], 𝕄 𝕊)
   deriving Show
 
 instance Parse ShCommand where
-  parse = ShCommand ⊳ restOfLineBash
+  parse = ShCommand ⊳ bashLine
 
 data TopOrBottom = Top | Bottom
   deriving Show
