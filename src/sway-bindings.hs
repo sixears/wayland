@@ -331,8 +331,11 @@ floatingModifier =
 -- command_comment ∷ Parser 𝕊 (𝕄 𝕊)
 -- command_comment = many (noneOf "\n#") -- # in a command is okay, probably
 
-data CommentOrWord = BashComment 𝕊 | BashWord 𝕊
+data BashWordOrComment = BashComment 𝕊 | BashWord 𝕊
   deriving Show
+
+instance Parse BashWordOrComment where
+  parse = BashComment ⊳ comment ∤ BashWord ⊳ bashWord
 
 (↝) ∷ CharParsing φ ⇒ ℂ → α → φ α
 c ↝ x = char c ⋫ pure x
@@ -394,7 +397,7 @@ bashWord = concat ⊳ some (choice [ unquoted_word, dquoted_word, quoted_word
 
 bashLine ∷ Parser ([𝕊], 𝕄 𝕊)
 bashLine =
-  let words_m_comment ∷ [CommentOrWord] → ([𝕊], 𝕄 𝕊)
+  let words_m_comment ∷ [BashWordOrComment] → ([𝕊], 𝕄 𝕊)
       words_m_comment (BashWord w : xs)   = first (w:) (words_m_comment xs)
       words_m_comment [BashComment c]     = ([], 𝕵 c)
       words_m_comment []                  = ([], 𝕹)
@@ -405,10 +408,7 @@ bashLine =
       nonNLSpace = satisfy isNonNLSpace
       someNonNLSpace = some nonNLSpace
 
-      bc ∷ Parser CommentOrWord
-      bc = BashComment ⊳ comment ∤ BashWord ⊳ bashWord
-
-  in words_m_comment ⊳ sepEndBy (BashComment ⊳ comment ∤ BashWord ⊳ bashWord) someNonNLSpace
+  in words_m_comment ⊳ sepEndBy parse someNonNLSpace
 
 
 data SetVariable = SetV 𝕊 𝕊
