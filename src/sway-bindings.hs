@@ -298,46 +298,6 @@ instance Parse ColorAssignment where
 
 ------------------------------------------------------------
 
-data SwayBarMode = SwayBarModeDock      | SwayBarModeHide
-                 | SwayBarModeInvisible | SwayBarModeOverlay
-  deriving Show
-
-instance Parse SwayBarMode where
-  parse = choice [ "dock"      ⟹ SwayBarModeDock
-                 , "hide"      ⟹ SwayBarModeHide
-                 , "invisible" ⟹ SwayBarModeInvisible
-                 , "overlay"   ⟹ SwayBarModeOverlay
-                 ]
-
-------------------------------------------------------------
-
-data SwayBarCommand = SwayBarStatusCommand ShCommand
-                    | SwayBarPosition      TopOrBottom
-                    | SwayBarFont          Font
-                    | SwayBarComment       Comment
-                    | SwayBarMode          SwayBarMode
-                    | SwayBarColors        [ 𝔼 ColorAssignment Comment ]
-  deriving Show
-
-instance Parse SwayBarCommand where
-  parse = token $ choice [ SwayBarStatusCommand ⊳ (þ "status_command")
-                         , SwayBarPosition      ⊳ (þ "position")
-                         , SwayBarFont          ⊳ (þ "font")
-                         , SwayBarMode          ⊳ (þ "mode")
-                         , SwayBarColors        ⊳ (ŧ "colors" ⋫ braces parse)
-                         , SwayBarComment       ⊳ parse
-                         ]
-
-------------------------------------------------------------
-
-data SwayBar = SwayBar' [ SwayBarCommand ]
-  deriving Show
-
-instance Parse SwayBar where
-  parse = SwayBar' ⊳ (ŧ "bar" ⋫ braces parse)
-
-------------------------------------------------------------
-
 newtype BashWord = BashWord' 𝕊
   deriving Show
 
@@ -436,15 +396,54 @@ instance Parse BindSym where
 
 ------------------------------------------------------------
 
+data SwayBarMode = SwayBarModeDock      | SwayBarModeHide
+                 | SwayBarModeInvisible | SwayBarModeOverlay
+  deriving Show
+
+instance Parse SwayBarMode where
+  parse = choice [ "dock"      ⟹ SwayBarModeDock
+                 , "hide"      ⟹ SwayBarModeHide
+                 , "invisible" ⟹ SwayBarModeInvisible
+                 , "overlay"   ⟹ SwayBarModeOverlay
+                 ]
+
+------------------------------------------------------------
+
+data SwayBarCommand = SwayBarStatusCommand BashLine
+                    | SwayBarPosition      TopOrBottom
+                    | SwayBarFont          Font
+                    | SwayBarComment       Comment
+                    | SwayBarMode          SwayBarMode
+                    | SwayBarColors        [ 𝔼 ColorAssignment Comment ]
+  deriving Show
+
+instance Parse SwayBarCommand where
+  parse = token $ choice [ SwayBarStatusCommand ⊳ (þ "status_command")
+                         , SwayBarPosition      ⊳ (þ "position")
+                         , SwayBarFont          ⊳ (þ "font")
+                         , SwayBarMode          ⊳ (þ "mode")
+                         , SwayBarColors        ⊳ (ŧ "colors" ⋫ braces parse)
+                         , SwayBarComment       ⊳ parse
+                         ]
+
+------------------------------------------------------------
+
+data SwayBar = SwayBar' [ SwayBarCommand ]
+  deriving Show
+
+instance Parse SwayBar where
+  parse = SwayBar' ⊳ (ŧ "bar" ⋫ braces parse)
+
+------------------------------------------------------------
+
 swaymsgPath ∷ 𝕊
 swaymsgPath = "/run/current-system/sw/bin/swaymsg"
-
 
 data Clause = Comment           Comment
             | InputCommand      InputCommands
             | Font              Font
             | SetVariable       SetVariable
-            | ExecAlways        ShCommand
+            | ExecAlways        BashLine
             | Output            𝕊 Output
             | BindSym           BindSym
             | FloatingModifier  𝕊 NormalOrInverse
@@ -454,18 +453,8 @@ data Clause = Comment           Comment
 
 --------------------------------------------------------------------------------
 
-floatingModifier ∷ Parser Clause
-floatingModifier =
-  FloatingModifier ⊳ (ŧ "floating_modifier" ⋫ nonSpace') ⊵ parse
-
 -- (shell parsing; note that sway just passes the whole line, including apparent
 --  comments, to `sh`; thence, (ba)sh does any comment interpretation)
-
-newtype ShCommand = ShCommand BashLine
-  deriving Show
-
-instance Parse ShCommand where
-  parse = ShCommand ⊳ parse
 
 data TopOrBottom = Top | Bottom
   deriving Show
