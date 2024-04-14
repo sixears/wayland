@@ -364,6 +364,9 @@ instance Parse BashWordOrComment where
 
 ------------------------------------------------------------
 
+-- (shell parsing; note that sway just passes the whole line, including apparent
+--  comments, to `sh`; thence, (ba)sh does any comment interpretation)
+
 data BashLine = BashLine [BashWord] (𝕄 Comment)
   deriving Show
 
@@ -406,6 +409,14 @@ instance Parse SwayBarMode where
                  , "invisible" ⟹ SwayBarModeInvisible
                  , "overlay"   ⟹ SwayBarModeOverlay
                  ]
+
+------------------------------------------------------------
+
+data TopOrBottom = Top | Bottom
+  deriving Show
+
+instance Parse TopOrBottom where
+  parse = choice [ "top" ⟹ Top, "bottom" ⟹ Bottom ]
 
 ------------------------------------------------------------
 
@@ -453,34 +464,24 @@ data Clause = Comment           Comment
 
 --------------------------------------------------------------------------------
 
--- (shell parsing; note that sway just passes the whole line, including apparent
---  comments, to `sh`; thence, (ba)sh does any comment interpretation)
-
-data TopOrBottom = Top | Bottom
-  deriving Show
-
-instance Parse TopOrBottom where
-  parse = choice [ "top" ⟹ Top, "bottom" ⟹ Bottom ]
-
-
-clause ∷ Parser Clause
-clause = choice [ Comment          ⊳ parse
-                , InputCommand     ⊳ parse
-                , Font             ⊳ þ "font"
-                , SetVariable      ⊳ þ "set"
-                , ExecAlways       ⊳ þ "exec_always"
-                , Output           ⊳ (ŧ "output" ⋫ nonSpace') ⊵ parse
-                , BindSym          ⊳ parse
-                , FloatingModifier ⊳ (ŧ "floating_modifier" ⋫ nonSpace') ⊵ parse
-                , Mode             ⊳ parse
-                , SwayBar          ⊳ parse
-                ]
+instance Parse Clause where
+  parse = choice [ Comment          ⊳ parse
+                 , InputCommand     ⊳ parse
+                 , Font             ⊳ þ "font"
+                 , SetVariable      ⊳ þ "set"
+                 , ExecAlways       ⊳ þ "exec_always"
+                 , Output           ⊳ (ŧ "output" ⋫ nonSpace') ⊵ parse
+                 , BindSym          ⊳ parse
+                 , FloatingModifier ⊳ (ŧ "floating_modifier" ⋫ nonSpace') ⊵parse
+                 , Mode             ⊳ parse
+                 , SwayBar          ⊳ parse
+                 ]
 
 main ∷ IO ()
 main = do
   cfg ← readProcess swaymsgPath [ "-t", "get_config", "--pretty" ] ""
 
-  let prsr = spaces ⋫ (many $ token clause)
+  let prsr = spaces ⋫ (many $ token (parse @Clause))
   let r = parseString prsr mempty cfg
   case r of
     Success s → forM_ s (putStrLn ∘ pack ∘ show)
