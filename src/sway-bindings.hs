@@ -451,6 +451,7 @@ data Clause = Comment           Comment
             | Mode              Mode
             | SwayBar           SwayBar
   deriving Show
+
 --------------------------------------------------------------------------------
 
 floatingModifier ∷ Parser Clause
@@ -474,17 +475,17 @@ instance Parse TopOrBottom where
 
 
 clause ∷ Parser Clause
-clause =  choice [ Comment          ⊳ parse
-                 , InputCommand     ⊳ parse
-                 , Font             ⊳ (þ "font")
-                 , SetVariable      ⊳ (þ "set")
-                 , ExecAlways       ⊳ (þ "exec_always")
-                 , Output           ⊳ (ŧ "output" ⋫ token nonSpace) ⊵ parse
-                 , BindSym          ⊳ parse
-                 , floatingModifier
-                 , Mode             ⊳ parse
-                 , SwayBar          ⊳ parse
-                 ]
+clause = choice [ Comment          ⊳ parse
+                , InputCommand     ⊳ parse
+                , Font             ⊳ þ "font"
+                , SetVariable      ⊳ þ "set"
+                , ExecAlways       ⊳ þ "exec_always"
+                , Output           ⊳ (ŧ "output" ⋫ nonSpace') ⊵ parse
+                , BindSym          ⊳ parse
+                , FloatingModifier ⊳ (ŧ "floating_modifier" ⋫ nonSpace') ⊵ parse
+                , Mode             ⊳ parse
+                , SwayBar          ⊳ parse
+                ]
 
 main ∷ IO ()
 main = do
