@@ -58,6 +58,19 @@ instance (Parse α, Parse β) ⇒ Parse (𝔼 α β) where
 
 ------------------------------------------------------------
 
+{- parse between 0 and n instances of a thing -}
+upto ∷ ℕ → Parser a → Parser [a]
+upto n p | n > 0 = (:) ⊳ try p ⊵ (upto (n-1) p ∤ return [])
+          | otherwise = return []
+
+{- parse between 1 and n instances of a thing -}
+upto1 ∷ ℕ → Parser a → Parser [a]
+upto1 n p | n > 0 = (:) ⊳ p ⊵ upto (n-1) p
+          | otherwise = return []
+
+----------------------------------------
+
+{- parse a character, and discard any whitespace after -}
 ç ∷ TokenParsing η ⇒ ℂ → η ℂ
 ç = token ∘ char
 
@@ -69,6 +82,7 @@ c ↬ x = char c ⋫ x
 
 ----------------------------------------
 
+{- parse a string, and discard any whitespace after -}
 ŧ ∷ TokenParsing η ⇒ 𝕊 → η 𝕊
 ŧ = token ∘ string
 
@@ -94,6 +108,11 @@ s ⇨ f = namedParse f s tparse
 
 ----------------------------------------
 
+ƕ ∷ Parse α ⇒ 𝕊 → Parser α
+ƕ s = s ⇨ id
+
+----------------------------------------
+
 nonSpace ∷ CharParsing η ⇒ η 𝕊
 nonSpace = many ∘ satisfy $ not ∘ isSpace
 
@@ -104,8 +123,18 @@ nonSpace' = token nonSpace
 
 ----------------------------------------
 
+restOfLine ∷ CharParsing η ⇒ η 𝕊
+restOfLine = many $ noneOf "\n"
+
+----------------------------------------
+
+restOfLine1 ∷ CharParsing η ⇒ η 𝕊
+restOfLine1 = some $ noneOf "\n"
+
+----------------------------------------
+
 comment ∷ Parser 𝕊
-comment = ç '#' ⋫ many (noneOf "\n")
+comment = ç '#' ⋫ restOfLine
 
 ------------------------------------------------------------
 --                         types                          --
@@ -198,8 +227,8 @@ data Font = Pango 𝕊 | NonPango 𝕊
   deriving Show
 
 instance Parse Font where
-  parse = token $ choice [ Pango ⊳ (string "pango:" ⋫ some (noneOf "\n"))
-                         , NonPango ⊳ (some $ noneOf "\n") ]
+  parse = token $ choice [ Pango ⊳ (string "pango:" ⋫ restOfLine1)
+                         , NonPango ⊳ restOfLine1 ]
 
 ------------------------------------------------------------
 
@@ -224,6 +253,23 @@ newtype Comment = Comment' 𝕊
 
 instance Parse Comment where
   parse = Comment' ⊳ comment
+
+------------------------------------------------------------
+
+data SetVariable = SetV 𝕊 𝕊
+  deriving Show
+
+instance Parse SetVariable where
+  parse = SetV ⊳ token (char '$' ⋫ nonSpace) ⊵ token restOfLine
+
+------------------------------------------------------------
+
+data Output = OutputBG 𝕊 𝕊 𝕊
+  deriving Show
+
+instance Parse Output where
+  parse = choice [ "bg" ⟹ OutputBG ⊵ nonSpace' ⊵ nonSpace' ⊵ nonSpace'
+                 ]
 
 ------------------------------------------------------------
 
@@ -292,52 +338,6 @@ instance Parse SwayBar where
 
 ------------------------------------------------------------
 
-swaymsgPath ∷ 𝕊
-swaymsgPath = "/run/current-system/sw/bin/swaymsg"
-
-upto ∷ ℕ → Parser a → Parser [a]
-upto n p | n > 0 = (:) ⊳ try p ⊵ (upto (n-1) p ∤ return [])
-          | otherwise = return []
-
-upto1 ∷ ℕ → Parser a → Parser [a]
-upto1 n p | n > 0 = (:) ⊳ p ⊵ upto (n-1) p
-          | otherwise = return []
-
-
-data Clause = Comment           Comment
-            | InputCommand      InputCommands
-            | Font              Font
-            | SetVariable       SetVariable
-            | ExecAlways        ShCommand
-            | Output            𝕊 Output
-            | BindSym           BindSym
-            | FloatingModifier  𝕊 NormalOrInverse
-            | Mode              Mode
-            | SwayBar           SwayBar
-  deriving Show
-
-data BindSym = BindSymRegular 𝕊 𝕊 | BindSymExec 𝕊 BashLine
-  deriving Show
-
-{- | Note that sway doesn't do inline comments; however, the exec cmdline is
-     passed to 'sh', which does -}
-instance Parse BindSym where
-  parse = ŧ "bindsym" ⋫ choice [ try $ BindSymExec ⊳ nonSpace' ⊵ token (string "exec") ⋫ parse
-                 , BindSymRegular ⊳ nonSpace' ⊵ many (noneOf "\n") ]
-
-floatingModifier ∷ Parser Clause
-floatingModifier =
-  FloatingModifier ⊳ (ŧ "floating_modifier" ⋫ nonSpace') ⊵ parse
-
--- (shell parsing; note that sway just passes the whole line, including apparent
---  comments, to `sh`; thence, (ba)sh does any comment interpretation)
-
--- a '#', either starting a word or by itself, makes the rest of the line a
--- comment
-
--- command_comment ∷ Parser 𝕊 (𝕄 𝕊)
--- command_comment = many (noneOf "\n#") -- # in a command is okay, probably
-
 newtype BashWord = BashWord' 𝕊
   deriving Show
 
@@ -394,11 +394,15 @@ instance Parse BashWord where
           dollar_double_quoted_word =
             string "$\"" ⋫ (unsafePerformIO ∘ getText ⊳ dq_chars) ⋪ char '"'
 
+------------------------------------------------------------
+
 data BashWordOrComment = BashComment Comment | BashWord BashWord
   deriving Show
 
 instance Parse BashWordOrComment where
   parse = BashComment ⊳ parse ∤ BashWord ⊳ parse
+
+------------------------------------------------------------
 
 data BashLine = BashLine [BashWord] (𝕄 Comment)
   deriving Show
@@ -419,20 +423,43 @@ instance Parse BashLine where
         someNonNLSpace = some nonNLSpace
     in words_m_comment ⊳ sepEndBy parse someNonNLSpace
 
-data SetVariable = SetV 𝕊 𝕊
+------------------------------------------------------------
+
+data BindSym = BindSymRegular 𝕊 𝕊 | BindSymExec 𝕊 BashLine
   deriving Show
 
-instance Parse SetVariable where
-  parse = SetV ⊳ token (char '$' ⋫ nonSpace) ⊵ token (many (noneOf "\n"))
+{- | Note that sway doesn't do inline comments; however, the exec cmdline is
+     passed to 'sh', which does -}
+instance Parse BindSym where
+  parse = ŧ "bindsym" ⋫ choice [ try $ BindSymExec ⊳ nonSpace' ⊵ ƕ "exec"
+                               , BindSymRegular ⊳ nonSpace' ⊵ restOfLine ]
 
-data Output = OutputBG 𝕊 𝕊 𝕊
+------------------------------------------------------------
+
+swaymsgPath ∷ 𝕊
+swaymsgPath = "/run/current-system/sw/bin/swaymsg"
+
+
+data Clause = Comment           Comment
+            | InputCommand      InputCommands
+            | Font              Font
+            | SetVariable       SetVariable
+            | ExecAlways        ShCommand
+            | Output            𝕊 Output
+            | BindSym           BindSym
+            | FloatingModifier  𝕊 NormalOrInverse
+            | Mode              Mode
+            | SwayBar           SwayBar
   deriving Show
+--------------------------------------------------------------------------------
 
-instance Parse Output where
-  parse = choice [ "bg" ⟹ OutputBG ⊵ nonSpace' ⊵ nonSpace' ⊵ nonSpace'
-                 ]
+floatingModifier ∷ Parser Clause
+floatingModifier =
+  FloatingModifier ⊳ (ŧ "floating_modifier" ⋫ nonSpace') ⊵ parse
 
--- newtype ShCommand = ShCommand ([𝕊], 𝕄 𝕊)
+-- (shell parsing; note that sway just passes the whole line, including apparent
+--  comments, to `sh`; thence, (ba)sh does any comment interpretation)
+
 newtype ShCommand = ShCommand BashLine
   deriving Show
 
