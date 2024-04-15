@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE UnicodeSyntax     #-}
 
@@ -430,17 +429,17 @@ data SwayBarCommand = SwayBarStatusCommand BashLine
   deriving Show
 
 instance Parse SwayBarCommand where
-  parse = token $ choice [ SwayBarStatusCommand ⊳ (þ "status_command")
-                         , SwayBarPosition      ⊳ (þ "position")
-                         , SwayBarFont          ⊳ (þ "font")
-                         , SwayBarMode          ⊳ (þ "mode")
+  parse = token $ choice [ SwayBarStatusCommand ⊳ þ "status_command"
+                         , SwayBarPosition      ⊳ þ "position"
+                         , SwayBarFont          ⊳ þ "font"
+                         , SwayBarMode          ⊳ þ "mode"
                          , SwayBarColors        ⊳ (ŧ "colors" ⋫ braces parse)
                          , SwayBarComment       ⊳ parse
                          ]
 
 ------------------------------------------------------------
 
-data SwayBar = SwayBar' [ SwayBarCommand ]
+newtype SwayBar = SwayBar' [ SwayBarCommand ]
   deriving Show
 
 instance Parse SwayBar where
@@ -486,7 +485,8 @@ swaymsgPath = "/run/current-system/sw/bin/swaymsg"
      clause is a bindsym, print it.  The prior clause is used as a description
      of the action, if it is a suitably-formatted comment.
 -}
-maybePrintClause prior c = do
+maybePrintClause ∷ 𝕄 Clause → Clause → IO (𝕄 Clause)
+maybePrintClause _prior c = do
   (case c of
       (BindSym b) → putStrLn ∘ pack $ show b
       (Mode m)    → putStrLn ∘ pack $ show m
@@ -499,12 +499,11 @@ main ∷ IO ()
 main = do
   cfg ← readProcess swaymsgPath [ "-t", "get_config", "--pretty" ] ""
 
-  let prsr = spaces ⋫ (many $ token (parse @Clause))
+  let prsr = spaces ⋫ many (token (parse @Clause))
   let r = parseString prsr mempty cfg
   case r of
     Failure e → putStrLn ∘ pack $ show e
     Success s → do
       foldM_ maybePrintClause 𝕹 s
-      return ()
 
 -- that's all, folks! ----------------------------------------------------------
