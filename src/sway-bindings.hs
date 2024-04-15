@@ -8,6 +8,7 @@ import Prelude  ( error )
 
 -- base --------------------------------
 
+import Control.Monad     ( foldM_ )
 import Data.Char         ( chr, isAlpha, isSpace, ord )
 import Data.Foldable     ( concat )
 import Data.Functor      ( (<$) )
@@ -447,9 +448,6 @@ instance Parse SwayBar where
 
 ------------------------------------------------------------
 
-swaymsgPath ∷ 𝕊
-swaymsgPath = "/run/current-system/sw/bin/swaymsg"
-
 data Clause = Comment           Comment
             | InputCommand      InputCommands
             | Font              Font
@@ -477,6 +475,26 @@ instance Parse Clause where
                  , SwayBar          ⊳ parse
                  ]
 
+------------------------------------------------------------
+
+swaymsgPath ∷ 𝕊
+swaymsgPath = "/run/current-system/sw/bin/swaymsg"
+
+----------------------------------------
+
+{- | examine the current clause, along with the prior clause; if the current
+     clause is a bindsym, print it.  The prior clause is used as a description
+     of the action, if it is a suitably-formatted comment.
+-}
+maybePrintClause prior c = do
+  (case c of
+      (BindSym b) → putStrLn ∘ pack $ show b
+      (Mode m)    → putStrLn ∘ pack $ show m
+      _           → return ())
+  return (𝕵 c)
+
+----------------------------------------
+
 main ∷ IO ()
 main = do
   cfg ← readProcess swaymsgPath [ "-t", "get_config", "--pretty" ] ""
@@ -484,7 +502,9 @@ main = do
   let prsr = spaces ⋫ (many $ token (parse @Clause))
   let r = parseString prsr mempty cfg
   case r of
-    Success s → forM_ s (putStrLn ∘ pack ∘ show)
     Failure e → putStrLn ∘ pack $ show e
+    Success s → do
+      foldM_ maybePrintClause 𝕹 s
+      return ()
 
 -- that's all, folks! ----------------------------------------------------------
