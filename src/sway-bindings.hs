@@ -11,6 +11,7 @@ import Control.Monad     ( foldM_ )
 import Data.Char         ( chr, isAlpha, isSpace, ord )
 import Data.Foldable     ( concat )
 import Data.Functor      ( (<$) )
+import Data.Maybe        ( catMaybes )
 import Data.Monoid       ( mempty )
 import GHC.Num           ( subtract )
 import System.IO.Unsafe  ( unsafePerformIO )
@@ -20,6 +21,10 @@ import Text.Read         ( read )
 -- hgettext ----------------------------
 
 import Text.I18N.GetText  ( getText )
+
+-- natural -----------------------------
+
+import Natural  ( replicate )
 
 -- parsers -----------------------------
 
@@ -31,7 +36,7 @@ import Text.Parser.Token        ( TokenParsing, braces, token )
 
 -- text --------------------------------
 
-import Data.Text     ( pack )
+import Data.Text     ( pack, unpack )
 import Data.Text.IO  ( putStrLn )
 
 -- trifecta ----------------------------
@@ -54,7 +59,7 @@ instance Parse α ⇒ Parse [α] where
 --------------------
 
 instance (Parse α, Parse β) ⇒ Parse (𝔼 α β) where
-  parse = token $ choice [ 𝕷 ⊳ try parse, 𝕽 ⊳ parse ]
+  parse = {- token $ -} choice [ 𝕷 ⊳ try parse, 𝕽 ⊳ parse ]
 
 ------------------------------------------------------------
 
@@ -240,11 +245,15 @@ instance Parse NormalOrInverse where
 
 ------------------------------------------------------------
 
+{-
 data BindSymOrComment = BSOCBindSym BindSym | BSOCComment Comment
   deriving Show
+-}
 
-instance Parse BindSymOrComment where
-  parse = choice [ BSOCBindSym ⊳ parse, BSOCComment ⊳ parse ]
+{-
+instance Parse (𝔼 BindSym Comment) where
+  parse = choice [ 𝕷 ⊳ parse, 𝕽 ⊳ parse ]
+-}
 
 ------------------------------------------------------------
 
@@ -273,7 +282,7 @@ instance Parse Output where
 
 ------------------------------------------------------------
 
-data Mode = Mode' 𝕊 [ BindSymOrComment ]
+data Mode = Mode' 𝕊 [ 𝔼 BindSym Comment ]
   deriving Show
 
 instance Parse Mode where
@@ -356,11 +365,10 @@ instance Parse BashWord where
 
 ------------------------------------------------------------
 
-data BashWordOrComment = BashComment Comment | BashWord BashWord
-  deriving Show
-
-instance Parse BashWordOrComment where
-  parse = BashComment ⊳ parse ∤ BashWord ⊳ parse
+{-
+instance Parse (𝔼 BashWord Comment) where
+  parse = 𝕽 ⊳ parse ∤ 𝕷 ⊳ parse
+-}
 
 ------------------------------------------------------------
 
@@ -372,19 +380,23 @@ data BashLine = BashLine [BashWord] (𝕄 Comment)
 
 instance Parse BashLine where
   parse =
-    let words_m_comment ∷ [BashWordOrComment] → BashLine
-        words_m_comment (BashWord w : xs)   =
+    let words_m_comment ∷ [𝔼 BashWord Comment] → BashLine
+        words_m_comment (𝕷 w : xs) =
           let BashLine ws c = words_m_comment xs
           in  BashLine (w:ws) c
-        words_m_comment [BashComment c]     = BashLine [] (𝕵 c)
-        words_m_comment []                  = BashLine [] 𝕹
-        words_m_comment (BashComment c : x) =
+        words_m_comment [𝕽 c]     = BashLine [] (𝕵 c)
+        words_m_comment []        = BashLine [] 𝕹
+        words_m_comment (𝕽 c : x) =
           error $ "non-terminating comment '" ⊕ show c ⊕ "' (" ⊕ show x ⊕ ")"
 
         isNonNLSpace c = isSpace c ∧ c ≢ '\n'
-        nonNLSpace = satisfy isNonNLSpace
+        nonNLSpace     = satisfy isNonNLSpace
         someNonNLSpace = some nonNLSpace
-    in words_m_comment ⊳ sepEndBy parse someNonNLSpace
+
+        wmc xs = traceShow ("wmc", xs) $ words_m_comment xs
+    in wmc ⊳ sepEndBy parse someNonNLSpace
+--    in wmc ⊳ many parse -- someNonNLSpace
+--    in words_m_comment ⊳ sepEndBy parse someNonNLSpace
 
 ------------------------------------------------------------
 
@@ -459,7 +471,7 @@ data Clause = Comment           Comment
             | SwayBar           SwayBar
   deriving Show
 
---------------------------------------------------------------------------------
+--------------------
 
 instance Parse Clause where
   parse = choice [ Comment          ⊳ parse
@@ -474,6 +486,13 @@ instance Parse Clause where
                  , SwayBar          ⊳ parse
                  ]
 
+----------------------------------------
+
+clauseToBSCM ∷ Clause → Maybe (E3 BindSym Comment Mode)
+clauseToBSCM (BindSym b) = 𝕵 (L3 b)
+clauseToBSCM (Comment c) = 𝕵 (M3 c)
+clauseToBSCM _           = 𝕹
+
 ------------------------------------------------------------
 
 swaymsgPath ∷ 𝕊
@@ -481,17 +500,28 @@ swaymsgPath = "/run/current-system/sw/bin/swaymsg"
 
 ----------------------------------------
 
+data E3 α β γ = L3 α | M3 β | R3 γ
+
 {- | examine the current clause, along with the prior clause; if the current
      clause is a bindsym, print it.  The prior clause is used as a description
      of the action, if it is a suitably-formatted comment.
 -}
-maybePrintClause ∷ 𝕄 Clause → Clause → IO (𝕄 Clause)
-maybePrintClause _prior c = do
+maybePrintBSOC ∷ (𝕄 (E3 BindSym Comment Mode), ℕ) → E3 BindSym Comment Mode
+               → IO (𝕄 (E3 BindSym Comment Mode), ℕ)
+maybePrintBSOC (_prior,n) c = do
   (case c of
-      (BindSym b) → putStrLn ∘ pack $ show b
-      (Mode m)    → putStrLn ∘ pack $ show m
+      (L3 (BindSymRegular k a)) →
+        putStrLn $ [fmt|%s%-32s %s|] (replicate n ' ') k a
+      b@(L3 (BindSymExec k a)) → do
+        putStrLn $ [fmt|%s%-32s %s|] (replicate n ' ') k (show a)
+
+{-
+      (Mode (Mode' mname xs)) → do
+        putStrLn (pack mname)
+        foldM_ maybePrintBSOC (𝕹, n+4) xs
+-}
       _           → return ())
-  return (𝕵 c)
+  return (𝕵 c,n)
 
 ----------------------------------------
 
@@ -504,6 +534,7 @@ main = do
   case r of
     Failure e → putStrLn ∘ pack $ show e
     Success s → do
-      foldM_ maybePrintClause 𝕹 s
+      -- foldM_ maybePrintBSOC (𝕹,2) (catMaybes $ clauseToBSCM ⊳ s)
+      forM_ s (putStrLn ∘ pack ∘ show)
 
 -- that's all, folks! ----------------------------------------------------------
