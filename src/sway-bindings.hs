@@ -14,6 +14,7 @@ import Data.Functor      ( (<$) )
 import Data.Maybe        ( catMaybes )
 import Data.Monoid       ( mempty )
 import GHC.Num           ( subtract )
+import System.IO         ( putStrLn )
 import System.IO.Unsafe  ( unsafePerformIO )
 import System.Process    ( readProcess )
 import Text.Read         ( read )
@@ -33,11 +34,6 @@ import Text.Parser.Char         ( CharParsing, alphaNum, char, digit, hexDigit
                                 , satisfyRange, spaces, string )
 import Text.Parser.Combinators  ( choice, count, sepEndBy, try )
 import Text.Parser.Token        ( TokenParsing, braces, token )
-
--- text --------------------------------
-
-import Data.Text     ( pack, unpack )
-import Data.Text.IO  ( putStrLn )
 
 -- trifecta ----------------------------
 
@@ -59,7 +55,7 @@ instance Parse α ⇒ Parse [α] where
 --------------------
 
 instance (Parse α, Parse β) ⇒ Parse (𝔼 α β) where
-  parse = {- token $ -} choice [ 𝕷 ⊳ try parse, 𝕽 ⊳ parse ]
+  parse = choice [ 𝕷 ⊳ try parse, 𝕽 ⊳ parse ]
 
 ------------------------------------------------------------
 
@@ -245,18 +241,6 @@ instance Parse NormalOrInverse where
 
 ------------------------------------------------------------
 
-{-
-data BindSymOrComment = BSOCBindSym BindSym | BSOCComment Comment
-  deriving Show
--}
-
-{-
-instance Parse (𝔼 BindSym Comment) where
-  parse = choice [ 𝕷 ⊳ parse, 𝕽 ⊳ parse ]
--}
-
-------------------------------------------------------------
-
 newtype Comment = Comment' 𝕊
   deriving Show
 
@@ -393,10 +377,7 @@ instance Parse BashLine where
         nonNLSpace     = satisfy isNonNLSpace
         someNonNLSpace = some nonNLSpace
 
-        wmc xs = traceShow ("wmc", xs) $ words_m_comment xs
-    in wmc ⊳ sepEndBy parse someNonNLSpace
---    in wmc ⊳ many parse -- someNonNLSpace
---    in words_m_comment ⊳ sepEndBy parse someNonNLSpace
+    in words_m_comment ⊳ sepEndBy parse someNonNLSpace
 
 ------------------------------------------------------------
 
@@ -502,6 +483,10 @@ swaymsgPath = "/run/current-system/sw/bin/swaymsg"
 
 data E3 α β γ = L3 α | M3 β | R3 γ
 
+eToE3 ∷ 𝔼 α β → E3 α β γ
+eToE3 (𝕷 a) = L3 a
+eToE3 (𝕽 b) = M3 b
+
 {- | examine the current clause, along with the prior clause; if the current
      clause is a bindsym, print it.  The prior clause is used as a description
      of the action, if it is a suitably-formatted comment.
@@ -509,18 +494,17 @@ data E3 α β γ = L3 α | M3 β | R3 γ
 maybePrintBSOC ∷ (𝕄 (E3 BindSym Comment Mode), ℕ) → E3 BindSym Comment Mode
                → IO (𝕄 (E3 BindSym Comment Mode), ℕ)
 maybePrintBSOC (_prior,n) c = do
-  (case c of
-      (L3 (BindSymRegular k a)) →
+  case c of
+      L3 (BindSymRegular k a) →
         putStrLn $ [fmt|%s%-32s %s|] (replicate n ' ') k a
-      b@(L3 (BindSymExec k a)) → do
+      L3 (BindSymExec k a) → do
         putStrLn $ [fmt|%s%-32s %s|] (replicate n ' ') k (show a)
 
-{-
-      (Mode (Mode' mname xs)) → do
-        putStrLn (pack mname)
-        foldM_ maybePrintBSOC (𝕹, n+4) xs
--}
-      _           → return ())
+      R3 (Mode' mname xs) → do
+        putStrLn mname
+        foldM_ maybePrintBSOC (𝕹, n+4) (eToE3 ⊳ xs)
+
+      M3 (Comment' c)           → putStrLn c
   return (𝕵 c,n)
 
 ----------------------------------------
@@ -532,9 +516,9 @@ main = do
   let prsr = spaces ⋫ many (token (parse @Clause))
   let r = parseString prsr mempty cfg
   case r of
-    Failure e → putStrLn ∘ pack $ show e
+    Failure e → putStrLn $ show e
     Success s → do
-      -- foldM_ maybePrintBSOC (𝕹,2) (catMaybes $ clauseToBSCM ⊳ s)
-      forM_ s (putStrLn ∘ pack ∘ show)
+      foldM_ maybePrintBSOC (𝕹,2) (catMaybes $ clauseToBSCM ⊳ s)
+      -- forM_ s (putStrLn ∘ pack ∘ show)
 
 -- that's all, folks! ----------------------------------------------------------
