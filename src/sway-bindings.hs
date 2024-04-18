@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE UnicodeSyntax     #-}
+{-# LANGUAGE ViewPatterns      #-}
 
-import Debug.Trace  ( trace, traceShow )
 import Base1
 import Prelude  ( error )
 
@@ -11,10 +11,11 @@ import Control.Monad     ( foldM_ )
 import Data.Char         ( chr, isAlpha, isSpace, ord )
 import Data.Foldable     ( concat )
 import Data.Functor      ( (<$) )
+import Data.List         ( drop, dropWhile, intercalate, span, splitAt )
 import Data.Maybe        ( catMaybes )
 import Data.Monoid       ( mempty )
 import GHC.Num           ( subtract )
-import System.IO         ( putStrLn )
+import System.IO         ( hPutStrLn, putStrLn, stderr )
 import System.IO.Unsafe  ( unsafePerformIO )
 import System.Process    ( readProcess )
 import Text.Read         ( read )
@@ -23,10 +24,6 @@ import Text.Read         ( read )
 
 import Text.I18N.GetText  ( getText )
 
--- natural -----------------------------
-
-import Natural  ( replicate )
-
 -- parsers -----------------------------
 
 import Text.Parser.Char         ( CharParsing, alphaNum, char, digit, hexDigit
@@ -34,6 +31,10 @@ import Text.Parser.Char         ( CharParsing, alphaNum, char, digit, hexDigit
                                 , satisfyRange, spaces, string )
 import Text.Parser.Combinators  ( choice, count, sepEndBy, try )
 import Text.Parser.Token        ( TokenParsing, braces, token )
+
+-- text-printer ------------------------
+
+import qualified  Text.Printer  as  P
 
 -- trifecta ----------------------------
 
@@ -136,6 +137,11 @@ restOfLine1 = some $ noneOf "\n"
 
 comment ∷ Parser 𝕊
 comment = ç '#' ⋫ restOfLine
+
+----------------------------------------
+
+warn ∷ 𝕊 → IO()
+warn = hPutStrLn stderr
 
 ------------------------------------------------------------
 --                         types                          --
@@ -241,7 +247,7 @@ instance Parse NormalOrInverse where
 
 ------------------------------------------------------------
 
-newtype Comment = Comment' 𝕊
+newtype Comment = Comment' { unComment :: 𝕊 }
   deriving Show
 
 instance Parse Comment where
@@ -291,8 +297,11 @@ instance Parse ColorAssignment where
 
 ------------------------------------------------------------
 
-newtype BashWord = BashWord' 𝕊
+newtype BashWord = BashWord' { unBashWord ∷ 𝕊 }
   deriving Show
+
+instance Printable BashWord where
+  print = P.string ∘ unBashWord
 
 instance Parse BashWord where
   {- | Parse the rest of the line as a list of of words, much as bash would -}
@@ -303,7 +312,8 @@ instance Parse BashWord where
                           , dollar_quoted_word, dollar_double_quoted_word
                           ])
     where metachars = "|&;()<> \t\n"
-          unquoted_word = some (noneOf metachars)
+          unquoted_word =
+            (:) ⊳ noneOf ('#' : metachars) ⊵ many (noneOf metachars)
           dq_chars = choice [ some (noneOf "\\\"\n")
                             , pure ⊳ (char '\\' ⋫ char '\\')
                             , (:) ⊳ char '\\' ⊵ (pure ⊳ notChar '\n')
@@ -349,18 +359,17 @@ instance Parse BashWord where
 
 ------------------------------------------------------------
 
-{-
-instance Parse (𝔼 BashWord Comment) where
-  parse = 𝕽 ⊳ parse ∤ 𝕷 ⊳ parse
--}
-
-------------------------------------------------------------
-
 -- (shell parsing; note that sway just passes the whole line, including apparent
 --  comments, to `sh`; thence, (ba)sh does any comment interpretation)
 
 data BashLine = BashLine [BashWord] (𝕄 Comment)
   deriving Show
+
+{- | Printable instances are what we want to output in practice; for BashLines,
+     we use the trailing comment if available -}
+instance Printable BashLine where
+  print (BashLine _ (𝕵 c)) = P.string (unComment c)
+  print (BashLine ws 𝕹) = P.string $ intercalate " " (toString ⊳ ws)
 
 instance Parse BashLine where
   parse =
@@ -472,6 +481,7 @@ instance Parse Clause where
 clauseToBSCM ∷ Clause → Maybe (E3 BindSym Comment Mode)
 clauseToBSCM (BindSym b) = 𝕵 (L3 b)
 clauseToBSCM (Comment c) = 𝕵 (M3 c)
+clauseToBSCM (Mode m)    = 𝕵 (R3 m)
 clauseToBSCM _           = 𝕹
 
 ------------------------------------------------------------
@@ -482,6 +492,7 @@ swaymsgPath = "/run/current-system/sw/bin/swaymsg"
 ----------------------------------------
 
 data E3 α β γ = L3 α | M3 β | R3 γ
+  deriving Show
 
 eToE3 ∷ 𝔼 α β → E3 α β γ
 eToE3 (𝕷 a) = L3 a
@@ -491,21 +502,41 @@ eToE3 (𝕽 b) = M3 b
      clause is a bindsym, print it.  The prior clause is used as a description
      of the action, if it is a suitably-formatted comment.
 -}
-maybePrintBSOC ∷ (𝕄 (E3 BindSym Comment Mode), ℕ) → E3 BindSym Comment Mode
-               → IO (𝕄 (E3 BindSym Comment Mode), ℕ)
-maybePrintBSOC (_prior,n) c = do
-  case c of
-      L3 (BindSymRegular k a) →
-        putStrLn $ [fmt|%s%-32s %s|] (replicate n ' ') k a
+printBSOC ∷ (𝕄 (E3 BindSym Comment Mode), 𝕊) → E3 BindSym Comment Mode
+          → IO (𝕄 (E3 BindSym Comment Mode), 𝕊)
+printBSOC (prior,pfx) l = do
+  case l of
+      L3 (BindSymRegular k a) → do
+        case prior of
+          𝕵 (M3 (unComment → c)) →
+            case splitAt 2 c of
+              ("{-",_) →
+                -- keep the attached comment in buffer until we see '-}'
+                return(prior, pfx)
+              (">>",t) → do
+                putStrLn ([fmt|%-32s %s|] (pfx⊕k) (dropWhile isSpace t))
+                return(𝕵 l,pfx)
+              _        → putStrLn ([fmt|%-32s %s|] (pfx⊕k) a) ⪼return(𝕵 l,pfx)
+          _            → putStrLn ([fmt|%-32s %s|] (pfx⊕k) a) ⪼return(𝕵 l,pfx)
+
       L3 (BindSymExec k a) → do
-        putStrLn $ [fmt|%s%-32s %s|] (replicate n ' ') k (show a)
+        putStrLn $ [fmt|%s%-32s %q|] pfx k a
+        return (𝕵 l,pfx)
 
       R3 (Mode' mname xs) → do
-        putStrLn mname
-        foldM_ maybePrintBSOC (𝕹, n+4) (eToE3 ⊳ xs)
+        foldM_ printBSOC (𝕹, pfx ⊕ "~" ⊕ mname ⊕ "~ ") (eToE3 ⊳ xs)
+        return (𝕵 l,pfx)
 
-      M3 (Comment' c)           → putStrLn c
-  return (𝕵 c,n)
+      M3 (splitAt 2 ∘ unComment → ("-}",_)) →
+        -- everything after -} is ignored
+        case prior of
+          𝕵 (M3 (unComment → c)) → do
+            let (k,desc) = span (not ∘ isSpace) (drop 3 c)
+            putStrLn $ [fmt|%-32s %s|] (pfx⊕k) (dropWhile isSpace desc)
+            return (𝕵 l,pfx)
+          𝕵 x → warn ([fmt|unexpected %w at '-}'|] x) ⪼ return (𝕵 l,pfx)
+          𝕹   → warn "unexpected '-}' with no prior"  ⪼ return (𝕵 l,pfx)
+      M3 _ → return (𝕵 l,pfx)
 
 ----------------------------------------
 
@@ -518,7 +549,7 @@ main = do
   case r of
     Failure e → putStrLn $ show e
     Success s → do
-      foldM_ maybePrintBSOC (𝕹,2) (catMaybes $ clauseToBSCM ⊳ s)
+      foldM_ printBSOC (𝕹,"") (catMaybes $ clauseToBSCM ⊳ s)
       -- forM_ s (putStrLn ∘ pack ∘ show)
 
 -- that's all, folks! ----------------------------------------------------------
