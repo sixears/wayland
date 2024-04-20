@@ -4,6 +4,8 @@
 {-# LANGUAGE UnicodeSyntax     #-}
 {-# LANGUAGE ViewPatterns      #-}
 
+import Debug.Trace  ( traceShow )
+
 import Base1
 import Prelude  ( error )
 
@@ -13,7 +15,7 @@ import Control.Monad     ( foldM_ )
 import Data.Char         ( chr, isAlpha, isSpace, ord )
 import Data.Foldable     ( concat )
 import Data.Functor      ( (<$) )
-import Data.List         ( drop, dropWhile, intercalate, span, splitAt )
+import Data.List         ( drop, dropWhile, intercalate, reverse, span, splitAt, take )
 import Data.Maybe        ( catMaybes )
 import Data.Monoid       ( mempty )
 import GHC.Num           ( subtract )
@@ -21,6 +23,10 @@ import System.IO         ( hPutStrLn, putStrLn, stderr )
 import System.IO.Unsafe  ( unsafePerformIO )
 import System.Process    ( readProcess )
 import Text.Read         ( read )
+
+-- containers --------------------------
+
+import qualified  Data.Map.Strict  as  Map
 
 -- hgettext ----------------------------
 
@@ -33,6 +39,10 @@ import Text.Parser.Char         ( CharParsing, alphaNum, char, digit, hexDigit
                                 , satisfyRange, spaces, string )
 import Text.Parser.Combinators  ( choice, count, sepEndBy, try )
 import Text.Parser.Token        ( TokenParsing, braces, token )
+
+-- split -------------------------------
+
+import Data.List.Split  ( splitOn )
 
 -- text-printer ------------------------
 
@@ -371,7 +381,7 @@ data BashLine = BashLine [BashWord] (𝕄 Comment)
      we use the trailing comment if available -}
 instance Printable BashLine where
   print (BashLine _ (𝕵 c)) = P.string (unComment c)
-  print (BashLine ws 𝕹) = P.string $ intercalate " " (toString ⊳ ws)
+  print (BashLine ws 𝕹) = P.text $ [fmt|%Q|] ws
 
 instance Parse BashLine where
   parse =
@@ -500,13 +510,37 @@ eToE3 ∷ 𝔼 α β → E3 α β γ
 eToE3 (𝕷 a) = L3 a
 eToE3 (𝕽 b) = M3 b
 
+----------------------------------------
+
+rspan ∷ (α → 𝔹) → [α] → ([α],[α])
+rspan f s = let (x,y) = span f (reverse s)
+            in  (reverse y,reverse x)
+
+translations ∷ Map.Map 𝕊 𝕊
+translations = Map.fromList [ ("$mod"   , "W")
+                            , ("Shift"  , "s")
+                            , ("Ctrl"   , "C")
+                            , ("Control", "C")
+                            , ("Alt"    , "M") -- yes, Alt≡Mod1
+                            , ("Mod1"   , "M") -- yes, Alt≡Mod1
+                            ]
+printKey ∷ 𝕄 Mode → 𝕊 → 𝕊 → IO ()
+printKey m k s =
+  let ks = (\ x → Map.findWithDefault x x translations) ⊳ splitOn "+" k
+      (k':xs) = reverse ks
+      m' = intercalate "+" (reverse xs)
+  in  putStrLn $ [fmt|%-8s %-18s %-24s %s|]
+                 (maybe "" (\ (Mode' x _) → x) m) m' k' s
+
+----------------------------------------
+
 {- | examine the current clause, along with the prior clause; if the current
      clause is a bindsym, print it.  The prior clause is used as a description
      of the action, if it is a suitably-formatted comment.
 -}
-printBSOC ∷ (𝕄 (E3 BindSym Comment Mode), 𝕊) → E3 BindSym Comment Mode
+printBSOC ∷ 𝕄 Mode → (𝕄 (E3 BindSym Comment Mode), 𝕊) → E3 BindSym Comment Mode
           → IO (𝕄 (E3 BindSym Comment Mode), 𝕊)
-printBSOC (prior,pfx) l = do
+printBSOC m (prior,pfx) l = do
   case l of
       L3 (BindSymRegular k a) → do
         case prior of
@@ -516,17 +550,17 @@ printBSOC (prior,pfx) l = do
                 -- keep the attached comment in buffer until we see '-}'
                 return(prior, pfx)
               (">>",t) → do
-                putStrLn ([fmt|%-32s %s|] (pfx⊕k) (dropWhile isSpace t))
+                printKey m k (dropWhile isSpace t)
                 return(𝕵 l,pfx)
-              _        → putStrLn ([fmt|%-32s %s|] (pfx⊕k) a) ⪼return(𝕵 l,pfx)
-          _            → putStrLn ([fmt|%-32s %s|] (pfx⊕k) a) ⪼return(𝕵 l,pfx)
+              _        → printKey m k a ⪼return(𝕵 l,pfx)
+          _            → printKey m k a ⪼return(𝕵 l,pfx)
 
       L3 (BindSymExec k a) → do
-        putStrLn $ [fmt|%s%-32s %q|] pfx k a
+        printKey m k ([fmt|%q|] a)
         return (𝕵 l,pfx)
 
-      R3 (Mode' mname xs) → do
-        foldM_ printBSOC (𝕹, pfx ⊕ "~" ⊕ mname ⊕ "~ ") (eToE3 ⊳ xs)
+      R3 m'@(Mode' _ xs) → do
+        foldM_ (printBSOC (𝕵 m')) (𝕹, pfx) (eToE3 ⊳ xs)
         return (𝕵 l,pfx)
 
       M3 (splitAt 2 ∘ unComment → ("-}",_)) →
@@ -534,7 +568,7 @@ printBSOC (prior,pfx) l = do
         case prior of
           𝕵 (M3 (unComment → c)) → do
             let (k,desc) = span (not ∘ isSpace) (drop 3 c)
-            putStrLn $ [fmt|%-32s %s|] (pfx⊕k) (dropWhile isSpace desc)
+            printKey 𝕹 k (dropWhile isSpace desc)
             return (𝕵 l,pfx)
           𝕵 x → warn ([fmt|unexpected %w at '-}'|] x) ⪼ return (𝕵 l,pfx)
           𝕹   → warn "unexpected '-}' with no prior"  ⪼ return (𝕵 l,pfx)
@@ -551,7 +585,7 @@ main = do
   case r of
     Failure e → putStrLn $ show e
     Success s → do
-      foldM_ printBSOC (𝕹,"") (catMaybes $ clauseToBSCM ⊳ s)
+      foldM_ (printBSOC 𝕹) (𝕹,"") (catMaybes $ clauseToBSCM ⊳ s)
       -- forM_ s (putStrLn ∘ pack ∘ show)
 
 -- that's all, folks! ----------------------------------------------------------
