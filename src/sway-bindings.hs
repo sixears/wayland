@@ -556,7 +556,7 @@ printBSOC m (prior,pfx) l = do
           _            → printKey m k a ⪼return(𝕵 l,pfx)
 
       L3 (BindSymExec k a) → do
-        printKey m k ([fmt|%q|] a)
+        printKey m k ([fmt|exec %q|] a)
         return (𝕵 l,pfx)
 
       R3 m'@(Mode' _ xs) → do
