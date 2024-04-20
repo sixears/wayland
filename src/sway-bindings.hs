@@ -529,7 +529,7 @@ printKey m k s =
   let ks = (\ x → Map.findWithDefault x x translations) ⊳ splitOn "+" k
       (k':xs) = reverse ks
       m' = intercalate "+" (reverse xs)
-  in  putStrLn $ [fmt|%-8s %-18s %-24s %s|]
+  in  putStrLn $ [fmt|%-8s %-8s %-24s %s|]
                  (maybe "" (\ (Mode' x _) → x) m) m' k' s
 
 ----------------------------------------
