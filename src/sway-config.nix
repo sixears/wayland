@@ -1,4 +1,6 @@
-{ pkgs, dim, i3stat, hostconfig, alac, wallpaper, lock-wallpaper
+# see https://fontawesome.com/ for pretty icons
+
+{ pkgs, dim, i3stat, hostconfig, alac, wallpaper, lock-wallpaper, sway-bindings
 , swap-summary-fifo, gammastep-lockfile, sway-power-on, flock-pid-run
 , swap-summary, cpu-temperature, cpu-temp-fifo, xkb, wofi-config, paths }:
 pkgs.writeTextDir "share/sway.rc" ''
@@ -105,19 +107,21 @@ exec_always $flock_pid_run $swayidle_pid    \
 # -- key bindings --------------------------------------------------------------
 
 # start a terminal
-bindsym $mod+Return exec $term
+bindsym $mod+Return exec $term # new term
 
 set $paths ${paths}/bin/paths
 
 # start an executable
 set $exec_path $wofi --conf ${wofi-config} --show run | xargs $swaymsg exec --
-bindsym $mod+Shift+Return exec $exec_path
+bindsym $mod+Shift+Return exec $exec_path # exec menu
 
 # kill focused window
 bindsym $mod+Shift+Escape kill
 
 # lock the screen
-bindsym $mod+backslash exec $lock
+bindsym $mod+backslash exec $lock # lock screen
+
+# -- floating windows --------------------------------------
 
 # Drag floating windows by holding down $mod and left mouse button.
 # Resize them with right mouse button + $mod.
@@ -127,7 +131,10 @@ bindsym $mod+backslash exec $lock
 floating_modifier $mod normal
 
 # Reload the configuration file
-bindsym $mod+Shift+slash reload
+bindsym $mod+Shift+Control+slash reload
+
+set $sway-bindings ${sway-bindings}/bin/sway-bindings
+bindsym $mod+Shift+slash exec $sway-bindings # show key bindings summary
 
 # -- exit with Super+Sh+Ctrl+Esc ---------------------------
 
@@ -145,95 +152,100 @@ set $exit_menu bash -c \
 #                                            --height=120 --cache=/dev/null)"; \
 #     [[ $e == exit ]] && $swaymsg exit'
 
-bindsym $mod+Shift+Ctrl+Escape exec $exit_menu
+bindsym $mod+Shift+Ctrl+Escape exec $exit_menu  # TEST exit sway
 
-#
-# Moving around:
-#
-    # Move your focus around
-    bindsym $mod+Left focus left
-    bindsym $mod+Down focus down
-    bindsym $mod+Up focus up
-    bindsym $mod+Right focus right
+# -- moving around -----------------------------------------
 
-    bindsym $mod+Tab focus next
-    bindsym $mod+Shift+Tab focus prev
-    bindsym $mod+Mod1+Tab focus parent
-    bindsym $mod+Mod1+Shift+Tab focus child
 
-    # Move the focused window with the same, but add Shift
-    bindsym $mod+Shift+Left move left
-    bindsym $mod+Shift+Down move down
-    bindsym $mod+Shift+Up move up
-    bindsym $mod+Shift+Right move right
+# cycle through focus with Super+Tab (plus modifiers)
+bindsym $mod+Tab            focus next
+bindsym $mod+Shift+Tab      focus prev
+bindsym $mod+Mod1+Tab       focus parent
+bindsym $mod+Mod1+Shift+Tab focus child
 
-bindsym $mod+Control+left focus output left
+# {- $mod+cursor move focus (by window)
+bindsym $mod+Left  focus left
+bindsym $mod+Down  focus down
+bindsym $mod+Up    focus up
+bindsym $mod+Right focus right
+# -}
+
+# move position focused of window with the same, but add Shift
+# {- $mod+Shift+cursor move window
+bindsym $mod+Shift+Left  move left
+bindsym $mod+Shift+Down  move down
+bindsym $mod+Shift+Up    move up
+bindsym $mod+Shift+Right move right
+# -}
+
+# {- $mod+Control+cursor move output focus
+bindsym $mod+Control+left  focus output left
 bindsym $mod+Control+right focus output right
 bindsym $mod+Control+up    focus output up
 bindsym $mod+Control+down  focus output down
-#
-# Workspaces:
-#
+# -}
 
-set $ws1 "1:📄"
-set $ws2 "2:🦊"
-set $ws3 "3:💬"
-set $ws4 "4:🔑"
+# -- workspaces --------------------------------------------
+
+# 📄 🦊 💬 🔑  📸 ⚛ 🚀 💾 💻
+set $ws1 "1:"
+set $ws2 "2:"
+set $ws3 "3:"
+set $ws4 "4:"
 set $ws5 "5:♫"
-set $ws6 "6:📸"
-set $ws7 "7:⚛"
-set $ws8 "8:🚀"
-set $ws9 "9:💾"
-# set $ws0 "0:💻"
+set $ws6 "6:"
+set $ws7 "7:"
+set $ws8 "8:"
+set $ws9 "9:"
 set $ws0 "0:"
 
-    # Switch to workspace
-    bindsym $mod+1 workspace $ws1
-    bindsym $mod+2 workspace $ws2
-    bindsym $mod+3 workspace $ws3
-    bindsym $mod+4 workspace $ws4
-    bindsym $mod+5 workspace $ws5
-    bindsym $mod+6 workspace $ws6
-    bindsym $mod+7 workspace $ws7
-    bindsym $mod+8 workspace $ws8
-    bindsym $mod+9 workspace $ws9
-    bindsym $mod+0 workspace $ws0
-    # Move focused container to workspace
-    bindsym $mod+Shift+1 move container to workspace $ws1
-    bindsym $mod+Shift+2 move container to workspace $ws2
-    bindsym $mod+Shift+3 move container to workspace $ws3
-    bindsym $mod+Shift+4 move container to workspace $ws4
-    bindsym $mod+Shift+5 move container to workspace $ws5
-    bindsym $mod+Shift+6 move container to workspace $ws6
-    bindsym $mod+Shift+7 move container to workspace $ws7
-    bindsym $mod+Shift+8 move container to workspace $ws8
-    bindsym $mod+Shift+9 move container to workspace $ws9
-    bindsym $mod+Shift+0 move container to workspace $ws0
-    # Note: workspaces can have any name you want, not just numbers.
-    # We just use 1-10 as the default.
+# Switch focus to workspace
+# {- $mod+[0-9] select #WS
+bindsym $mod+1 workspace $ws1
+bindsym $mod+2 workspace $ws2
+bindsym $mod+3 workspace $ws3
+bindsym $mod+4 workspace $ws4
+bindsym $mod+5 workspace $ws5
+bindsym $mod+6 workspace $ws6
+bindsym $mod+7 workspace $ws7
+bindsym $mod+8 workspace $ws8
+bindsym $mod+9 workspace $ws9
+bindsym $mod+0 workspace $ws0
+# -}
 
-workspace $ws4 output HDMI-A-3
+# Move focused container to workspace
+# {- $mod+Shift+[0-9] move window to #WS
+bindsym $mod+Shift+1 move container to workspace $ws1
+bindsym $mod+Shift+2 move container to workspace $ws2
+bindsym $mod+Shift+3 move container to workspace $ws3
+bindsym $mod+Shift+4 move container to workspace $ws4
+bindsym $mod+Shift+5 move container to workspace $ws5
+bindsym $mod+Shift+6 move container to workspace $ws6
+bindsym $mod+Shift+7 move container to workspace $ws7
+bindsym $mod+Shift+8 move container to workspace $ws8
+bindsym $mod+Shift+9 move container to workspace $ws9
+bindsym $mod+Shift+0 move container to workspace $ws0
+# -}
+
+# to move this workspace to a particular display, use
+# move workspace to OUTPUT
+# find outputs with swaymsg -t get_outputs and/or swaymsg -t get_workspaces (probably easier)
+
+# -- workspace structure -----------------------------------
 
 bindsym $mod+plus  split none
 bindsym $mod+bar   splith
 bindsym $mod+minus splitv
 
-# Make the current focussed window fullscreen
-#    bindsym $mod+slash fullscreen
+bindsym $mod+space       layout toggle all
 bindsym $mod+Shift+space fullscreen
-
-    # Toggle the current focus between tiling and floating mode
-#    bindsym $mod+Shift+space floating toggle
-
-bindsym $mod+space layout toggle all
-
-    # Move focus to the parent container
-#    bindsym $mod+a focus parent
 
 # -- scratchpad --------------------------------------------
 
 # Sway has a "scratchpad", which is a bag of holding for windows.
 # You can send windows there and get them back later.
+
+# F13 is the lower-LH 'pipe/slash' on the dell XPS9315 keyboard
 
 # move the currently focused window to the scratchpad
 bindsym $mod+F13 move scratchpad
@@ -241,47 +253,54 @@ bindsym $mod+F13 move scratchpad
 # Show the next scratchpad window or hide the focused scratchpad window.
 # If there are multiple scratchpad windows, this command cycles through them.
 bindsym $mod+Shift+F13   scratchpad show
-bindsym $mod+Control+F13 floating   toggle
+
+# this doesn't work so well, because if there is more than one window in the
+# scratchpad; scratchpad show rotates through them (you have to hit it twice,
+# immediately after the first hit); but if you follow that with 'floating
+# toggle', the rotation doesn't work.
+
+# bindsym $mod+Shift+F13   scratchpad show; floating toggle
+
+# This isn't really about the scratchpad; but the only time I use floating
+# windows is that bringing a window back from the scratchpad brings it as
+# floater.  Once I've rotated through to the window I want, I then use this to
+# lay it out.
+
+bindsym $mod+Shift+Ctrl+Alt+Escape exec $exit_menu # exit
+bindsym $mod+Control+F13 floating toggle
 
 # -- resizing containers -----------------------------------
 
-mode "resize" {
-  # left will shrink the containers width
-  # right will grow the containers width
-  # up will shrink the containers height
-  # down will grow the containers height
-  bindsym Left resize shrink width 10px
-  bindsym Down resize grow height 10px
-  bindsym Up resize shrink height 10px
-  bindsym Right resize grow width 10px
+# enter resize mode with Super+=; exit with Return or Escape
 
+# >> enter resize mode
+bindsym $mod+equal mode resize
+
+mode resize {
   # Return to default mode
-  bindsym Return mode "default"
-  bindsym Escape mode "default"
+  bindsym Return mode default
+  bindsym Escape mode default
+
+  # left/right will grow the containers width
+  # Shift+left/right will shrink the containers width
+  # up/down will grow the containers height
+  # Shift+up/down will shrink the containers height
+  # {- cursor grow
+  bindsym Left        resize grow   width  10px
+  bindsym Right       resize grow   width  10px
+  bindsym Down        resize grow   height 10px
+  bindsym Up          resize grow   height 10px
+  # -}
+  # {- Shift+cursor shrink
+  bindsym Shift+Left  resize shrink width  10px
+  bindsym Shift+Right resize shrink width  10px
+  bindsym Shift+Down  resize shrink height 10px
+  bindsym Shift+Up    resize shrink height 10px
+  # -}
 }
-bindsym $mod+r mode "resize"
 
-#
-# Status Bar:
-#
-# Read `man 5 sway-bar` for more information about this section.
-##bar {
-##    position top
-##
-##    # When the status_command prints a new line to stdout, swaybar updates.
-##    # The default just shows the current date and time.
-###    status_command while date +'%Y-%m-%d %I:%M:%S %p'; do sleep 1; done
-##    status_command /home/martyn/bin/status
-##
-##    colors {
-##        statusline #ffffff
-##        background #323232
-##        inactive_workspace #32323200 #32323200 #5c5c5c
-##    }
-##}
-
-bindsym $mod+Shift+b bar mode hide
-bindsym $mod+b       bar mode dock
+bindsym $mod+Shift+bracketleft bar mode hide
+bindsym $mod+bracketleft       bar mode dock
 
 set $pactl exec /run/current-system/sw/bin/pactl
 set $mute  $pactl set-sink-mute @DEFAULT_SINK@ toggle
@@ -299,6 +318,8 @@ bindsym XF86AudioPlay input type:touchpad events toggle enabled disabled
 
 # -- swaybar -------------------------------------------------------------------
 
+# read `man 5 sway-bar` for more information about this section.
+
 # inputs to i3status
 set $swap ${swap-summary-fifo}
 set $cpu_temp ${cpu-temp-fifo}
@@ -309,7 +330,7 @@ exec_always ${cpu-temperature}/bin/cpu-temperature $cpu_temp
 bar {
   status_command ${i3stat}/bin/i3stat
   position top
-  font  Monaco,Bold 11px
+  font  Monaco,Bold 13px
 #  separator_symbol "   "
   mode dock
 
@@ -331,3 +352,6 @@ bar {
 
 include /etc/sway/config.d/*
 ''
+
+# workspace $ws4 output HDMI-A-3
+

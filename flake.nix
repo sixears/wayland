@@ -11,16 +11,24 @@
     };
     base-scripts-pkgs.url = path:/home/martyn/nix/base-scripts;
     gui-pkgs.url          = path:/home/martyn/nix/gui;
+    hpkgs1          = {
+      url    = github:sixears/hpkgs1/r0.0.24.0;
+#      inputs = { nixpkgs.follows = "nixpkgs"; };
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, base-scripts-pkgs, gui-pkgs, myPkgs }:
+  outputs = { self, nixpkgs, flake-utils, base-scripts-pkgs
+            , gui-pkgs, myPkgs, hpkgs1 }:
     flake-utils.lib.eachSystem ["x86_64-linux"] (system:
       let
-        pkgs                  = nixpkgs.legacyPackages.${system};
-        my-pkgs               = myPkgs.packages.${system};
-        my-settings           = myPkgs.settings.${system};
-        base-scripts          = base-scripts-pkgs.packages.${system};
-        gui                   = gui-pkgs.packages.${system};
+        pkgs         = nixpkgs.legacyPackages.${system};
+        my-pkgs      = myPkgs.packages.${system};
+        my-settings  = myPkgs.settings.${system};
+        base-scripts = base-scripts-pkgs.packages.${system};
+        gui          = gui-pkgs.packages.${system};
+        hpkgs        = hpkgs1.packages.${system};
+        hlib         = hpkgs1.lib.${system};
+        mkHBin       = hlib.mkHBin;
 
         vlc-lockfile       = my-settings.vlc-lockfile;
         gammastep-lockfile = "/run/user/1000/gammastep.pid";
@@ -39,9 +47,24 @@
         # multi-monitor setup
         hostconfig = import ./src/hostconfig.nix { inherit pkgs; };
 
+        sway-show-bindings =
+          (mkHBin "sway-show-bindings" ./src/sway-show-bindings.hs {
+            libs = p: with p; with pkgs.haskellPackages; [
+              base base1 hgettext parsers text-printer trifecta
+            ];
+          }).pkg;
+
+        sway-float    = import ./src/sway-float.nix { inherit pkgs; };
+        sway-sock     = import ./src/sway-sock.nix  { inherit pkgs; };
+        sway-binds    = import ./src/sway-binds.nix
+                          { inherit pkgs sway-sock sway-show-bindings; };
+        sway-bindings = import ./src/sway-bindings.nix
+                          { inherit pkgs sway-float sway-binds; };
+
         sway-config =
           import ./src/sway-config.nix
-            { inherit pkgs dim hostconfig alac gammastep-lockfile sway-power-on;
+            { inherit pkgs dim hostconfig alac gammastep-lockfile sway-power-on
+                      sway-bindings;
               inherit (gui)          i3stat;
               inherit (my-pkgs)      flock-pid-run swap-summary cpu-temperature;
               inherit (my-settings)  swap-summary-fifo cpu-temp-fifo;
@@ -73,6 +96,8 @@
 
             xkb-file = import ./src/xkb-file.nix { inherit pkgs; };
 
+            inherit sway-float sway-sock sway-binds sway-bindings
+                    sway-show-bindings;
           });
         }
     );

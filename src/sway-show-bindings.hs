@@ -12,7 +12,7 @@ import Prelude  ( error )
 -- base --------------------------------
 
 import Control.Monad     ( foldM_ )
-import Data.Char         ( chr, isAlpha, isSpace, ord )
+import Data.Char         ( chr, isAlpha, isSpace, ord, toLower )
 import Data.Foldable     ( concat )
 import Data.Functor      ( (<$) )
 import Data.List         ( drop, dropWhile, intercalate, reverse, span, splitAt, take )
@@ -517,19 +517,28 @@ rspan f s = let (x,y) = span f (reverse s)
             in  (reverse y,reverse x)
 
 translations ∷ Map.Map 𝕊 𝕊
-translations = Map.fromList [ ("$mod"   , "W")
-                            , ("Shift"  , "s")
-                            , ("Ctrl"   , "C")
-                            , ("Control", "C")
-                            , ("Alt"    , "M") -- yes, Alt≡Mod1
-                            , ("Mod1"   , "M") -- yes, Alt≡Mod1
+translations = Map.fromList [ ("$mod"        , "W")
+                            , ("shift"       , "s")
+                            , ("ctrl"        , "C")
+                            , ("control"     , "C")
+                            , ("alt"         , "M") -- yes, Alt≡Mod1
+                            , ("mod1"        , "M") -- yes, Alt≡Mod1
+                            , ("slash"       , "/")
+                            , ("backslash"   , "\\")
+                            , ("plus"        , "+")
+                            , ("bar"         , "|")
+                            , ("minus"       , "-")
+                            , ("equal"       , "=")
+                            , ("bracketleft" , "[")
+                            , ("bracketright", "]")
                             ]
 printKey ∷ 𝕄 Mode → 𝕊 → 𝕊 → IO ()
 printKey m k s =
-  let ks = (\ x → Map.findWithDefault x x translations) ⊳ splitOn "+" k
+  let ks = (\ x → Map.findWithDefault x (toLower⊳x) translations) ⊳splitOn "+" k
       (k':xs) = reverse ks
       m' = intercalate "+" (reverse xs)
-  in  putStrLn $ [fmt|%-8s %-8s %-24s %s|]
+--  in  putStrLn $ [fmt|%-8s %-8s %-24s %s|]
+  in  putStrLn $ [fmt|%s\t%s\t%s\t%s|]
                  (maybe "" (\ (Mode' x _) → x) m) m' k' s
 
 ----------------------------------------
@@ -568,7 +577,7 @@ printBSOC m (prior,pfx) l = do
         case prior of
           𝕵 (M3 (unComment → c)) → do
             let (k,desc) = span (not ∘ isSpace) (drop 3 c)
-            printKey 𝕹 k (dropWhile isSpace desc)
+            printKey m k (dropWhile isSpace desc)
             return (𝕵 l,pfx)
           𝕵 x → warn ([fmt|unexpected %w at '-}'|] x) ⪼ return (𝕵 l,pfx)
           𝕹   → warn "unexpected '-}' with no prior"  ⪼ return (𝕵 l,pfx)
