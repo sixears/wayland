@@ -2,7 +2,7 @@
   description = "nix configuration for wayland things";
 
   inputs = {
-    nixpkgs.url     = github:NixOS/nixpkgs/354184a83; # master 2023-12-13
+    nixpkgs.url     = github:NixOS/nixpkgs/938aa157; # nixos-24.05 2024-06-20
     flake-utils.url = github:numtide/flake-utils/c0e246b9;
     myPkgs          = {
       url    = github:sixears/nix-pkgs/r0.0.10.2;
@@ -49,7 +49,7 @@
 
         sway-show-bindings =
           (mkHBin "sway-show-bindings" ./src/sway-show-bindings.hs {
-            libs = p: with p; with pkgs.haskellPackages; [
+            libs = p: with p; with hlib.hpkgs; [
               base base1 hgettext parsers text-printer trifecta
             ];
           }).pkg;
