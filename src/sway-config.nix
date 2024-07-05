@@ -80,7 +80,8 @@ output * bg ${wallpaper} center #131318
 # -- idle/lock configuration ---------------------------------------------------
 
 set $dim ${dim}/bin/dim
-set $lock 'swaylock --daemonize --inside-color 161616 --image ${lock-wallpaper}'
+set $swaylock ${pkgs.swaylock}/bin/swaylock
+set $lock $swaylock --daemonize --inside-color 161616 --image ${lock-wallpaper}
 set $power-off '$swaymsg "output * power off"'
 set $power-on '${sway-power-on}/bin/sway-power-on ${gammastep-lockfile}'
 
@@ -100,9 +101,9 @@ set $swayidle_pid /run/user/$uid/swayidle
 exec_always $flock_pid_run $swayidle_pid    \
   swayidle -w                               \
   timeout  480 $dim       resume $power-on  \
-  timeout  600 $lock      resume $power-on  \
+  timeout  600 '$lock'    resume $power-on  \
   timeout 1200 $power-off resume $power-on  \
-  before-sleep $lock
+  before-sleep '$lock'
 
 # -- key bindings --------------------------------------------------------------
 

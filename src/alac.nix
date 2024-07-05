@@ -22,7 +22,7 @@ wofi=${pkgs.wofi}/bin/wofi
 
 export XDG_RUNTIME_DIR
 
-alac_conf=$HOME/rc/alacritty/config.yml
+alac_conf=$HOME/rc/alacritty/config.toml
 tmux_conf=$HOME/rc/tmux/conf
 
 exec >& "$XDG_RUNTIME_DIR/alac-$$.log"
