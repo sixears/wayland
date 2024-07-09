@@ -1,7 +1,7 @@
 # see https://fontawesome.com/ for pretty icons
 
 { pkgs, dim, sway-lock, i3stat, hostconfig, alac, wallpaper, lock-wallpaper
-, sway-bindings, swap-summary-fifo, gammastep-lockfile, sway-power-on
+, sway-bindings, swap-summary-fifo, gammastep-lockfile, sway-power-on, grime
 , flock-pid-run, swap-summary, cpu-temperature, cpu-temp-fifo, xkb, wofi-config
 , paths }:
 pkgs.writeTextDir "share/sway.rc" ''
@@ -63,6 +63,7 @@ set $term ${alac}/bin/alac
 set $flock_pid_run ${flock-pid-run}/bin/flock-pid-run
 set $xargs ${pkgs.findutils}/bin/xargs
 set $grimshot ${pkgs.sway-contrib.grimshot}/bin/grimshot
+set $grime ${grime}/bin/grime
 
 set $swaymsg ${pkgs.sway}/bin/swaymsg
 # set $menu $dmenu_path | $dmenu | $xargs $swaymsg exec --
@@ -319,8 +320,10 @@ bindsym XF86MonBrightnessDown  $xbacklight -dec 5
 # (F5)/AudioPlay on Dell_XPS 9315
 bindsym XF86AudioPlay input type:touchpad events toggle enabled disabled
 # (F10)/screenshot on Lenovo Thinkpad Carbon Gen12
-bindsym XF86Launch2 exec $grimshot --notify copy anything
-# bindsym Shift+XF86Launch2 exec $grimshot --notify copy anything
+bindsym XF86Launch2 exec $grimshot copy anything
+bindsym $mod+XF86Launch2 exec $grime anything
+bindsym Shift+XF86Launch2 exec $grimshot copy screen
+bindsym $mod+Shift+XF86Launch2 exec $grime screen
 # (F12)/Star on Lenovo Thinkpad Carbon Gen12
 bindsym XF86Favorites input type:touchpad events toggle enabled disabled
 

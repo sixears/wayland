@@ -15,9 +15,13 @@
       url    = github:sixears/hpkgs1/r0.0.24.0;
 #      inputs = { nixpkgs.follows = "nixpkgs"; };
     };
+    bashHeader      = {
+      url    = github:sixears/bash-header/5206b087;
+      inputs = { nixpkgs.follows = "nixpkgs"; };
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, base-scripts-pkgs
+  outputs = { self, nixpkgs, flake-utils, base-scripts-pkgs, bashHeader
             , gui-pkgs, myPkgs, hpkgs1 }:
     flake-utils.lib.eachSystem ["x86_64-linux"] (system:
       let
@@ -29,6 +33,7 @@
         hpkgs        = hpkgs1.packages.${system};
         hlib         = hpkgs1.lib.${system};
         mkHBin       = hlib.mkHBin;
+        bash-header  = bashHeader.packages.${system}.bash-header;
 
         vlc-lockfile       = my-settings.vlc-lockfile;
         gammastep-lockfile = "/run/user/1000/gammastep.pid";
@@ -65,10 +70,14 @@
         sway-bindings = import ./src/sway-bindings.nix
                           { inherit pkgs sway-float sway-binds; };
 
+        grime =
+          let src = import ./src/grime.nix { inherit pkgs bash-header; };
+          in  pkgs.writers.writeBashBin "grime" src;
+
         sway-config =
           import ./src/sway-config.nix
             { inherit pkgs dim hostconfig alac gammastep-lockfile sway-lock
-                      sway-bindings sway-power-on;
+                      sway-bindings sway-power-on grime;
               inherit (gui)          i3stat;
               inherit (my-pkgs)      flock-pid-run swap-summary cpu-temperature;
               inherit (my-settings)  swap-summary-fifo cpu-temp-fifo;
@@ -106,4 +115,3 @@
         }
     );
 }
-
