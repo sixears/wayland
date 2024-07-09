@@ -110,8 +110,8 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1719774438,
-        "narHash": "sha256-ll3lgEm8RjNRMSgoNC/68WEJpF2AH4vMWZIup6m+U+A=",
+        "lastModified": 1720181138,
+        "narHash": "sha256-0HXNaMmSsJUgnYoQRh866I+2XQgu6LaWdqiJom5HVMc=",
         "path": "/home/martyn/nix/base-scripts",
         "type": "path"
       },
@@ -969,8 +969,8 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1718956906,
-        "narHash": "sha256-AdmPm171pt73n2J6D827rY8+t4U+d/NKXz7xiMKDcLs=",
+        "lastModified": 1720392436,
+        "narHash": "sha256-vPRiYfzL3yGrwkmAQHQdwWOEh7/8MxRtkLlC3cC2pVg=",
         "path": "/home/martyn/nix/gui",
         "type": "path"
       },

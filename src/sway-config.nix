@@ -1,8 +1,9 @@
 # see https://fontawesome.com/ for pretty icons
 
-{ pkgs, dim, i3stat, hostconfig, alac, wallpaper, lock-wallpaper, sway-bindings
-, swap-summary-fifo, gammastep-lockfile, sway-power-on, flock-pid-run
-, swap-summary, cpu-temperature, cpu-temp-fifo, xkb, wofi-config, paths }:
+{ pkgs, dim, sway-lock, i3stat, hostconfig, alac, wallpaper, lock-wallpaper
+, sway-bindings, swap-summary-fifo, gammastep-lockfile, sway-power-on
+, flock-pid-run, swap-summary, cpu-temperature, cpu-temp-fifo, xkb, wofi-config
+, paths }:
 pkgs.writeTextDir "share/sway.rc" ''
 
 # Read `man 5 sway` for a complete reference.
@@ -61,6 +62,7 @@ set $term ${alac}/bin/alac
 # other utility programs
 set $flock_pid_run ${flock-pid-run}/bin/flock-pid-run
 set $xargs ${pkgs.findutils}/bin/xargs
+set $grimshot ${pkgs.sway-contrib.grimshot}/bin/grimshot
 
 set $swaymsg ${pkgs.sway}/bin/swaymsg
 # set $menu $dmenu_path | $dmenu | $xargs $swaymsg exec --
@@ -80,8 +82,8 @@ output * bg ${wallpaper} center #131318
 # -- idle/lock configuration ---------------------------------------------------
 
 set $dim ${dim}/bin/dim
-set $swaylock ${pkgs.swaylock}/bin/swaylock
-set $lock $swaylock --daemonize --inside-color 161616 --image ${lock-wallpaper}
+set $sway-lock ${sway-lock}/bin/sway-lock
+set $lock $sway-lock --daemonize --inside-color 161616 --image ${lock-wallpaper}
 set $power-off '$swaymsg "output * power off"'
 set $power-on '${sway-power-on}/bin/sway-power-on ${gammastep-lockfile}'
 
@@ -113,7 +115,7 @@ bindsym $mod+Return exec $term # new term
 set $paths ${paths}/bin/paths
 
 # start an executable
-set $exec_path $wofi --conf ${wofi-config} --show run | xargs $swaymsg exec --
+set $exec_path $paths $wofi --conf ${wofi-config} --show run | xargs $swaymsg exec --
 bindsym $mod+Shift+Return exec $exec_path # exec menu
 
 # kill focused window
@@ -316,6 +318,11 @@ bindsym XF86MonBrightnessUp    $xbacklight -inc 5
 bindsym XF86MonBrightnessDown  $xbacklight -dec 5
 # (F5)/AudioPlay on Dell_XPS 9315
 bindsym XF86AudioPlay input type:touchpad events toggle enabled disabled
+# (F10)/screenshot on Lenovo Thinkpad Carbon Gen12
+bindsym XF86Launch2 exec $grimshot --notify copy anything
+# bindsym Shift+XF86Launch2 exec $grimshot --notify copy anything
+# (F12)/Star on Lenovo Thinkpad Carbon Gen12
+bindsym XF86Favorites input type:touchpad events toggle enabled disabled
 
 # -- swaybar -------------------------------------------------------------------
 

@@ -32,8 +32,12 @@
 
         vlc-lockfile       = my-settings.vlc-lockfile;
         gammastep-lockfile = "/run/user/1000/gammastep.pid";
-        # flock-pid-run = my-pkgs.flock-pid-run;
+
         dim = import ./src/dim.nix
+          { inherit pkgs vlc-lockfile gammastep-lockfile;
+            inherit (my-pkgs) flock-pid-run; };
+
+        sway-lock = import ./src/sway-lock.nix
           { inherit pkgs vlc-lockfile gammastep-lockfile;
             inherit (my-pkgs) flock-pid-run; };
 
@@ -63,8 +67,8 @@
 
         sway-config =
           import ./src/sway-config.nix
-            { inherit pkgs dim hostconfig alac gammastep-lockfile sway-power-on
-                      sway-bindings;
+            { inherit pkgs dim hostconfig alac gammastep-lockfile sway-lock
+                      sway-bindings sway-power-on;
               inherit (gui)          i3stat;
               inherit (my-pkgs)      flock-pid-run swap-summary cpu-temperature;
               inherit (my-settings)  swap-summary-fifo cpu-temp-fifo;
