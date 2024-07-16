@@ -3,7 +3,7 @@
 { pkgs, dim, sway-lock, i3stat, hostconfig, alac, wallpaper, lock-wallpaper
 , sway-bindings, swap-summary-fifo, gammastep-lockfile, sway-power-on, grime
 , flock-pid-run, swap-summary, cpu-temperature, cpu-temp-fifo, xkb, wofi-config
-, paths }:
+, paths, pa-mic-toggle }:
 pkgs.writeTextDir "share/sway.rc" ''
 
 # Read `man 5 sway` for a complete reference.
@@ -309,21 +309,36 @@ bindsym $mod+bracketleft       bar mode dock
 set $pactl exec /run/current-system/sw/bin/pactl
 set $mute  $pactl set-sink-mute @DEFAULT_SINK@ toggle
 set $vol   $pactl set-sink-volume @DEFAULT_SINK@
+set $pa-mic-toggle exec ${pa-mic-toggle}/bin/pa-mic-toggle
 
-set $xbacklight exec /home/martyn/.nix-profiles/x/bin/xbacklight
+set $xbacklight ${pkgs.light}/bin/light
 
+# >> audio mute
 bindsym XF86AudioMute $mute
+# >> mic mute
+bindsym XF86AudioMicMute $pa-mic-toggle
+# >> volume++
 bindsym XF86AudioRaiseVolume $vol +1%
+# >> volume--
 bindsym XF86AudioLowerVolume $vol -1%
-bindsym XF86MonBrightnessUp    $xbacklight -inc 5
-bindsym XF86MonBrightnessDown  $xbacklight -dec 5
+# >> brightness++
+bindsym XF86MonBrightnessUp   exec $xbacklight -A 5
+# >> brightness--
+bindsym XF86MonBrightnessDown exec $xbacklight -U 5
+
 # (F5)/AudioPlay on Dell_XPS 9315
 bindsym XF86AudioPlay input type:touchpad events toggle enabled disabled
+
 # (F10)/screenshot on Lenovo Thinkpad Carbon Gen12
+# >> screenshot selection to clipboard
 bindsym XF86Launch2 exec $grimshot copy anything
-bindsym $mod+XF86Launch2 exec $grime anything
-bindsym Shift+XF86Launch2 exec $grimshot copy screen
+# >> screenshot to ~/screenshots/...
+bindsym $mod+XF86Launch2       exec $grime anything
+# >> screenshot screen to ~/screenshots/...
+bindsym Shift+XF86Launch2      exec $grimshot copy screen
+# >> screenshot screen to ~/screenshots/...
 bindsym $mod+Shift+XF86Launch2 exec $grime screen
+
 # (F12)/Star on Lenovo Thinkpad Carbon Gen12
 bindsym XF86Favorites input type:touchpad events toggle enabled disabled
 

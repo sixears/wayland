@@ -11,11 +11,14 @@ import Prelude  ( error )
 
 -- base --------------------------------
 
+import qualified System.IO
+
 import Control.Monad     ( foldM_ )
 import Data.Char         ( chr, isAlpha, isSpace, ord, toLower )
 import Data.Foldable     ( concat )
 import Data.Functor      ( (<$) )
-import Data.List         ( drop, dropWhile, intercalate, reverse, span, splitAt, take )
+import Data.List         ( drop, dropWhile, intercalate, reverse, span, splitAt
+                         , take, dropWhileEnd )
 import Data.Maybe        ( catMaybes )
 import Data.Monoid       ( mempty )
 import GHC.Num           ( subtract )
@@ -503,6 +506,11 @@ swaymsgPath = "/run/current-system/sw/bin/swaymsg"
 
 ----------------------------------------
 
+sysInfoPath ∷ 𝕊
+sysInfoPath = "/run/current-system/sw/bin/sys-info"
+
+----------------------------------------
+
 data E3 α β γ = L3 α | M3 β | R3 γ
   deriving Show
 
@@ -516,30 +524,50 @@ rspan ∷ (α → 𝔹) → [α] → ([α],[α])
 rspan f s = let (x,y) = span f (reverse s)
             in  (reverse y,reverse x)
 
-translations ∷ Map.Map 𝕊 𝕊
-translations = Map.fromList [ ("$mod"        , "W")
-                            , ("shift"       , "s")
-                            , ("ctrl"        , "C")
-                            , ("control"     , "C")
-                            , ("alt"         , "M") -- yes, Alt≡Mod1
-                            , ("mod1"        , "M") -- yes, Alt≡Mod1
-                            , ("slash"       , "/")
-                            , ("backslash"   , "\\")
-                            , ("plus"        , "+")
-                            , ("bar"         , "|")
-                            , ("minus"       , "-")
-                            , ("equal"       , "=")
-                            , ("bracketleft" , "[")
-                            , ("bracketright", "]")
-                            ]
-printKey ∷ 𝕄 Mode → 𝕊 → 𝕊 → IO ()
-printKey m k s =
-  let ks = (\ x → Map.findWithDefault x (toLower⊳x) translations) ⊳splitOn "+" k
+systemTranslations "ThinkPad X1 Carbon Gen 12" =
+  [ ("xf86audiomute"         , "Fn+F1" )
+  , ("xf86audiolowervolume"  , "Fn+F2" )
+  , ("xf86audioraisevolume"  , "Fn+F3" )
+  , ("xf86audiomicmute"      , "Fn+F4" )
+  , ("xf86monbrightnessdown" , "Fn+F5" )
+  , ("xf86monbrightnessup"   , "Fn+F6" )
+  , ("xf86launch2"           , "Fn+F10" )
+  , ("xf86favorites"         , "Fn+F12" )
+    -- hide this key, it doesn't exist on the X1Gen12
+  , ("xf86audioplay", "")
+                                                 ]
+systemTranslations _ = []
+
+translations ∷ 𝕊 → Map.Map 𝕊 𝕊
+translations system_family =
+  ю [ Map.fromList $ systemTranslations system_family
+    , Map.fromList [ ("$mod"        , "W")
+                   , ("shift"       , "s")
+                   , ("ctrl"        , "C")
+                   , ("control"     , "C")
+                   , ("alt"         , "M") -- yes, Alt≡Mod1
+                   , ("mod1"        , "M") -- yes, Alt≡Mod1
+                   , ("slash"       , "/")
+                   , ("backslash"   , "\\")
+                   , ("plus"        , "+")
+                   , ("bar"         , "|")
+                   , ("minus"       , "-")
+                   , ("equal"       , "=")
+                   , ("bracketleft" , "[")
+                   , ("bracketright", "]")
+                   ]
+    ]
+
+printKey ∷ 𝕊 → 𝕄 Mode → 𝕊 → 𝕊 → IO ()
+printKey system_family m k s =
+  let tr = translations system_family
+      ks = (\ x → Map.findWithDefault x (toLower ⊳ x) tr) ⊳ splitOn "+" k
       (k':xs) = reverse ks
       m' = intercalate "+" (reverse xs)
---  in  putStrLn $ [fmt|%-8s %-8s %-24s %s|]
-  in  putStrLn $ [fmt|%s\t%s\t%s\t%s|]
-                 (maybe "" (\ (Mode' x _) → x) m) m' k' s
+  in
+    when (k' ≢ "") $
+      putStrLn $ [fmt|%s\t%s\t%s\t%s|]
+                   (maybe "" (\ (Mode' x _) → x) m) m' k' s
 
 ----------------------------------------
 
@@ -547,9 +575,10 @@ printKey m k s =
      clause is a bindsym, print it.  The prior clause is used as a description
      of the action, if it is a suitably-formatted comment.
 -}
-printBSOC ∷ 𝕄 Mode → (𝕄 (E3 BindSym Comment Mode), 𝕊) → E3 BindSym Comment Mode
+printBSOC ∷ 𝕊 → 𝕄 Mode → (𝕄 (E3 BindSym Comment Mode), 𝕊) → E3 BindSym Comment Mode
           → IO (𝕄 (E3 BindSym Comment Mode), 𝕊)
-printBSOC m (prior,pfx) l = do
+printBSOC system_family m (prior,pfx) l = do
+  let print_key = printKey system_family
   case l of
       L3 (BindSymRegular k a) → do
         case prior of
@@ -559,17 +588,23 @@ printBSOC m (prior,pfx) l = do
                 -- keep the attached comment in buffer until we see '-}'
                 return(prior, pfx)
               (">>",t) → do
-                printKey m k (dropWhile isSpace t)
+                print_key m k (dropWhile isSpace t)
                 return(𝕵 l,pfx)
-              _        → printKey m k a ⪼return(𝕵 l,pfx)
-          _            → printKey m k a ⪼return(𝕵 l,pfx)
+              _        → print_key m k a ⪼return(𝕵 l,pfx)
+          _            → print_key m k a ⪼return(𝕵 l,pfx)
 
       L3 (BindSymExec k a) → do
-        printKey m k ([fmt|exec %q|] a)
+        case prior of
+          𝕵 (M3 (unComment → c)) →
+            case splitAt 2 c of
+              (">>",t) → print_key m k (dropWhile isSpace t)
+              _        → print_key m k ([fmt|exec %q|] a)
+          _            → print_key m k ([fmt|exec %q|] a)
+
         return (𝕵 l,pfx)
 
       R3 m'@(Mode' _ xs) → do
-        foldM_ (printBSOC (𝕵 m')) (𝕹, pfx) (eToE3 ⊳ xs)
+        foldM_ (printBSOC system_family (𝕵 m')) (𝕹, pfx) (eToE3 ⊳ xs)
         return (𝕵 l,pfx)
 
       M3 (splitAt 2 ∘ unComment → ("-}",_)) →
@@ -577,7 +612,7 @@ printBSOC m (prior,pfx) l = do
         case prior of
           𝕵 (M3 (unComment → c)) → do
             let (k,desc) = span (not ∘ isSpace) (drop 3 c)
-            printKey m k (dropWhile isSpace desc)
+            print_key m k (dropWhile isSpace desc)
             return (𝕵 l,pfx)
           𝕵 x → warn ([fmt|unexpected %w at '-}'|] x) ⪼ return (𝕵 l,pfx)
           𝕹   → warn "unexpected '-}' with no prior"  ⪼ return (𝕵 l,pfx)
@@ -587,14 +622,15 @@ printBSOC m (prior,pfx) l = do
 
 main ∷ IO ()
 main = do
-  cfg ← readProcess swaymsgPath [ "-t", "get_config", "--pretty" ] ""
+  cfg  ← readProcess swaymsgPath [ "-t", "get_config", "--pretty" ] ""
+  system_family ← dropWhileEnd (≡ '\n') ⊳
+                    readProcess sysInfoPath [ "system-family" ] ""
 
   let prsr = spaces ⋫ many (token (parse @Clause))
   let r = parseString prsr mempty cfg
   case r of
-    Failure e → putStrLn $ show e
+    Failure e → System.IO.print e
     Success s → do
-      foldM_ (printBSOC 𝕹) (𝕹,"") (catMaybes $ clauseToBSCM ⊳ s)
-      -- forM_ s (putStrLn ∘ pack ∘ show)
+      foldM_ (printBSOC system_family 𝕹) (𝕹,"") (catMaybes $ clauseToBSCM ⊳ s)
 
 -- that's all, folks! ----------------------------------------------------------

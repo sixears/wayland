@@ -5,7 +5,7 @@
     nixpkgs.url     = github:NixOS/nixpkgs/938aa157; # nixos-24.05 2024-06-20
     flake-utils.url = github:numtide/flake-utils/c0e246b9;
     myPkgs          = {
-      url    = github:sixears/nix-pkgs/r0.0.10.2;
+      url    = github:sixears/nix-pkgs/r0.0.11.0;
 #      url    = path:/home/martyn/nix/pkgs/;
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
@@ -16,7 +16,7 @@
 #      inputs = { nixpkgs.follows = "nixpkgs"; };
     };
     bashHeader      = {
-      url    = github:sixears/bash-header/5206b087;
+      url    = github:sixears/bash-header/r0.0.3.0;
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
   };
@@ -79,7 +79,8 @@
             { inherit pkgs dim hostconfig alac gammastep-lockfile sway-lock
                       sway-bindings sway-power-on grime;
               inherit (gui)          i3stat;
-              inherit (my-pkgs)      flock-pid-run swap-summary cpu-temperature;
+              inherit (my-pkgs)      flock-pid-run swap-summary cpu-temperature
+                                     pa-mic-toggle;
               inherit (my-settings)  swap-summary-fifo cpu-temp-fifo;
               inherit (base-scripts) paths;
               wallpaper      = ./src/nixos1.jpg;

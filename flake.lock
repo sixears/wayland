@@ -110,8 +110,8 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1720487628,
-        "narHash": "sha256-0HXNaMmSsJUgnYoQRh866I+2XQgu6LaWdqiJom5HVMc=",
+        "lastModified": 1720613089,
+        "narHash": "sha256-nc8mbWEsaho1Wxqht3SkBEXDvrbHDoDyPXwrK0TeMuQ=",
         "path": "/home/martyn/nix/base-scripts",
         "type": "path"
       },
@@ -265,16 +265,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1673941465,
-        "narHash": "sha256-MZIpkvYMlsCMZDZeDeVYAxfIAbcqpJ8DNcubhPYMWHE=",
+        "lastModified": 1686162181,
+        "narHash": "sha256-ttwNC/80bczRsb7MrXbO6fLCUkKSsSQvpkxXljpvjzo=",
         "owner": "sixears",
         "repo": "bash-header",
-        "rev": "5206b087fb4792c7389f8547c856d4b91d39d509",
+        "rev": "e0c009619b8078edae278f161e03fdae2082cbea",
         "type": "github"
       },
       "original": {
         "owner": "sixears",
-        "ref": "5206b087",
+        "ref": "r0.0.3.0",
         "repo": "bash-header",
         "type": "github"
       }
@@ -287,16 +287,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1673941465,
-        "narHash": "sha256-MZIpkvYMlsCMZDZeDeVYAxfIAbcqpJ8DNcubhPYMWHE=",
+        "lastModified": 1686162181,
+        "narHash": "sha256-ttwNC/80bczRsb7MrXbO6fLCUkKSsSQvpkxXljpvjzo=",
         "owner": "sixears",
         "repo": "bash-header",
-        "rev": "5206b087fb4792c7389f8547c856d4b91d39d509",
+        "rev": "e0c009619b8078edae278f161e03fdae2082cbea",
         "type": "github"
       },
       "original": {
         "owner": "sixears",
-        "ref": "5206b087",
+        "ref": "r0.0.3.0",
         "repo": "bash-header",
         "type": "github"
       }
@@ -334,16 +334,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1673941465,
-        "narHash": "sha256-MZIpkvYMlsCMZDZeDeVYAxfIAbcqpJ8DNcubhPYMWHE=",
+        "lastModified": 1720737258,
+        "narHash": "sha256-Bd3AHSJD1Ok6p/DRVoKX0PM9Vt0d5YR44Djtp6HjjeE=",
         "owner": "sixears",
         "repo": "bash-header",
-        "rev": "5206b087fb4792c7389f8547c856d4b91d39d509",
+        "rev": "7a6e2b23787fc37dc8e48e7a519498cde09b228e",
         "type": "github"
       },
       "original": {
         "owner": "sixears",
-        "ref": "5206b087",
+        "ref": "r0.0.4.0",
         "repo": "bash-header",
         "type": "github"
       }
@@ -1892,16 +1892,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1708246370,
-        "narHash": "sha256-gvE2r70K/QCsFX7CSScLsEOH9Mg/QQSlPNEwPioebhE=",
+        "lastModified": 1720748086,
+        "narHash": "sha256-2+wCQ1kxNM3lQi4ifm8Ez9X/aduC8eh9fWw3Zh4hHyE=",
         "owner": "sixears",
         "repo": "nix-pkgs",
-        "rev": "b4a556136c36da0c6ddd432539eabe735bfc4a6c",
+        "rev": "47c25b51f8bf1874db511de36f21a4d0e85909bb",
         "type": "github"
       },
       "original": {
         "owner": "sixears",
-        "ref": "r0.0.10.2",
+        "ref": "r0.0.11.0",
         "repo": "nix-pkgs",
         "type": "github"
       }
