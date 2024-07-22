@@ -13,7 +13,10 @@ pkgs.writeTextDir "share/sway.rc" ''
 # input "1:1:AT_Translated_Set_2_keyboard" {
 input type:keyboard {
 # xkb_layout us(dvorak-intl)
+# xkb_layout gb
 # xkb_options "caps:ctrl_modifier,compose:prsc,altwin:menu,eurosign:4"
+
+# xkb_options "caps:ctrl_modifier,compose:ralt"
   xkb_file ${xkb}
 }
 
@@ -314,33 +317,33 @@ set $pa-mic-toggle exec ${pa-mic-toggle}/bin/pa-mic-toggle
 set $xbacklight ${pkgs.light}/bin/light
 
 # >> audio mute
-bindsym XF86AudioMute $mute
+## bindsym XF86AudioMute $mute
 # >> mic mute
-bindsym XF86AudioMicMute $pa-mic-toggle
+## bindsym XF86AudioMicMute $pa-mic-toggle
 # >> volume++
-bindsym XF86AudioRaiseVolume $vol +1%
+## bindsym XF86AudioRaiseVolume $vol +1%
 # >> volume--
-bindsym XF86AudioLowerVolume $vol -1%
+## bindsym XF86AudioLowerVolume $vol -1%
 # >> brightness++
-bindsym XF86MonBrightnessUp   exec $xbacklight -A 5
+## bindsym XF86MonBrightnessUp   exec $xbacklight -A 5
 # >> brightness--
-bindsym XF86MonBrightnessDown exec $xbacklight -U 5
+## bindsym XF86MonBrightnessDown exec $xbacklight -U 5
 
 # (F5)/AudioPlay on Dell_XPS 9315
-bindsym XF86AudioPlay input type:touchpad events toggle enabled disabled
+## bindsym XF86AudioPlay input type:touchpad events toggle enabled disabled
 
 # (F10)/screenshot on Lenovo Thinkpad Carbon Gen12
 # >> screenshot selection to clipboard
-bindsym XF86Launch2 exec $grimshot copy anything
+## bindsym XF86Launch2 exec $grimshot copy anything
 # >> screenshot to ~/screenshots/...
-bindsym $mod+XF86Launch2       exec $grime anything
+## bindsym $mod+XF86Launch2       exec $grime anything
 # >> screenshot screen to ~/screenshots/...
-bindsym Shift+XF86Launch2      exec $grimshot copy screen
+## bindsym Shift+XF86Launch2      exec $grimshot copy screen
 # >> screenshot screen to ~/screenshots/...
-bindsym $mod+Shift+XF86Launch2 exec $grime screen
+## bindsym $mod+Shift+XF86Launch2 exec $grime screen
 
 # (F12)/Star on Lenovo Thinkpad Carbon Gen12
-bindsym XF86Favorites input type:touchpad events toggle enabled disabled
+## bindsym XF86Favorites input type:touchpad events toggle enabled disabled
 
 # -- swaybar -------------------------------------------------------------------
 

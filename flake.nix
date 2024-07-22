@@ -85,8 +85,9 @@
               inherit (base-scripts) paths;
               wallpaper      = ./src/nixos1.jpg;
               lock-wallpaper = ./src/nixos3.jpg;
-              xkb            = ./src/keyboard.xkb;
               wofi-config    = ./src/wofi.rc;
+              xkb            =
+                ./src/keyboard.lenovo-thinkpad-x1-carbon-gen12.xkb;
             };
 
       in
