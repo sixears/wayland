@@ -1,0 +1,216 @@
+  xkb_keycodes {
+    minimum = 8;
+    maximum = 255;
+
+    # --------------------------------------------------------
+
+    <ESC>  =   9;
+    <FK01> =  67;
+    <FK02> =  68;
+    <FK03> =  69;
+    <FK04> =  70;
+    <FK05> =  71;
+    <FK06> =  72;
+    <FK07> =  73;
+    <FK08> =  74;
+    <FK09> =  75;
+    <FK10> =  76;
+    <FK11> =  95;
+    <FK12> =  96;
+
+    # ------------------------------------
+
+    <HOME> = 110;
+    <END>  = 115;
+    <INS>  = 118;
+    <DELE> = 119;
+
+    # --------------------------------------------------------
+
+    <MUTE> = 121; # Fn+FK1
+    <VOL-> = 122; # Fn+FK2
+    <VOL+> = 123; # Fn+FK3
+    <MCMT> = 198; # Fn+FK4: Mic Mute
+    <BRT-> = 232; # Fn+FK5: Brightness Down
+    <BRT+> = 233; # Fn+FK6: Brightness Up
+    <DISP> = 235; # Fn+FK7: Display
+    # No key code for Fn+FK8
+    <PRSC> = 107; # Fn+FK9
+    <SNIP> = 157; # Fn+FK10
+    # No key code for Fn+FK11
+    <STAR> = 164; # Fn+FK12
+
+    # --------------------------------------------------------
+
+    <BKTK> =  49; # Backtick
+    <NUM1> =  10;
+    <NUM2> =  11;
+    <NUM3> =  12;
+    <NUM4> =  13;
+    <NUM5> =  14;
+    <NUM6> =  15;
+    <NUM7> =  16;
+    <NUM8> =  17;
+    <NUM9> =  18;
+    <NUM0> =  19;
+    <MNUS> =  20;
+    <EQUL> =  21;
+    <BKSP> =  22;
+
+    # --------------------------------------------------------
+
+    <TAB>  =  23; <FTAB> = 380; # Fn+TAB
+    <KP_Q> =  24;
+    <KP_W> =  25;
+    <KP_E> =  26;
+    <KP_R> =  27;
+    <KP_T> =  28;
+    <KP_Y> =  29;
+    <KP_U> =  30;
+    <KP_I> =  31;
+    <KP_O> =  32;
+    <KP_P> =  33; <PAUS> = 127; # Fn+p
+    <LBRK> =  34; # left bracket
+    <RBRK> =  35; # right bracket
+
+    # --------------------------------------------------------
+
+    <CAPS> =  66;
+    <KP_A> =  38;
+    <KP_S> =  39;
+    <KP_D> =  40;
+    <KP_F> =  41;
+    <KP_G> =  42;
+    <KP_H> =  43;
+    <KP_J> =  44;
+    <KP_K> =  45; <SCLK> = 78; # Fn+k
+
+    <KP_L> =  46;
+    <SEMI> =  47; # semicolon
+    <APOS> =  48; # apostrophe
+    <HASH> =  51;
+    <RTRN> =  36;
+
+    # --------------------------------------------------------
+
+    <LFSH> =  50; # left shift
+    <BKSL> =  94;
+    <KP_Z> =  52;
+    <KP_X> =  53;
+    <KP_C> =  54;
+    <KP_V> =  55;
+    <KP_B> =  56;
+    <KP_N> =  57;
+    <KP_M> =  58;
+    <COMM> =  59; # comma
+    <PERD> =  60; # period
+    <SLSH> =  61; # slash
+    <RTSH> =  62; <I210> = 210; # right shift; Fn+RShift
+
+    # --------------------------------------------------------
+
+    <LCTL> =  37;
+    <I151> = 151;
+    <LWIN> = 133;
+    <LALT> =  64;
+    <SPCE> =  65;
+    <RALT> = 108;
+    <RCTL> = 105;
+
+    <PGUP> = 112;
+    <UP>   = 111;
+    <PGDN> = 117;
+    <LEFT> = 113;
+    <DOWN> = 116;
+    <RGHT> = 114;
+
+    # --------------------------------------------------------
+
+      indicator 1 = "Caps Lock";
+##      indicator 2 = "Num Lock";
+##      indicator 3 = "Scroll Lock";
+##      indicator 4 = "Compose";
+##      indicator 5 = "Kana";
+##      indicator 6 = "Sleep";
+##      indicator 7 = "Suspend";
+##      indicator 8 = "Mute";
+##      indicator 9 = "Misc";
+##      indicator 10 = "Mail";
+##      indicator 11 = "Charging";
+##      indicator 12 = "Shift Lock";
+##      indicator 13 = "Group 2";
+##      indicator 14 = "Mouse Keys";
+      alias <AC12> = <HASH>;
+      alias <ALGR> = <RALT>;
+      alias <MENU> = <COMP>;
+      alias <HZTG> = <BKTK>;
+      alias <LMTA> = <LWIN>;
+      alias <RMTA> = <RWIN>;
+      alias <OUTP> = <DISP>;
+      alias <KITG> = <I236>;
+      alias <KIDN> = <I237>;
+      alias <KIUP> = <I238>;
+      alias <I121> = <MUTE>;
+      alias <I122> = <VOL->;
+      alias <I123> = <VOL+>;
+      alias <I124> = <POWR>;
+      alias <I125> = <KPEQ>;
+      alias <I127> = <PAUS>;
+      alias <I130> = <HNGL>;
+      alias <I131> = <HJCV>;
+      alias <I132> = <AE13>;
+      alias <I133> = <LWIN>;
+      alias <I134> = <RWIN>;
+      alias <I135> = <COMP>;
+      alias <I136> = <STOP>;
+      alias <I137> = <AGAI>;
+      alias <I138> = <PROP>;
+      alias <I139> = <UNDO>;
+      alias <I140> = <FRNT>;
+      alias <I141> = <COPY>;
+      alias <I142> = <OPEN>;
+      alias <I143> = <PAST>;
+      alias <I144> = <FIND>;
+      alias <I145> =  <CUT>;
+      alias <I146> = <HELP>;
+      alias <I191> = <FK13>;
+      alias <I192> = <FK14>;
+      alias <I193> = <FK15>;
+      alias <I194> = <FK16>;
+      alias <I195> = <FK17>;
+      alias <I196> = <FK18>;
+      alias <I197> = <FK19>;
+      alias <I198> = <MCMT>;
+      alias <I199> = <FK21>;
+      alias <I200> = <FK22>;
+      alias <I201> = <FK23>;
+      alias <I202> = <FK24>;
+      alias <MDSW> = <LVL5>;
+      alias <KPPT> = <I129>;
+      alias <LatQ> = <KP_Q>;
+      alias <LatW> = <KP_W>;
+      alias <LatE> = <KP_E>;
+      alias <LatR> = <KP_R>;
+      alias <LatT> = <KP_T>;
+      alias <LatY> = <KP_Y>;
+      alias <LatU> = <KP_U>;
+      alias <LatI> = <KP_I>;
+      alias <LatO> = <KP_O>;
+      alias <LatP> = <KP_P>;
+      alias <LatA> = <KP_A>;
+      alias <LatS> = <KP_S>;
+      alias <LatD> = <KP_D>;
+      alias <LatF> = <KP_F>;
+      alias <LatG> = <KP_G>;
+      alias <LatH> = <KP_H>;
+      alias <LatJ> = <KP_J>;
+      alias <LatK> = <KP_K>;
+      alias <LatL> = <KP_L>;
+      alias <LatZ> = <KP_Z>;
+      alias <LatX> = <KP_X>;
+      alias <LatC> = <KP_C>;
+      alias <LatV> = <KP_V>;
+      alias <LatB> = <KP_B>;
+      alias <LatN> = <KP_N>;
+      alias <LatM> = <KP_M>;
+  };
