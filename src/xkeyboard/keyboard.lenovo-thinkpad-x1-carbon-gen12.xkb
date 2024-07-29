@@ -8,6 +8,12 @@
 # In principle, you can reload a file with xkbcomp FILENAME $DISPLAY; but this
 # probably won't work appropriately on wayland; use sway-reload for that
 
+# https://github.com/swaywm/sway/issues/5461
+# if in doubt, compile this file with `xkbcomp FILE $DISPLAY`
+# (xkbcomp is from xorg.xkbcomp)
+# e.g., sway may reload happily, but emacs will bork (and probably revert to the
+# hard keyboard, i.e., qwerty)
+
 xkb_keymap {
   xkb_keycodes {
     minimum = 8;
@@ -151,10 +157,10 @@ xkb_keymap {
 ##      indicator 12 = "Shift Lock";
 ##      indicator 13 = "Group 2";
 ##      indicator 14 = "Mouse Keys";
-      alias <AC12> = <HASH>;
-      alias <ALGR> = <RALT>;
+#      alias <AC12> = <HASH>;
+#      alias <ALGR> = <RALT>;
       alias <MENU> = <COMP>;
-      alias <HZTG> = <BKTK>;
+#      alias <HZTG> = <BKTK>;
       alias <LMTA> = <LWIN>;
       alias <RMTA> = <RWIN>;
       alias <OUTP> = <DISP>;
@@ -224,6 +230,7 @@ xkb_keymap {
       alias <LatB> = <KP_B>;
       alias <LatN> = <KP_N>;
       alias <LatM> = <KP_M>;
+      alias <bksl> = <HASH>;
   };
 
 xkb_types "(unnamed)" {
@@ -312,10 +319,13 @@ xkb_types "(unnamed)" {
       # 2: iso_level_3_shift(F12)
       # 3: iso_level_3_shift(F12)+shift
 
-      modifiers= Shift+LevelThree;
+#      modifiers= Shift+LevelThree;
+      modifiers= Shift+Mod5;
       map[Shift]= Level2;
-      map[LevelThree]= Level3;
-      map[Shift+LevelThree]= Level4;
+#      map[LevelThree]= Level3;
+      map[Mod5]= Level3;
+      map[Shift+Mod5]= Level4;
+#      map[Shift+LevelThree]= Level4;
       level_name[Level1]= "Base";
       level_name[Level2]= "Shift";
       level_name[Level3]= "AltGr";
@@ -327,7 +337,6 @@ xkb_types "(unnamed)" {
         modifiers= Shift+Lock+Mod5;
         map[Shift]= Level2;
         map[Lock]= Level2;
-## this works to enable the third group (e.g., mu for m), but screws up all the other keys too...
         map[Mod5]= Level3;
 ##        map[LevelThree]= Level3;
 ##        map[Shift+LevelThree]= Level4;
@@ -1126,8 +1135,8 @@ xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
   #
   # -- 49(`),10-22(1-0,-,=)
 
-# key <BKTK> { type= "FOUR_LEVEL"           , symbols[Group1]= [ grave     , asciitilde , dead_grave          , dead_tilde      ]};
-  key <BKTK> { type= "FOUR_LEVEL"           , symbols[Group1]= [ grave     , notsign    , bar                 , dead_tilde      ]};
+  key <BKTK> { type= "FOUR_LEVEL"           , symbols[Group1]= [ grave     , asciitilde , dead_grave          , dead_tilde      ]};
+#  key <BKTK> { type= "FOUR_LEVEL"           , symbols[Group1]= [ grave     , notsign    , bar                 , dead_tilde      ]};
   key <NUM1> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 1         , exclam,      exclamdown,           onesuperior     ]};
   key <NUM2> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 2         , at,          onehalf,              twosuperior     ]};
   key <NUM3> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 3         , numbersign,  sterling,             threesuperior   ]};
@@ -1182,7 +1191,7 @@ xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
 
   key <KP_Z> { type= "FOUR_LEVEL"           , symbols[Group1]= [ semicolon   , colon     , paragraph      , degree              ]};
   key <LatQ> { type= "FOUR_LEVEL",            symbols[Group1]= [ apostrophe  , quotedbl  , dead_acute     , dead_diaeresis      ]};
-  key <HASH> { type= "FOUR_LEVEL"           , symbols[Group1]= [ numbersign  , asciitilde, dead_grave     , dead_breve          ]};
+#  key <HASH> { type= "FOUR_LEVEL"           , symbols[Group1]= [ numbersign  , asciitilde, dead_grave     , dead_breve          ]};
 
   key <RTRN> { [ Return ] };
 
@@ -1193,6 +1202,7 @@ xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
   key <LFSH> { [ Shift_L ] };
 
   key <BKSL> { type= "FOUR_LEVEL"           , symbols[Group1]= [ backslash   , bar       , backslash      , bar                 ]};
+  key <bksl> { type= "FOUR_LEVEL"           , symbols[Group1]= [ backslash   , bar       , notsign      , bar                 ]};
 
   key <SLSH> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ z           , Z         , ae             , AE                  ]};
   key <KP_B> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ x           , X         , periodcentered , dead_stroke         ]};
