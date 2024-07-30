@@ -230,7 +230,10 @@ xkb_keymap {
       alias <LatB> = <KP_B>;
       alias <LatN> = <KP_N>;
       alias <LatM> = <KP_M>;
+
+      # map key (what we want to type) to physical (printed on the keyboard)
       alias <bksl> = <HASH>;
+      alias <comp> = <BKSL>; # compose, or multi_key
   };
 
 xkb_types "(unnamed)" {
@@ -1201,7 +1204,7 @@ xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
 
   key <LFSH> { [ Shift_L ] };
 
-  key <BKSL> { type= "FOUR_LEVEL"           , symbols[Group1]= [ backslash   , bar       , backslash      , bar                 ]};
+#  key <BKSL> { type= "FOUR_LEVEL"           , symbols[Group1]= [ backslash   , bar       , backslash      , bar                 ]};
   key <bksl> { type= "FOUR_LEVEL"           , symbols[Group1]= [ backslash   , bar       , notsign      , bar                 ]};
 
   key <SLSH> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ z           , Z         , ae             , AE                  ]};
@@ -1287,6 +1290,10 @@ xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
     key <PRSC> {
 #        type= "TWO_LEVEL",
 #        symbols[Group1]= [       ISO_Level3_Shift,       Multi_key ]
+        type= "ONE_LEVEL",
+        symbols[Group1]= [ Multi_key ]
+    };
+    key <comp> {
         type= "ONE_LEVEL",
         symbols[Group1]= [ Multi_key ]
     };

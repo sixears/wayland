@@ -74,6 +74,29 @@
           let src = import ./src/grime.nix { inherit pkgs bash-header; };
           in  pkgs.writers.writeBashBin "grime" src;
 
+        xkeyboard =
+          let
+            build = ''
+              ${pkgs.coreutils}/bin/mkdir -p $out/share
+              ${pkgs.coreutils}/bin/cp -av $src/ $out/share/xkeyboard/
+            '';
+          in
+          derivation {
+            inherit system;
+            name = "xkeyboard";
+            src  = ./src/xkeyboard;
+
+  #          installPhase = ''
+  #            mkdir -p $out
+  #          '';
+
+            inherit (pkgs) coreutils;
+            builder = "${pkgs.bash}/bin/bash";
+  #          args  = [ ./src/xkeyboard/builder.sh ];
+  #          args  = [ "-c" "exit 99" ];
+            args  = [ "-c" build ];
+          };
+
         sway-config =
           import ./src/sway-config.nix
             { inherit pkgs dim hostconfig alac gammastep-lockfile sway-lock
@@ -87,7 +110,8 @@
               lock-wallpaper = ./src/nixos3.jpg;
               wofi-config    = ./src/wofi.rc;
               xkb            =
-                ./src/keyboard.lenovo-thinkpad-x1-carbon-gen12.xkb;
+                "${xkeyboard}/share/xkeyboard/keyboard.lenovo-thinkpad-x1-carbon-gen12.xkb";
+#                ./src/keyboard.dvorak.xkb;
             };
 
       in
@@ -109,6 +133,8 @@
                                                    inherit (my-pkgs) replace;
                                                  };
 
+            ## FIXME
+            inherit xkeyboard sway-config;
             xkb-file = import ./src/xkb-file.nix { inherit pkgs; };
 
             inherit sway-float sway-sock sway-binds sway-bindings
