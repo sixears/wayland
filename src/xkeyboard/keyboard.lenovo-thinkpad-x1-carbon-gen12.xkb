@@ -162,7 +162,7 @@ xkb_keymap {
         modifiers= none;
         level_name[Level1]= "Any";
     };
-    type "TWO_LEVEL" {
+    type "SHIFT" {
         modifiers= Shift;
         map[Shift]= Level2;
         level_name[Level1]= "Base";
@@ -966,8 +966,8 @@ xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
   key <KP_F> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ u           , U         , uacute         , Uacute              ]};
   key <KP_G> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ i           , I         , iacute         , Iacute              ]};
   key <KP_S> {
-    type[1]= "FOUR_LEVEL_ALPHABETIC",
-    symbols[1]= [ o           , O         , oacute         , Oacute              ],
+    type[1]= "EIGHT_LEVEL_ALPHABETIC",
+    symbols[1]= [ o           , O         , oacute         , Oacute,U1D546              ],
     type[2]= "EIGHT_LEVEL_ALPHABETIC",
     # s, S, ß, §, σ, Σ, ς, 𐌽
     symbols[2] = [s,S,ssharp,section,Greek_sigma,Greek_SIGMA,Greek_finalsmallsigma,U1033D]
@@ -1065,8 +1065,8 @@ xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
 symbols[Group1]=[ISO_Next_Group]
     };
     key <BKSL> {
-        type= "TWO_LEVEL",
-        symbols[Group1]= [ Multi_key, Hyper_L ]
+        type= "SHIFT",
+        symbols[Group1]= [ Hyper_L, Multi_key ]
     };
     key <MUTE> {         [   XF86AudioMute ] };
     key <VOL-> {         [ XF86AudioLowerVolume ] };
