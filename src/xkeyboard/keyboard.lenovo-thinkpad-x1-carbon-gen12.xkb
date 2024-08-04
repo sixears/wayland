@@ -144,7 +144,7 @@ xkb_keymap {
     # --------------------------------------------------------
 
     # where the indicator is; see xkb_compatibility/indicator for usage
-     indicator 1 = "Caps Lock";
+    indicator 1 = "Caps Lock";
   };
 
   xkb_types "(unnamed)" {
@@ -155,6 +155,8 @@ xkb_keymap {
     # 08 - Mod1 (Alt/Meta)
     # 40 - Mod4
     # 80 - Mod5 (LevelThree)
+
+    # we mostly leave Control, Alt + Super for apps, etc., to read directly
 
     virtual_modifiers NumLock,Alt,LevelThree,LevelFive,Meta,Super,Hyper,ScrollLock;
 
@@ -909,18 +911,18 @@ xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
 
 
   key <ESC>  { [ Escape ] };
-  key <FK01> { type= "CTRL-ALT", symbols[Group1]= [ F1,  XF86Switch_VT_1  ] };
-  key <FK02> { type= "CTRL-ALT", symbols[Group1]= [ F2,  XF86Switch_VT_2  ] };
-  key <FK03> { type= "CTRL-ALT", symbols[Group1]= [ F3,  XF86Switch_VT_3  ] };
-  key <FK04> { type= "CTRL-ALT", symbols[Group1]= [ F4,  XF86Switch_VT_4  ] };
-  key <FK05> { type= "CTRL-ALT", symbols[Group1]= [ F5,  XF86Switch_VT_5  ] };
-  key <FK06> { type= "CTRL-ALT", symbols[Group1]= [ F6,  XF86Switch_VT_6  ] };
-  key <FK07> { type= "CTRL-ALT", symbols[Group1]= [ F7,  XF86Switch_VT_7  ] };
-  key <FK08> { type= "CTRL-ALT", symbols[Group1]= [ F8,  XF86Switch_VT_8  ] };
-  key <FK09> { type= "CTRL-ALT", symbols[Group1]= [ F9,  XF86Switch_VT_9  ] };
-  key <FK10> { type= "CTRL-ALT", symbols[Group1]= [ F10, XF86Switch_VT_10 ] };
-  key <FK11> { type= "CTRL-ALT", symbols[Group1]= [ F11, XF86Switch_VT_11 ] };
-  key <FK12> { type= "CTRL-ALT", symbols[Group1]= [ F12, XF86Switch_VT_12 ] };
+  key <FK01> { type= "CTRL-ALT", symbols= [ F1,  XF86Switch_VT_1  ] };
+  key <FK02> { type= "CTRL-ALT", symbols= [ F2,  XF86Switch_VT_2  ] };
+  key <FK03> { type= "CTRL-ALT", symbols= [ F3,  XF86Switch_VT_3  ] };
+  key <FK04> { type= "CTRL-ALT", symbols= [ F4,  XF86Switch_VT_4  ] };
+  key <FK05> { type= "CTRL-ALT", symbols= [ F5,  XF86Switch_VT_5  ] };
+  key <FK06> { type= "CTRL-ALT", symbols= [ F6,  XF86Switch_VT_6  ] };
+  key <FK07> { type= "CTRL-ALT", symbols= [ F7,  XF86Switch_VT_7  ] };
+  key <FK08> { type= "CTRL-ALT", symbols= [ F8,  XF86Switch_VT_8  ] };
+  key <FK09> { type= "CTRL-ALT", symbols= [ F9,  XF86Switch_VT_9  ] };
+  key <FK10> { type= "CTRL-ALT", symbols= [ F10, XF86Switch_VT_10 ] };
+  key <FK11> { type= "CTRL-ALT", symbols= [ F11, XF86Switch_VT_11 ] };
+  key <FK12> { type= "CTRL-ALT", symbols= [ F12, XF86Switch_VT_12 ] };
 
   key <HOME> { [ Home   ] };
   key <END>  { [ End    ] };
@@ -1047,9 +1049,9 @@ xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
 
   # <PGUP> <UP> <PGDN> <LEFT> <DOWN> <RGHT> ----------------
 
-  key <PGUP> { [ Prior ] };
+  key <PGUP> { type = "CTRL-ALT", symbols=[ Prior,ISO_Prev_Group ] };
   key  <UP>  { [ Up    ] };
-  key <PGDN> { [ Next  ] };
+  key <PGDN> { type = "CTRL-ALT", symbols=[ Next,ISO_Next_Group ] };
   key <LEFT> { [ Left  ] };
   key <DOWN> { [ Down  ] };
   key <RGHT> { [ Right ] };
@@ -1057,7 +1059,7 @@ xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
   # ----------------------------------------------------------------------------
 
 
-    key <SCLK> {         [     Scroll_Lock ] };
+#    key <SCLK> {         [     Scroll_Lock ] };
 
 
     key <PRSC> {
