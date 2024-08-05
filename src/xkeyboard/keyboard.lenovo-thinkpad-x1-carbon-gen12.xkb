@@ -161,11 +161,12 @@ xkb_keymap {
 
     virtual_modifiers NumLock,Alt,LevelThree,LevelFive,Meta,Super,Hyper,ScrollLock;
 
-    type "ONE_LEVEL" {
-        modifiers= none;
-        level_name[Level1]= "Any";
-    };
-    type "SHIFT" {
+    type "ONE_LEVEL" { modifiers= none; level_name[Level1]= "Any"; };
+
+    # I did try renaming this to "SHIFT", but per
+    # https://xkbcommon.org/doc/current/keymap-text-format-v1.html ,
+    # "TWO_LEVEL" is the name used as a default for two-keysym groups
+    type "TWO_LEVEL" {
         modifiers= Shift;
         map[Shift]= Level2;
         level_name[Level1]= "Base";
@@ -818,11 +819,11 @@ xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
   key <NUM1> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 1         , exclam,      exclamdown,           onesuperior     ]};
   key <NUM2> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 2         , at,          onehalf,              twosuperior     ]};
   key <NUM3> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 3         , numbersign,  sterling,             threesuperior   ]};
-  key <NUM4> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 4         , dollar,      EuroSign,             dead_doubleacute]};
+  key <NUM4> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 4         , dollar,      EuroSign,             four_superior]};
   key <NUM5> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 5         , percent,     currency,             dead_cedilla    ]};
-  key <NUM6> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 6         , asciicircum, dead_circumflex,      onequarter ]};
-  key <NUM7> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 7         , ampersand,   onethird,             dead_horn       ]};
-  key <NUM8> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 8         , asterisk,    threequarters,        dead_ogonek     ]};
+  key <NUM6> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 6         , asciicircum, dead_circumflex,      sixsuperior ]};
+  key <NUM7> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 7         , ampersand,   dead_horn, sevensuperior       ]};
+  key <NUM8> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 8         , asterisk,    dead_ogonek, eight_superior     ]};
   key <NUM9> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 9         , parenleft,   leftsinglequotemark,  dead_breve      ]};
   key <NUM0> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 0         , parenright,  rightsinglequotemark, dead_abovering  ]};
   key <APOS> { type= "FOUR_LEVEL"           , symbols[Group1]= [ minus     , underscore , dead_macron         , dead_belowdot   ]};
@@ -834,7 +835,7 @@ xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
   #
   # -- 23-35(TAB,q-l,[])
 
-  key <TAB>  { [ Tab, ISO_Left_Tab ] };
+  key <TAB>  { type="TWO_LEVEL", [ Tab, ISO_Left_Tab ] };
 
   key <KP_X> {
     type= "FOUR_LEVEL_ALPHABETIC",
@@ -948,7 +949,7 @@ xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
 symbols[Group1]=[ISO_Next_Group]
     };
     key <BKSL> {
-        type= "SHIFT",
+        type= "TWO_LEVEL",
         symbols[Group1]= [ Hyper_L, Multi_key ]
     };
     key <MUTE> {         [   XF86AudioMute ] };
