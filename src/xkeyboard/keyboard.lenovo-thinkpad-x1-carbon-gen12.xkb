@@ -1,3 +1,4 @@
+# https://xkbcommon.org/doc/current/keymap-text-format-v1.html
 # https://wiki.archlinux.org/title/Xorg/Keyboard_configuration
 # https://wiki.archlinux.org/title/X_keyboard_extension
 # https://who-t.blogspot.com/2020/02/user-specific-xkb-configuration-part-1.html
@@ -766,230 +767,301 @@ xkb_compatibility "(unnamed)" {
         whichModState= Any;
         modifiers= Lock;
     };
-};
-
-xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
-            # used, e.g., on the lock screen
-  name[1]="English (UK, dvorak, F12, bottom-left backslash, w/ dead keys)";
-  name[2]="English (UK, qwerty, F12, bottom-left backslash, w/ dead keys)";
-
-  # --  <ESC> F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 <HOME> <END> <INS> <DEL> --
-  #
-  # -- 9(ESC),67-76(F1-F10),95-96(F11-F12),110(HOME),115(END),118(INS),119(DEL)
-
-  # 121-123(Fn+F1-Fn+F3),198(Fn+F4),232(Fn+F5),233(Fn+F6),
-  # 235(Fn+F7),NOTHING(Fn+F8),107(Fn+F9),157(Fn+F10),NOTHING(Fn+F11),164(Fn+F12)
-  #
-  # Fn+p: 127
-  # Fn+TAB: 380
-  # Fn+s: 64+107
-  # Fn+k: 78
-  # Fn+RShft: 210
-  # Fn+B: 37+127
-  # Fn+LShft: 50 (same as LShft)
-  # Fn+Left:110
-  # Fn+Right:115
-
-
-  key <ESC>  { [ Escape ] };
-  key <FK01> { type= "CTRL-ALT", symbols= [ F1,  XF86Switch_VT_1  ] };
-  key <FK02> { type= "CTRL-ALT", symbols= [ F2,  XF86Switch_VT_2  ] };
-  key <FK03> { type= "CTRL-ALT", symbols= [ F3,  XF86Switch_VT_3  ] };
-  key <FK04> { type= "CTRL-ALT", symbols= [ F4,  XF86Switch_VT_4  ] };
-  key <FK05> { type= "CTRL-ALT", symbols= [ F5,  XF86Switch_VT_5  ] };
-  key <FK06> { type= "CTRL-ALT", symbols= [ F6,  XF86Switch_VT_6  ] };
-  key <FK07> { type= "CTRL-ALT", symbols= [ F7,  XF86Switch_VT_7  ] };
-  key <FK08> { type= "CTRL-ALT", symbols= [ F8,  XF86Switch_VT_8  ] };
-  key <FK09> { type= "CTRL-ALT", symbols= [ F9,  XF86Switch_VT_9  ] };
-  key <FK10> { type= "CTRL-ALT", symbols= [ F10, XF86Switch_VT_10 ] };
-  key <FK11> { type= "CTRL-ALT", symbols= [ F11, XF86Switch_VT_11 ] };
-  key <FK12> { type= "CTRL-ALT", symbols= [ F12, XF86Switch_VT_12 ] };
-
-  key <HOME> { [ Home   ] };
-  key <END>  { [ End    ] };
-  key <INS>  { [ Insert ] };
-  key <DELE> { [ Delete ] };
-
-  # -- ` 1234567890 -= <BSKP> --------------------------------------------------
-  #
-  # -- 49(`),10-22(1-0,-,=)
-
-  # note that dead keys need to be configured in XCompose
-  key <BKTK> { type= "FOUR_LEVEL"           , symbols[Group1]= [ grave     , asciitilde , dead_grave          , dead_tilde      ]};
-  key <NUM1> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 1         , exclam,      exclamdown,           onesuperior     ]};
-  key <NUM2> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 2         , at,          onehalf,              twosuperior     ]};
-  key <NUM3> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 3         , numbersign,  sterling,             threesuperior   ]};
-  key <NUM4> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 4         , dollar,      EuroSign,             four_superior]};
-  key <NUM5> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 5         , percent,     currency,             dead_cedilla    ]};
-  key <NUM6> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 6         , asciicircum, dead_circumflex,      sixsuperior ]};
-  key <NUM7> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 7         , ampersand,   dead_horn, sevensuperior       ]};
-  key <NUM8> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 8         , asterisk,    dead_ogonek, eight_superior     ]};
-  key <NUM9> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 9         , parenleft,   leftsinglequotemark,  dead_breve      ]};
-  key <NUM0> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 0         , parenright,  rightsinglequotemark, dead_abovering  ]};
-  key <APOS> { type= "FOUR_LEVEL"           , symbols[Group1]= [ minus     , underscore , dead_macron         , dead_belowdot   ]};
-  key <RBRK> { type= "FOUR_LEVEL"           , symbols[Group1]= [ equal     , plus       , multiply            , division        ]};
-
-  key <BKSP> { [ BackSpace, BackSpace ] };
-
-  # -- <TAB> qwertuiop [] ------------------------------------------------------
-  #
-  # -- 23-35(TAB,q-l,[])
-
-  key <TAB>  { type="TWO_LEVEL", [ Tab, ISO_Left_Tab ] };
-
-  key <KP_X> {
-    type= "FOUR_LEVEL_ALPHABETIC",
-    symbols[Group1]= [ q           , Q         , adiaeresis     , Adiaeresis          ]
   };
-  key <COMM> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ w           , W         , aring          , Aring               ]};
-  key <KP_D> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ e           , E         , eacute         , Eacute              ]};
-  key <KP_O> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ r           , R         , registered     , trademark           ]};
-  key <KP_K> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ t           , T         ,  thorn         , THORN               ]};
-  key <KP_T> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ y           , Y         , udiaeresis     , Udiaeresis          ]};
-  key <KP_F> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ u           , U         , uacute         , Uacute              ]};
-  key <KP_G> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ i           , I         , iacute         , Iacute              ]};
-  key <KP_S> {
-    type[1]= "EIGHT_LEVEL_ALPHABETIC",
-    symbols[1]= [ o           , O         , oacute         , Oacute,U1D546              ],
-    type[2]= "EIGHT_LEVEL_ALPHABETIC",
-    # s, S, ß, §, σ, Σ, ς, 𐌽
-    symbols[2] = [s,S,ssharp,section,Greek_sigma,Greek_SIGMA,Greek_finalsmallsigma,U1033D]
-  };
-  key <KP_R> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ p           , P         , odiaeresis     , Odiaeresis          ]};
-  key <MNUS> { type= "FOUR_LEVEL"           , symbols[Group1]= [ bracketleft , braceleft , onefifth       , leftdoublequotemark ]};
-  key <EQUL> { type= "FOUR_LEVEL"           , symbols[Group1]= [ bracketright, braceright, guillemotright , rightdoublequotemark]};
 
-  # -- <CAPS> asdfghjkl;'# -----------------------------------------------------
-  #
-  # -- 66(CAPS),38-48(a-l,;,'),51(#),36(RTRN)
+  xkb_symbols "lenovo thinkpad X1 carbon Gen12" {
+              # used, e.g., on the lock screen
+    name[1]="English (UK, dvorak, F12, bottom-left backslash, w/ dead keys)";
+    name[2]="English (UK, qwerty, F12, bottom-left backslash, w/ dead keys)";
 
+    # --  <ESC> F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 <HOME> <END> <INS> <DEL> --
+    #
+    # -- 9(ESC),67-76(F1-F10),95-96(F11-F12),110(HOME),115(END),118(INS),119(DEL)
 
-#  key <CAPS> { type= "ONE_LEVEL", symbols[Group1]= [ Caps_Lock ], actions[Group1]= [ SetMods(modifiers=Control) ] };
-  key <CAPS> { type= "CTRL-ALT", symbols[Group1]= [ Control_L, Caps_Lock ], actions[Group1]= [ SetMods(modifiers=Control), LockMods(modifiers=Lock) ] };
-#  key <CAPS> { [ Caps_Lock ] };
-
-#  key <KP_A> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ a           , A         , aacute         , Aacute              ]};
-
-  key <KP_A> { type= "EIGHT_LEVEL_ALPHABETIC", symbols[Group1]= [ a           , A         , Greek_alpha         , GReek_ALPHA            , U04A9, Agrave, aring, Aring  ]};
-#  key.type="EIGHT_LEVEL_ALPHABETIC";
-#  key <KP_A> { symbols[Group1]=[ a           , A         , aacute         , Aacute            , agrave, Agrave, aring, Aring  ]};
+    # 121-123(Fn+F1-Fn+F3),198(Fn+F4),232(Fn+F5),233(Fn+F6),
+    # 235(Fn+F7),NOTHING(Fn+F8),107(Fn+F9),157(Fn+F10),NOTHING(Fn+F11),164(Fn+F12)
+    #
+    # Fn+p: 127
+    # Fn+TAB: 380
+    # Fn+s: 64+107
+    # Fn+k: 78
+    # Fn+RShft: 210
+    # Fn+B: 37+127
+    # Fn+LShft: 50 (same as LShft)
+    # Fn+Left:110
+    # Fn+Right:115
 
 
-  key <SEMI> { type= "EIGHT_LEVEL_ALPHABETIC", symbols[Group1]= [ s           , S         , ssharp         , section             ]};
-  key <KP_H> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ d           , D         ,    eth         , ETH                 ]};
-  key <KP_Y> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ f           , F         , ediaeresis     , Ediaeresis          ]};
-  key <KP_U> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ g           , G         , g              , G                   ]};
-  key <KP_J> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ h           , H         , h              , H                   ]};
-  key <KP_C> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ j           , J         , idiaeresis     , Idiaeresis          ]};
-  key <KP_V> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ k           , K         , oe             , OE                  ]};
-  key <KP_P> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ l           , L         , oslash         , Oslash              ]};
+    key <ESC>  { [ Escape ] };
+    key <FK01> { type= "CTRL-ALT", symbols= [ F1,  XF86Switch_VT_1  ] };
+    key <FK02> { type= "CTRL-ALT", symbols= [ F2,  XF86Switch_VT_2  ] };
+    key <FK03> { type= "CTRL-ALT", symbols= [ F3,  XF86Switch_VT_3  ] };
+    key <FK04> { type= "CTRL-ALT", symbols= [ F4,  XF86Switch_VT_4  ] };
+    key <FK05> { type= "CTRL-ALT", symbols= [ F5,  XF86Switch_VT_5  ] };
+    key <FK06> { type= "CTRL-ALT", symbols= [ F6,  XF86Switch_VT_6  ] };
+    key <FK07> { type= "CTRL-ALT", symbols= [ F7,  XF86Switch_VT_7  ] };
+    key <FK08> { type= "CTRL-ALT", symbols= [ F8,  XF86Switch_VT_8  ] };
+    key <FK09> { type= "CTRL-ALT", symbols= [ F9,  XF86Switch_VT_9  ] };
+    key <FK10> { type= "CTRL-ALT", symbols= [ F10, XF86Switch_VT_10 ] };
+    key <FK11> { type= "CTRL-ALT", symbols= [ F11, XF86Switch_VT_11 ] };
+    key <FK12> { type= "CTRL-ALT", symbols= [ F12, XF86Switch_VT_12 ] };
 
-  key <KP_Z> { type= "FOUR_LEVEL"           , symbols[Group1]= [ semicolon   , colon     , paragraph      , degree              ]};
+    key <HOME> { [ Home   ] };
+    key <END>  { [ End    ] };
+    key <INS>  { [ Insert ] };
+    key <DELE> { [ Delete ] };
 
-  # note that dead keys need to be configured in XCompose
-  key <KP_Q> { type= "FOUR_LEVEL",            symbols[Group1]= [ apostrophe  , quotedbl  , dead_acute     , dead_diaeresis      ]};
-#  key <HASH> { type= "FOUR_LEVEL"           , symbols[Group1]= [ numbersign  , asciitilde, dead_grave     , dead_breve          ]};
+    # -- ` 1234567890 -= <BSKP> --------------------------------------------------
+    #
+    # -- 49(`),10-22(1-0,-,=)
 
-  key <RTRN> { [ Return ] };
+    # note that dead keys need to be configured in XCompose
+    key <BKTK> { type= "FOUR_LEVEL"           , symbols[Group1]= [ grave     , asciitilde , dead_grave          , dead_tilde      ]};
+    key <NUM1> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 1         , exclam,      exclamdown,           onesuperior     ]};
+    key <NUM2> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 2         , at,          onehalf,              twosuperior     ]};
+    key <NUM3> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 3         , numbersign,  sterling,             threesuperior   ]};
+    key <NUM4> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 4         , dollar,      EuroSign,             four_superior]};
+    key <NUM5> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 5         , percent,     currency,             dead_cedilla    ]};
+    key <NUM6> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 6         , asciicircum, dead_circumflex,      sixsuperior ]};
+    key <NUM7> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 7         , ampersand,   dead_horn, sevensuperior       ]};
+    key <NUM8> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 8         , asterisk,    dead_ogonek, eight_superior     ]};
+    key <NUM9> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 9         , parenleft,   leftsinglequotemark,  dead_breve      ]};
+    key <NUM0> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 0         , parenright,  rightsinglequotemark, dead_abovering  ]};
 
-  # -- <LFSH> \zxcvbnm,./ <RTSH> -----------------------------------------------
-  #
-  # -- 50(LSHFT),94(BCKSLSH),52-62(z-m,,./RSHFT)
+    key <BKSP> { [ BackSpace, BackSpace ] };
 
-  key <LFSH> { [ Shift_L ] };
+    # -- <TAB> qwertuiop [] ------------------------------------------------------
+    #
+    # -- 23-35(TAB,q-l,[])
 
-#  key <BKSL> { type= "FOUR_LEVEL"           , symbols[Group1]= [ backslash   , bar       , backslash      , bar                 ]};
-  key <HASH> { type= "FOUR_LEVEL"           , symbols[Group1]= [ backslash   , bar       , notsign      , bar                 ]};
+    key <TAB>  { type="TWO_LEVEL", [ Tab, ISO_Left_Tab ] };
 
-  # note that dead keys need to be configured in XCompose
-  key <SLSH> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ z           , Z         , ae             , AE                  ]};
-  key <KP_B> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ x           , X         , periodcentered , dead_stroke         ]};
-  key <KP_I> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ c           , C         , copyright      , cent                ]};
-  key <PERD> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ v           , V         , v              , V                   ]};
-  key <KP_N> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ b           , B         , b              , B                   ]};
-  key <KP_L> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ n           , N         , yen            , Ntilde              ]};
-  key <KP_M> { type= "FOUR_LEVEL_ALPHABETIC", symbols[Group1]= [ m           , M         , mu             , plusminus           ]};
+    key <MNUS> { type= "FOUR_LEVEL"           , symbols[Group1]= [ bracketleft , braceleft , onefifth       , leftdoublequotemark ]};
+    key <EQUL> { type= "FOUR_LEVEL"           , symbols[Group1]= [ bracketright, braceright, guillemotright , rightdoublequotemark]};
 
-  # note that dead keys need to be configured in XCompose
-  key <KP_W> { type= "FOUR_LEVEL",            symbols[Group1]= [ comma       , less      , guillemotleft  , dead_caron          ]};
-  key <KP_E> { type= "FOUR_LEVEL",            symbols[Group1]= [ period      , greater   , guillemotright , dead_abovedot       ]};
-  key <LBRK> { type= "FOUR_LEVEL",            symbols[Group1]= [ slash       , question  , questiondown   , dead_hook           ]};
-
-  key <RTSH> { [ Shift_R ] };
-
-  # -- <CTL> <FN> <SPR> <ALT> <SPACEBAR> <ALTGR> <CTL> (FNGR) ------------------
-  #
-  # -- 37(LCTL),151(FN),133(SUPER),64(ALT),65(SPACE),108(ALTGR),105(RCTL),112(PGUP),111(UP),117(PGDN),113(LEFT),116(DOWN),114(RGHT)
-
-  key <LCTL> { [ Control_L     ] };
-  # <FUNCTION>
-  key <LWIN> { [ Super_L       ] };
-  key <LALT> { [ Alt_L, Meta_L ] };
-  key <SPCE> { [ space         ] };
-  key <RALT> { [ Alt_R ] };
-  key <RCTL> { [ Control_R     ] };
-
-  # <PGUP> <UP> <PGDN> <LEFT> <DOWN> <RGHT> ----------------
-
-  key <PGUP> { type = "CTRL-ALT", symbols=[ Prior,ISO_Prev_Group ] };
-  key  <UP>  { [ Up    ] };
-  key <PGDN> { type = "CTRL-ALT", symbols=[ Next,ISO_Next_Group ] };
-  key <LEFT> { [ Left  ] };
-  key <DOWN> { [ Down  ] };
-  key <RGHT> { [ Right ] };
-
-  # ----------------------------------------------------------------------------
+    # -- <CAPS> asdfghjkl;'# -----------------------------------------------------
+    #
+    # -- 66(CAPS),38-48(a-l,;,'),51(#),36(RTRN)
 
 
-#    key <SCLK> {         [     Scroll_Lock ] };
+  #  key <CAPS> { type= "ONE_LEVEL", symbols[Group1]= [ Caps_Lock ], actions[Group1]= [ SetMods(modifiers=Control) ] };
+    key <CAPS> { type= "CTRL-ALT", symbols[Group1]= [ Control_L, Caps_Lock ], actions[Group1]= [ SetMods(modifiers=Control), LockMods(modifiers=Lock) ] };
+  #  key <CAPS> { [ Caps_Lock ] };
 
 
-    key <PRSC> {
-        type= "ONE_LEVEL",
-symbols[Group1]=[ISO_Next_Group]
+
+  #  key <HASH> { type= "FOUR_LEVEL"           , symbols[Group1]= [ numbersign  , asciitilde, dead_grave     , dead_breve          ]};
+
+    key <RTRN> { [ Return ] };
+
+    # -- <LFSH> \zxcvbnm,./ <RTSH> -----------------------------------------------
+    #
+    # -- 50(LSHFT),94(BCKSLSH),52-62(z-m,,./RSHFT)
+
+    key <LFSH> { [ Shift_L ] };
+
+  #  key <BKSL> { type= "FOUR_LEVEL"           , symbols[Group1]= [ backslash   , bar       , backslash      , bar                 ]};
+
+    # note that dead keys need to be configured in XCompose
+
+    # note that dead keys need to be configured in XCompose
+    key <RTSH> { [ Shift_R ] };
+
+    # -- <CTL> <FN> <SPR> <ALT> <SPACEBAR> <ALTGR> <CTL> (FNGR) ------------------
+    #
+    # -- 37(LCTL),151(FN),133(SUPER),64(ALT),65(SPACE),108(ALTGR),105(RCTL),112(PGUP),111(UP),117(PGDN),113(LEFT),116(DOWN),114(RGHT)
+
+    key <LCTL> { [ Control_L     ] };
+    # <FUNCTION>
+    key <LWIN> { [ Super_L       ] };
+    key <LALT> { [ Alt_L, Meta_L ] };
+    key <SPCE> { [ space         ] };
+    key <RALT> { [ Alt_R ] };
+    key <RCTL> { [ Control_R     ] };
+
+    # <PGUP> <UP> <PGDN> <LEFT> <DOWN> <RGHT> ----------------
+
+    key <PGUP> { type = "CTRL-ALT", symbols=[ Prior,ISO_Prev_Group ] };
+    key  <UP>  { [ Up    ] };
+    key <PGDN> { type = "CTRL-ALT", symbols=[ Next,ISO_Next_Group ] };
+    key <LEFT> { [ Left  ] };
+    key <DOWN> { [ Down  ] };
+    key <RGHT> { [ Right ] };
+
+    # ----------------------------------------------------------------------------
+
+
+  #    key <SCLK> {         [     Scroll_Lock ] };
+
+
+      key <PRSC> {
+          type= "ONE_LEVEL",
+  symbols[Group1]=[ISO_Next_Group]
+      };
+      key <MUTE> {         [   XF86AudioMute ] };
+      key <VOL-> {         [ XF86AudioLowerVolume ] };
+      key <VOL+> {         [ XF86AudioRaiseVolume ] };
+      key <PAUS> {
+          type= "PC_CONTROL_LEVEL2",
+          symbols[Group1]= [           Pause,           Break ]
+      };
+      key <I151> {         [      XF86WakeUp ] };
+      key <SNIP> {         [     XF86Launch2 ] };
+      key <STAR> {         [   XF86Favorites ] };
+      key <MCMT> {         [ XF86AudioMicMute ] };
+      key <FRSH> {         [     XF86Launch3 ] };
+      key <BRT-> {         [ XF86MonBrightnessDown ] };
+      key <BRT+> {         [ XF86MonBrightnessUp ] };
+      key <DISP> {         [     XF86Display ] };
+
+      modifier_map Control { <LCTL> };
+      modifier_map Control { <RCTL> };
+      modifier_map Control { <CAPS> };
+
+      modifier_map Shift { <LFSH> };
+      modifier_map Shift { <RTSH> };
+
+      modifier_map Mod1 { <LALT> };
+  #    modifier_map Mod1 { <ALT> };
+  #    modifier_map Mod1 { <META> };
+
+  #    modifier_map Mod2 { <NMLK> };
+
+      modifier_map Mod3 { <BKSL> };
+
+      modifier_map Mod4 { <LWIN> };
+  #    modifier_map Mod4 { <RWIN> };
+  #    modifier_map Mod4 { <SUPR> };
+  #    modifier_map Mod4 { <HYPR> };
+
+    modifier_map Mod5 { <RALT> };
+
+    # ------------------------------------------------------
+    #                     letter rows                      #
+    # ------------------------------------------------------
+
+    # beware that the key.type sets the default for all keys below
+    key.type="EIGHT_LEVEL_ALPHABETIC";
+
+    # the general alpha map is:
+    # lowercase, uppercase, lower-greek, upper-greek, ?, BlackBoard Bold, ?, ?
+
+    # -- first letter row --------------
+
+    # note that dead keys need to be configured in XCompose
+    key <KP_Q> {
+      [ apostrophe, quotedbl, dead_acute , dead_diaeresis ],
+      [ q         , Q       , Greek_theta, Greek_THETA    ]
     };
+    key <KP_W> {
+      [ comma, less, guillemotleft, dead_caron ],
+      [ w    , W   , aring        , Aring      ]
+    };
+    key <KP_E> { [ period, greater, guillemotright, dead_abovedot ], [ e, E ] };
+    key <KP_R> { [ p, P ], [ r, R, Greek_rho, VoidSymbol, registered, trademark  ] };
+    key <KP_T> { [ y, Y ], [ t, T, thorn, THORN ] };
+    key <KP_Y> { [ f, F ], [ y, Y ] };
+    key <KP_U> { [ g, G ], [ u, U ] };
+    key <KP_I> { [ c, C, copyright, cent ], [ i, I ] };
+    key <KP_O> {
+      [ r, R, Greek_rho, VoidSymbol, registered, trademark ],
+      # greek omicron is indistinguishable from 'o'
+      # U1D546 is blackboard-bold O
+      [ o, O, VoidSymbol, VoidSymbol, VoidSymbol, U1D546 ]
+    };
+    key <KP_P> {
+      [ l, L         , oslash         , Oslash              ]
+    };
+    key <LBRK> {
+      [ slash       , question  , dead_stroke, questiondown   , dead_hook           ]
+    };
+
+    key <RBRK> {
+      [ equal     , plus       , multiply            , division        ]
+    };
+
+    # -- second letter row -------------
+
+    key <KP_A> {[ a, A, Greek_alpha, VoidSymbol, U04A9, U1D538  ]}; # Cyrillic small Abkhasian-ha
+
+    key <KP_S> {
+      # greek omicron is indistinguishable from 'o'
+      # U1D546 is blackboard-bold O
+      # o, O,,,, 𝕆
+      [ o, O, VoidSymbol, VoidSymbol, VoidSymbol, U1D546 ],
+      # s, S, σ, Σ, ß, 𝕊, §, ς
+      [ s, S, Greek_sigma, Greek_SIGMA, ssharp, U1D54A, section, Greek_finalsmallsigma ]
+    };
+    key <KP_D> {
+      [ e           , E         , eacute         , Eacute              ]
+    };
+    key <KP_F> {
+      [ u           , U         , uacute         , Uacute              ]
+    };
+    key <KP_G> {
+      [ i           , I              ]
+    };
+    key <KP_H> {
+      [ d           , D         ,    eth         , ETH                 ]
+    };
+    key <KP_J> {
+      [ h           , H         , h              , H                   ]
+    };
+    key <KP_K> {
+      [ t           , T         ,  thorn         , THORN               ]
+    };
+    key <KP_L> {
+      [ n           , N         , yen            , Ntilde              ]
+    };
+    key <SEMI> {
+      [ s           , S         , ssharp         , section             ]
+    };
+    key <APOS> {
+      [ minus     , underscore , dead_macron         , dead_belowdot   ]
+    };
+    key <HASH> {
+      [ backslash   , bar       , notsign      , bar                 ]
+    };
+
+    # -- third letter row --------------
+
     key <BKSL> {
         type= "TWO_LEVEL",
         symbols[Group1]= [ Hyper_L, Multi_key ]
     };
-    key <MUTE> {         [   XF86AudioMute ] };
-    key <VOL-> {         [ XF86AudioLowerVolume ] };
-    key <VOL+> {         [ XF86AudioRaiseVolume ] };
-    key <PAUS> {
-        type= "PC_CONTROL_LEVEL2",
-        symbols[Group1]= [           Pause,           Break ]
+    key <KP_Z> {
+      [ semicolon   , colon     , paragraph      , degree              ]
     };
-    key <I151> {         [      XF86WakeUp ] };
-    key <SNIP> {         [     XF86Launch2 ] };
-    key <STAR> {         [   XF86Favorites ] };
-    key <MCMT> {         [ XF86AudioMicMute ] };
-    key <FRSH> {         [     XF86Launch3 ] };
-    key <BRT-> {         [ XF86MonBrightnessDown ] };
-    key <BRT+> {         [ XF86MonBrightnessUp ] };
-    key <DISP> {         [     XF86Display ] };
+    key <KP_X> {
+      type= "FOUR_LEVEL_ALPHABETIC",
+      symbols[Group1]= [ q           , Q         , adiaeresis     , Adiaeresis          ]
+    };
+    key <KP_C> {
+      [ j           , J         , idiaeresis     , Idiaeresis          ]
+    };
+    key <KP_V> {
+      [ k           , K         , oe             , OE                  ]
+    };
+    key <KP_B> {
+      [ x           , X         , periodcentered         ]
+    };
+    key <KP_N> {
+      [ b           , B         , b              , B                   ]
+    };
+    key <KP_M> {
+      [ m           , M         , mu             , plusminus           ]
+    };
+    key <COMM> {
+      [ w           , W         , aring          , Aring               ]
+    };
+    key <PERD> {
+      [ v           , V         , v              , V                   ]
+    };
+    key <SLSH> {
+      [ z           , Z         , ae             , AE                  ]
+    };
 
-    modifier_map Control { <LCTL> };
-    modifier_map Control { <RCTL> };
-    modifier_map Control { <CAPS> };
-
-    modifier_map Shift { <LFSH> };
-    modifier_map Shift { <RTSH> };
-
-    modifier_map Mod1 { <LALT> };
-#    modifier_map Mod1 { <ALT> };
-#    modifier_map Mod1 { <META> };
-
-#    modifier_map Mod2 { <NMLK> };
-
-    modifier_map Mod3 { <BKSL> };
-
-    modifier_map Mod4 { <LWIN> };
-#    modifier_map Mod4 { <RWIN> };
-#    modifier_map Mod4 { <SUPR> };
-#    modifier_map Mod4 { <HYPR> };
-
-    modifier_map Mod5 { <RALT> };
-};
+  };
 
 };
 
