@@ -975,16 +975,16 @@ xkb_compatibility "(unnamed)" {
       [ r, R, Greek_rho, VoidSymbol, registered, U211D, trademark  ]
     };
     key <KP_T> {
-      # y,Y,ψ,Ψ,,ℙ
-      [ y, Y, Greek_psi, Greek_PSI , VoidSymbol, U1D550        ],
+      # y,Y,ψ,Ψ,¥,ℙ
+      [ y, Y, Greek_psi, Greek_PSI , yen, U1D550        ],
       # t,T,τ,,þ,𝕋,Þ # greek capital Tau is indistinguishable from 'T'
       [ t, T, Greek_tau, VoidSymbol, thorn     , U1D54B, THORN ]
     };
     key <KP_Y> {
       # f,F,,,,𝔽
       [ f, F, VoidSymbol, VoidSymbol, VoidSymbol, U1D53D ],
-      # y,Y,ψ,Ψ,,ℙ
-      [ y, Y, Greek_psi , Greek_PSI , VoidSymbol, U1D550 ]
+      # y,Y,ψ,Ψ,¥,ℙ
+      [ y, Y, Greek_psi , Greek_PSI , yen, U1D550 ]
     };
     key <KP_U> {
       # g,G,γ,Γ,,𝔾
@@ -1069,13 +1069,16 @@ xkb_compatibility "(unnamed)" {
       [ j, J, Greek_phi, Greek_PHI , VoidSymbol, U1D541 ]
     };
     key <KP_K> {
-      # k,K,κ,,,𝕂 # greek capital Kappa is indistinguishable from 'K'
-      [ k, K, Greek_kappa, VoidSymbol, VoidSymbol, U1D542        ],
       # t,T,τ,,þ,𝕋,Þ # greek capital Tau is indistinguishable from 'T'
-      [ t, T, Greek_tau  , VoidSymbol, thorn     , U1D54B, THORN ]
+      [ t, T, Greek_tau  , VoidSymbol, thorn     , U1D54B, THORN ],
+      # k,K,κ,,,𝕂 # greek capital Kappa is indistinguishable from 'K'
+      [ k, K, Greek_kappa, VoidSymbol, VoidSymbol, U1D542        ]
     };
     key <KP_L> {
-      [ n           , N         , yen            , Ntilde              ]
+      # n,N,ν,,,ℕ # greek capital Nu is indistinguishable from 'N'
+      [ n, N, Greek_nu    , VoidSymbol  , VoidSymbol, U2115  ],
+      # l,L,λ,Λ,,𝕃
+      [ l, L, Greek_lambda, Greek_LAMBDA, VoidSymbol, U1D543 ]
     };
     key <SEMI> {
       [ s           , S         , ssharp         , section             ]
