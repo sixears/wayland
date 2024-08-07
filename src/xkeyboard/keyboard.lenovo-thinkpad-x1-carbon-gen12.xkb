@@ -1081,22 +1081,37 @@ xkb_compatibility "(unnamed)" {
       [ l, L, Greek_lambda, Greek_LAMBDA, VoidSymbol, U1D543 ]
     };
     key <SEMI> {
-      [ s           , S         , ssharp         , section             ]
+      # s, S, σ, Σ, ß, 𝕊, §, ς
+      [ s, S, Greek_sigma, Greek_SIGMA, ssharp, U1D54A, section, Greek_finalsmallsigma ],
+      # ;:¶°
+      [ semicolon, colon, paragraph, degree              ]
     };
     key <APOS> {
-      [ minus     , underscore , dead_macron         , dead_belowdot   ]
+      # -_
+      [ minus     , underscore , dead_macron, dead_belowdot   ],
+      [ apostrophe, quotedbl   , dead_acute , dead_diaeresis  ]
     };
     key <HASH> {
-      [ backslash   , bar       , notsign      , bar                 ]
+      # \|¬
+      type[Group1]    = "EIGHT_LEVEL_ALPHABETIC",
+      symbols[Group1] = [ backslash, bar, notsign ],
+
+      type[Group2]    = "TWO_LEVEL",
+      symbols[Group2] = [ VoidSymbol, Multi_key ],
+      actions[Group2] = [ SetMods(modifiers=Mod3,clearLocks) ]
     };
 
     # -- third letter row --------------
 
     key <BKSL> {
-        type= "TWO_LEVEL",
-        symbols[Group1]= [ VoidSymbol, Multi_key ], actions=[SetMods(modifiers=Mod3,clearLocks)]
+        type[Group1]    = "TWO_LEVEL",
+        symbols[Group1] = [ VoidSymbol, Multi_key ],
+        actions[Group1] = [SetMods(modifiers=Mod3,clearLocks)],
+        type[Group2]    = "EIGHT_LEVEL_ALPHABETIC",
+        symbols[Group2] = [ backslash, bar, notsign ]
     };
     key <KP_Z> {
+      # ;:¶°
       [ semicolon   , colon     , paragraph      , degree              ]
     };
     key <KP_X> {
