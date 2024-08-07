@@ -1069,7 +1069,10 @@ xkb_compatibility "(unnamed)" {
       [ j, J, Greek_phi, Greek_PHI , VoidSymbol, U1D541 ]
     };
     key <KP_K> {
-      [ t           , T         ,  thorn         , THORN               ]
+      # k,K,κ,,,𝕂 # greek capital Kappa is indistinguishable from 'K'
+      [ k, K, Greek_kappa, VoidSymbol, VoidSymbol, U1D542        ],
+      # t,T,τ,,þ,𝕋,Þ # greek capital Tau is indistinguishable from 'T'
+      [ t, T, Greek_tau  , VoidSymbol, thorn     , U1D54B, THORN ]
     };
     key <KP_L> {
       [ n           , N         , yen            , Ntilde              ]
@@ -1101,7 +1104,8 @@ xkb_compatibility "(unnamed)" {
       [ j           , J         , idiaeresis     , Idiaeresis          ]
     };
     key <KP_V> {
-      [ k           , K         , oe             , OE                  ]
+      # k,K,κ,,,𝕂 # greek capital Kappa is indistinguishable from 'K'
+      [ k, K, Greek_kappa, VoidSymbol, VoidSymbol, U1D542 ]
     };
     key <KP_B> {
       [ x           , X         , periodcentered         ]
