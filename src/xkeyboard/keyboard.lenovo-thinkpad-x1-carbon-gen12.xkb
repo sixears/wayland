@@ -15,6 +15,8 @@
 # e.g., sway may reload happily, but emacs will bork (and probably revert to the
 # hard keyboard, i.e., qwerty)
 
+# note that dead keys need to be configured in XCompose
+
 xkb_keymap {
   xkb_keycodes {
     minimum = 8;
@@ -168,28 +170,32 @@ xkb_keymap {
     # https://xkbcommon.org/doc/current/keymap-text-format-v1.html ,
     # "TWO_LEVEL" is the name used as a default for two-keysym groups
     type "TWO_LEVEL" {
-        modifiers= Shift;
-        map[Shift]= Level2;
-        level_name[Level1]= "Base";
-        level_name[Level2]= "Shift";
+      modifiers          = Shift;
+      map[Shift]         = Level2;
+      level_name[Level1] = "Base";
+      level_name[Level2] = "Shift";
     };
-    type "PC_CONTROL_LEVEL2" {
-        modifiers= Control;
-        map[Control]= Level2;
-        level_name[Level1]= "Base";
-        level_name[Level2]= "Control";
+
+    type "CONTROL" {
+      modifiers          = Control;
+      map[Control]       = Level2;
+      level_name[Level1] = "Base";
+      level_name[Level2] = "Control";
     };
+
     type "CTRL-ALT" {
       # ignore control, alt individually: react only to ctrl+alt together
-      modifiers= Control+Mod1;
-      map[Control+Mod1]=Level2;
+      modifiers         = Control+Mod1;
+      map[Control+Mod1] = Level2;
     };
+
     type "CTRL+ALT" {
-        modifiers= Control+Mod1;
-        map[Control]=Level2;
-        map[Mod1]=Level3;
-        map[Control+Mod1]=Level4;
+      modifiers         = Control+Mod1;
+      map[Control]      = Level2;
+      map[Mod1]         = Level3;
+      map[Control+Mod1] = Level4;
     };
+
     type "FOUR_LEVEL" {
       # the levels are:
       # 0: unmolested
@@ -206,31 +212,7 @@ xkb_keymap {
       level_name[Level3] = "AltGr";
       level_name[Level4] = "Shift AltGr";
     };
-    type "FOUR_LEVEL_ALPHABETIC" {
-      # like four-level, but respecting caps-lock also
 
-      # this (modifiers) needs to co-ordinate with the relevant map[..], but
-      # also the interpret actions
-      modifiers= Shift+Lock+Mod5;
-
-      map[Shift]           = Level2;
-      map[Lock]            = Level2;
-      map[Mod5]            = Level3;
-      map[Shift+Mod5]      = Level4;
-      map[Lock+Mod5]       = Level4;
-      map[Shift+Lock+Mod5] = Level4;
-
-      # per https://wiki.archlinux.org/title/X_keyboard_extension#xkb_types
-      #
-      #     level_name lines are irrelevant and can be ignored.
-      #
-      # however, in practice, vlc failed to respond to Ctrl keys and arrows when
-      # these were commented out.
-      level_name[Level1] = "Base";
-      level_name[Level2] = "Shift";
-      level_name[Level3] = "AltGr";
-      level_name[Level4] = "Shift AltGr";
-    };
     type "EIGHT_LEVEL" {
       # the levels are:
       # 0: unmolested
@@ -306,7 +288,7 @@ xkb_compatibility "(unnamed)" {
   # because they are named this way. Avoid deleting them. If some changes do not
   # work as expected, try adding a new type instead.
 
-    virtual_modifiers NumLock,Alt,LevelThree,LevelFive,Meta,Super,Hyper,ScrollLock;
+  virtual_modifiers NumLock,Alt,LevelThree,LevelFive,Meta,Super,Hyper,ScrollLock;
 
     interpret.useModMapMods= AnyLevel;
     interpret.repeat= False;
@@ -811,22 +793,6 @@ xkb_compatibility "(unnamed)" {
     key <INS>  { [ Insert ] };
     key <DELE> { [ Delete ] };
 
-    # -- ` 1234567890 -= <BSKP> --------------------------------------------------
-    #
-    # -- 49(`),10-22(1-0,-,=)
-
-    # note that dead keys need to be configured in XCompose
-    key <BKTK> { type= "FOUR_LEVEL"           , symbols[Group1]= [ grave     , asciitilde , dead_grave          , dead_tilde      ]};
-    key <NUM1> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 1         , exclam,      exclamdown,           onesuperior     ]};
-    key <NUM2> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 2         , at,          onehalf,              twosuperior     ]};
-    key <NUM3> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 3         , numbersign,  sterling,             threesuperior   ]};
-    key <NUM4> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 4         , dollar,      EuroSign,             four_superior]};
-    key <NUM5> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 5         , percent,     currency,             dead_cedilla    ]};
-    key <NUM6> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 6         , asciicircum, dead_circumflex,      sixsuperior ]};
-    key <NUM7> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 7         , ampersand,   dead_horn, sevensuperior       ]};
-    key <NUM8> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 8         , asterisk,    dead_ogonek, eight_superior     ]};
-    key <NUM9> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 9         , parenleft,   leftsinglequotemark,  dead_breve      ]};
-    key <NUM0> { type= "FOUR_LEVEL"           , symbols[Group1]= [ 0         , parenright,  rightsinglequotemark, dead_abovering  ]};
 
     key <BKSP> { [ BackSpace, BackSpace ] };
 
@@ -843,15 +809,11 @@ xkb_compatibility "(unnamed)" {
     #
     # -- 66(CAPS),38-48(a-l,;,'),51(#),36(RTRN)
 
-
-  #  key <CAPS> { type= "ONE_LEVEL", symbols[Group1]= [ Caps_Lock ], actions[Group1]= [ SetMods(modifiers=Control) ] };
-    key <CAPS> { type= "CTRL-ALT", symbols[Group1]= [ Control_L, Caps_Lock ], actions[Group1]= [ SetMods(modifiers=Control), LockMods(modifiers=Lock) ] };
-  #  key <CAPS> { [ Caps_Lock ] };
-
-
-
-  #  key <HASH> { type= "FOUR_LEVEL"           , symbols[Group1]= [ numbersign  , asciitilde, dead_grave     , dead_breve          ]};
-
+    key <CAPS> {
+      type    = "CTRL-ALT",
+      symbols = [ Control_L, Caps_Lock ],
+      actions = [ SetMods(modifiers=Control), LockMods(modifiers=Lock)]
+    };
     key <RTRN> { [ Return ] };
 
     # -- <LFSH> \zxcvbnm,./ <RTSH> -----------------------------------------------
@@ -859,24 +821,17 @@ xkb_compatibility "(unnamed)" {
     # -- 50(LSHFT),94(BCKSLSH),52-62(z-m,,./RSHFT)
 
     key <LFSH> { [ Shift_L ] };
-
-  #  key <BKSL> { type= "FOUR_LEVEL"           , symbols[Group1]= [ backslash   , bar       , backslash      , bar                 ]};
-
-    # note that dead keys need to be configured in XCompose
-
-    # note that dead keys need to be configured in XCompose
     key <RTSH> { [ Shift_R ] };
 
-    # -- <CTL> <FN> <SPR> <ALT> <SPACEBAR> <ALTGR> <CTL> (FNGR) ------------------
+    # -- <CTL> <FN> <SPR> <ALT> <SPACEBAR> <ALTGR> <CTL> (FNGR) ----------------
     #
-    # -- 37(LCTL),151(FN),133(SUPER),64(ALT),65(SPACE),108(ALTGR),105(RCTL),112(PGUP),111(UP),117(PGDN),113(LEFT),116(DOWN),114(RGHT)
+    # -- 37(LCTL),151(FN),133(SUPER),64(ALT),65(SPACE),108(ALTGR),105(RCTL), ---
+    # ---- 112(PGUP),111(UP),117(PGDN),113(LEFT),116(DOWN),114(RGHT) -----------
 
     key <LCTL> { [ Control_L     ] };
-    # <FUNCTION>
     key <LWIN> { [ Super_L       ] };
     key <LALT> { [ Alt_L, Meta_L ] };
     key <SPCE> { [ space         ] };
-#    key <RALT> { [ Alt_R ] };
     # don't use alt_r here, as then emacs reads that as Alt modifier
     key <RALT> { actions=[SetMods(modifiers=Mod5,clearLocks)] };
     key <RCTL> { [ Control_R     ] };
@@ -893,50 +848,63 @@ xkb_compatibility "(unnamed)" {
     # ----------------------------------------------------------------------------
 
 
-  #    key <SCLK> {         [     Scroll_Lock ] };
+    # key <SCLK> {         [     Scroll_Lock ] };
 
+    key <PRSC> {
+      # we can change this, ISO_Next_Group is bound to ctrl+alt+pgdn
+      type= "ONE_LEVEL",
+      symbols[Group1]=[ISO_Next_Group]
+    };
+    key <MUTE> {[ XF86AudioMute        ]};
+    key <VOL-> {[ XF86AudioLowerVolume ]};
+    key <VOL+> {[ XF86AudioRaiseVolume ]};
+    key <PAUS> {
+      type= "CONTROL",
+      symbols[Group1]= [ Pause, Break ]
+    };
+    key <I151> {[ XF86WakeUp            ]};
+    key <SNIP> {[ XF86Launch2           ]};
+    key <STAR> {[ XF86Favorites         ]};
+    key <MCMT> {[ XF86AudioMicMute      ]};
+    key <FRSH> {[ XF86Launch3           ]};
+    key <BRT-> {[ XF86MonBrightnessDown ]};
+    key <BRT+> {[ XF86MonBrightnessUp   ]};
+    key <DISP> {[ XF86Display           ]};
 
-      key <PRSC> {
-          type= "ONE_LEVEL",
-  symbols[Group1]=[ISO_Next_Group]
-      };
-      key <MUTE> {         [   XF86AudioMute ] };
-      key <VOL-> {         [ XF86AudioLowerVolume ] };
-      key <VOL+> {         [ XF86AudioRaiseVolume ] };
-      key <PAUS> {
-          type= "PC_CONTROL_LEVEL2",
-          symbols[Group1]= [           Pause,           Break ]
-      };
-      key <I151> {         [      XF86WakeUp ] };
-      key <SNIP> {         [     XF86Launch2 ] };
-      key <STAR> {         [   XF86Favorites ] };
-      key <MCMT> {         [ XF86AudioMicMute ] };
-      key <FRSH> {         [     XF86Launch3 ] };
-      key <BRT-> {         [ XF86MonBrightnessDown ] };
-      key <BRT+> {         [ XF86MonBrightnessUp ] };
-      key <DISP> {         [     XF86Display ] };
+    modifier_map Control { <LCTL> };
+    modifier_map Control { <RCTL> };
+    modifier_map Control { <CAPS> };
 
-      modifier_map Control { <LCTL> };
-      modifier_map Control { <RCTL> };
-      modifier_map Control { <CAPS> };
+    modifier_map Shift { <LFSH> };
+    modifier_map Shift { <RTSH> };
 
-      modifier_map Shift { <LFSH> };
-      modifier_map Shift { <RTSH> };
+    modifier_map Mod1 { <LALT> };
+    modifier_map Mod4 { <LWIN> };
 
-      modifier_map Mod1 { <LALT> };
-  #    modifier_map Mod1 { <ALT> };
-  #    modifier_map Mod1 { <META> };
+    # ------------------------------------------------------
+    #                     number row                       #
+    # ------------------------------------------------------
 
-  #    modifier_map Mod2 { <NMLK> };
+    # -- ` 1234567890 -= <BSKP> ------------------------------------------------
+    #
+    # -- 49(`),10-22(1-0,-,=)
 
-      modifier_map Mod3 { <BKSL> };
+    # note that dead keys need to be configured in XCompose
+    # beware that the key.type sets the default for all keys below
+    key.type = "FOUR_LEVEL";
 
-      modifier_map Mod4 { <LWIN> };
-  #    modifier_map Mod4 { <RWIN> };
-  #    modifier_map Mod4 { <SUPR> };
-  #    modifier_map Mod4 { <HYPR> };
+    key <BKTK> {  [ grave, asciitilde , dead_grave          , dead_tilde     ]};
 
-#    modifier_map Mod5 { <RALT> };
+    key <NUM1> {  [ 1    , exclam     , exclamdown          , onesuperior    ]};
+    key <NUM2> {  [ 2    , at         , VoidSymbol          , twosuperior    ]};
+    key <NUM3> {  [ 3    , numbersign , sterling            , threesuperior  ]};
+    key <NUM4> {  [ 4    , dollar     , EuroSign            , foursuperior   ]};
+    key <NUM5> {  [ 5    , percent    , currency            , fivesuperior   ]};
+    key <NUM6> {  [ 6    , asciicircum, dead_circumflex     , sixsuperior    ]};
+    key <NUM7> {  [ 7    , ampersand  , dead_horn           , sevensuperior  ]};
+    key <NUM8> {  [ 8    , asterisk   , dead_ogonek         , eightsuperior  ]};
+    key <NUM9> {  [ 9    , parenleft  , leftsinglequotemark , dead_breve     ]};
+    key <NUM0> {  [ 0    , parenright , rightsinglequotemark, dead_abovering ]};
 
     # ------------------------------------------------------
     #                     letter rows                      #
@@ -958,20 +926,20 @@ xkb_compatibility "(unnamed)" {
     };
     key <KP_W> {
       # ,<«
-      [ comma, less, guillemotleft, dead_caron                      ],
+      [ comma, less, guillemotleft, dead_caron, dead_cedilla        ],
       # w,W,ω,Ω,,𝕎
       [ w    , W   , Greek_omega  , Greek_OMEGA, VoidSymbol, U1D54E ]
     };
     key <KP_E> {
-      # .>»
-      [ period, greater, guillemotright, dead_abovedot                     ],
+      # .>»·
+      [ period, greater, guillemotright, periodcentered, dead_abovedot ],
       # e,E,ε,,,𝔼 # greek capital Epsilon is indistinguishable from 'E'
       [ e     , E      , Greek_epsilon , VoidSymbol   , VoidSymbol, U1D53C ]
     };
     key <KP_R> {
       # p,P,π,Π,,ℙ
       [ p, P, Greek_pi , Greek_PI  , VoidSymbol, U2119             ],
-      # greek capital Rho is indistinguishable from 'P'
+      # r,R,ρ,,®,ℝ,™ # greek capital Rho is indistinguishable from 'P'
       [ r, R, Greek_rho, VoidSymbol, registered, U211D, trademark  ]
     };
     key <KP_T> {
@@ -999,8 +967,8 @@ xkb_compatibility "(unnamed)" {
       [ i, I, Greek_iota, VoidSymbol, VoidSymbol, U1D540      ]
     };
     key <KP_O> {
-      # greek capital Rho is indistinguishable from 'P'
-      [ r, R, Greek_rho, VoidSymbol, registered, trademark ],
+      # r,R,ρ,,®,ℝ,™ # greek capital Rho is indistinguishable from 'P'
+      [ r, R, Greek_rho, VoidSymbol, registered, U211D, trademark ],
       # greek omicron is indistinguishable from 'o'
       # U1D546 is blackboard-bold O
       [ o, O, VoidSymbol, VoidSymbol, VoidSymbol, U1D546 ]
@@ -1020,7 +988,7 @@ xkb_compatibility "(unnamed)" {
 
     key <RBRK> {
       # =+×÷
-      [ equal       , plus      , multiply  , division             ],
+      [ equal       , plus      , multiply  , division, plusminus  ],
       # ]}”
       [ bracketright, braceright, VoidSymbol, rightdoublequotemark ]
     };
@@ -1065,7 +1033,7 @@ xkb_compatibility "(unnamed)" {
     key <KP_J> {
       # h,H,η,,,ℍ # greek capital Eta is indistinguishable from 'H'
       [ h, H, Greek_eta, VoidSymbol, VoidSymbol, U210D  ],
-      # jJφΦ𝕁
+      # j,J,φ,Φ,,𝕁
       [ j, J, Greek_phi, Greek_PHI , VoidSymbol, U1D541 ]
     };
     key <KP_K> {
@@ -1098,52 +1066,78 @@ xkb_compatibility "(unnamed)" {
 
       type[Group2]    = "TWO_LEVEL",
       symbols[Group2] = [ VoidSymbol, Multi_key ],
+      # don't (e.g.) hyper_* here, as then emacs reads that as Hyper modifier
       actions[Group2] = [ SetMods(modifiers=Mod3,clearLocks) ]
     };
 
     # -- third letter row --------------
 
     key <BKSL> {
-        type[Group1]    = "TWO_LEVEL",
-        symbols[Group1] = [ VoidSymbol, Multi_key ],
-        actions[Group1] = [SetMods(modifiers=Mod3,clearLocks)],
-        type[Group2]    = "EIGHT_LEVEL_ALPHABETIC",
-        symbols[Group2] = [ backslash, bar, notsign ]
+      type[Group1]    = "TWO_LEVEL",
+      symbols[Group1] = [ VoidSymbol, Multi_key ],
+      # don't (e.g.) hyper_* here, as then emacs reads that as Hyper modifier
+      actions[Group1] = [ SetMods(modifiers=Mod3,clearLocks) ],
+      type[Group2]    = "EIGHT_LEVEL_ALPHABETIC",
+      symbols[Group2] = [ backslash, bar, notsign ]
     };
     key <KP_Z> {
       # ;:¶°
-      [ semicolon   , colon     , paragraph      , degree              ]
+      [ semicolon, colon, paragraph, degree ],
+      # z,Z,ζ,,,ℤ # greek capital Zeta is indistinguishable from 'Z'
+      [ z, Z, Greek_zeta, VoidSymbol, VoidSymbol, U2124 ]
     };
     key <KP_X> {
-      type= "FOUR_LEVEL_ALPHABETIC",
-      symbols[Group1]= [ q           , Q         , adiaeresis     , Adiaeresis          ]
+      # q,Q,θ,Θ,,ℚ
+      [ q, Q, Greek_theta, Greek_THETA, VoidSymbol, U211A ],
+      # x,X,ξ,Ξ,,𝕏
+      [ x, X, Greek_xi, Greek_XI, VoidSymbol, U1D54F      ]
     };
     key <KP_C> {
-      [ j           , J         , idiaeresis     , Idiaeresis          ]
+      # j,J,φ,Φ,,𝕁
+      [ j, J, Greek_phi, Greek_PHI , VoidSymbol, U1D541 ],
+      # c,C,χ,,©,ℂ,¢ # greek capital Chi is indistinguishable from 'X'
+      [ c, C, Greek_chi , VoidSymbol, copyright , U2102, cent ]
     };
     key <KP_V> {
       # k,K,κ,,,𝕂 # greek capital Kappa is indistinguishable from 'K'
-      [ k, K, Greek_kappa, VoidSymbol, VoidSymbol, U1D542 ]
+      [ k, K, Greek_kappa, VoidSymbol, VoidSymbol, U1D542 ],
+      # v,V,,,,𝕍
+      [ v, V, VoidSymbol , VoidSymbol, VoidSymbol, U1D54D ]
     };
     key <KP_B> {
-      [ x           , X         , periodcentered         ]
+      # x,X,ξ,Ξ,,𝕏
+      [ x, X, Greek_xi  , Greek_XI  , VoidSymbol, U1D54F ],
+      # b,B,β,,,𝔹 # greek capital Beta is indistinguishable from 'N'
+      [ b, B, Greek_beta, VoidSymbol, VoidSymbol, U1D539 ]
     };
     key <KP_N> {
-      [ b           , B         , b              , B                   ]
+      # b,B,β,,,𝔹 # greek capital Beta is indistinguishable from 'N'
+      [ b, B, Greek_beta, VoidSymbol, VoidSymbol, U1D539 ],
+      # n,N,ν,,,ℕ # greek capital Nu is indistinguishable from 'N'
+      [ n, N, Greek_nu  , VoidSymbol, VoidSymbol, U2115  ]
     };
     key <KP_M> {
-      [ m           , M         , mu             , plusminus           ]
+      # m,M,μ,,,𝕄
+      [ m, M, Greek_mu, VoidSymbol, VoidSymbol, U1D544 ]
     };
     key <COMM> {
-      [ w           , W         , aring          , Aring               ]
+      # w,W,ω,Ω,,𝕎
+      [ w    , W   , Greek_omega  , Greek_OMEGA, VoidSymbol, U1D54E ],
+      # ,<«
+      [ comma, less, guillemotleft, dead_caron, dead_cedilla        ]
     };
     key <PERD> {
-      [ v           , V         , v              , V                   ]
+      # v,V,,,,𝕍
+      [ v, V, VoidSymbol, VoidSymbol, VoidSymbol, U1D54D ],
+      # .>»·
+      [ period, greater, guillemotright, periodcentered, dead_abovedot ]
     };
     key <SLSH> {
-      [ z           , Z         , ae             , AE                  ]
+      # z,Z,ζ,,,ℤ # greek capital Zeta is indistinguishable from 'Z'
+      [ z,     Z,        Greek_zeta,  VoidSymbol  , VoidSymbol, U2124 ],
+      # /?¿
+      [ slash, question, dead_stroke, questiondown, dead_hook ]
     };
-
   };
 
 };
