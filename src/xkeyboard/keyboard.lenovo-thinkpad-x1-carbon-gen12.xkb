@@ -242,22 +242,22 @@ xkb_keymap {
       # 6: super(lwin)+mod5(ralt)
       # 7: super(lwin)+mod5(ralt)+shift
 
-      modifiers= Shift+Mod5+Mod3;
-      map[Shift]= Level2;
-      map[Mod5]= Level3;
-      map[Shift+Mod5]= Level4;
-      map[Mod3]= Level5;
-      map[Shift+Mod3]= Level6;
-      map[Mod5+Mod3]= Level7;
-      map[Shift+Mod5+Mod3]= Level8;
-      level_name[Level1]= "Base";
-      level_name[Level2]= "Shift";
-      level_name[Level3]= "AltGr";
-      level_name[Level4]= "Shift AltGr";
-      level_name[Level5]= "X";
-      level_name[Level6]= "X Shift";
-      level_name[Level7]= "X AltGr";
-      level_name[Level8]= "X Shift AltGr";
+      modifiers            = Shift+Mod5+Mod3;
+      map[Shift]           = Level2;
+      map[Mod5]            = Level3;
+      map[Shift+Mod5]      = Level4;
+      map[Mod3]            = Level5;
+      map[Shift+Mod3]      = Level6;
+      map[Mod5+Mod3]       = Level7;
+      map[Shift+Mod5+Mod3] = Level8;
+      level_name[Level1] = "Base";
+      level_name[Level2] = "Shift";
+      level_name[Level3] = "AltGr";
+      level_name[Level4] = "Shift AltGr";
+      level_name[Level5] = "X";
+      level_name[Level6] = "X Shift";
+      level_name[Level7] = "X AltGr";
+      level_name[Level8] = "X Shift AltGr";
     };
     type "EIGHT_LEVEL_ALPHABETIC" {
       modifiers                 = Shift+Lock+Mod5+Mod3;
@@ -876,7 +876,9 @@ xkb_compatibility "(unnamed)" {
     key <LWIN> { [ Super_L       ] };
     key <LALT> { [ Alt_L, Meta_L ] };
     key <SPCE> { [ space         ] };
-    key <RALT> { [ Alt_R ] };
+#    key <RALT> { [ Alt_R ] };
+    # don't use alt_r here, as then emacs reads that as Alt modifier
+    key <RALT> { actions=[SetMods(modifiers=Mod5,clearLocks)] };
     key <RCTL> { [ Control_R     ] };
 
     # <PGUP> <UP> <PGDN> <LEFT> <DOWN> <RGHT> ----------------
@@ -934,7 +936,7 @@ xkb_compatibility "(unnamed)" {
   #    modifier_map Mod4 { <SUPR> };
   #    modifier_map Mod4 { <HYPR> };
 
-    modifier_map Mod5 { <RALT> };
+#    modifier_map Mod5 { <RALT> };
 
     # ------------------------------------------------------
     #                     letter rows                      #
@@ -950,39 +952,83 @@ xkb_compatibility "(unnamed)" {
 
     # note that dead keys need to be configured in XCompose
     key <KP_Q> {
-      [ apostrophe, quotedbl, dead_acute , dead_diaeresis ],
-      [ q         , Q       , Greek_theta, Greek_THETA    ]
+      [ apostrophe, quotedbl, dead_acute , dead_diaeresis                    ],
+      # q,Q,θ,Θ,,ℚ
+      [ q         , Q       , Greek_theta, Greek_THETA   , VoidSymbol, U211A ]
     };
     key <KP_W> {
-      [ comma, less, guillemotleft, dead_caron ],
-      [ w    , W   , aring        , Aring      ]
+      # ,<«
+      [ comma, less, guillemotleft, dead_caron                      ],
+      # w,W,ω,Ω,,𝕎
+      [ w    , W   , Greek_omega  , Greek_OMEGA, VoidSymbol, U1D54E ]
     };
-    key <KP_E> { [ period, greater, guillemotright, dead_abovedot ], [ e, E ] };
-    key <KP_R> { [ p, P ], [ r, R, Greek_rho, VoidSymbol, registered, trademark  ] };
-    key <KP_T> { [ y, Y ], [ t, T, thorn, THORN ] };
-    key <KP_Y> { [ f, F ], [ y, Y ] };
-    key <KP_U> { [ g, G ], [ u, U ] };
-    key <KP_I> { [ c, C, copyright, cent ], [ i, I ] };
+    key <KP_E> {
+      # .>»
+      [ period, greater, guillemotright, dead_abovedot                     ],
+      # e,E,ε,,,𝔼 # greek capital Epsilon is indistinguishable from 'E'
+      [ e     , E      , Greek_epsilon , VoidSymbol   , VoidSymbol, U1D53C ]
+    };
+    key <KP_R> {
+      # p,P,π,Π,,ℙ
+      [ p, P, Greek_pi , Greek_PI  , VoidSymbol, U2119             ],
+      # greek capital Rho is indistinguishable from 'P'
+      [ r, R, Greek_rho, VoidSymbol, registered, U211D, trademark  ]
+    };
+    key <KP_T> {
+      # y,Y,ψ,Ψ,,ℙ
+      [ y, Y, Greek_psi, Greek_PSI , VoidSymbol, U1D550        ],
+      # t,T,τ,,þ,𝕋,Þ # greek capital Tau is indistinguishable from 'T'
+      [ t, T, Greek_tau, VoidSymbol, thorn     , U1D54B, THORN ]
+    };
+    key <KP_Y> {
+      # f,F,,,,𝔽
+      [ f, F, VoidSymbol, VoidSymbol, VoidSymbol, U1D53D ],
+      # y,Y,ψ,Ψ,,ℙ
+      [ y, Y, Greek_psi , Greek_PSI , VoidSymbol, U1D550 ]
+    };
+    key <KP_U> {
+      # g,G,γ,Γ,,𝔾
+      [ g, G, Greek_gamma  , Greek_GAMMA, VoidSymbol, U1D53E ],
+      # greek capital Upsilon is indistinguishable from 'U'
+      [ u, U, Greek_upsilon, VoidSymbol , VoidSymbol, U1D54C ]
+    };
+    key <KP_I> {
+      # c,C,χ,,©,ℂ,¢ # greek capital Chi is indistinguishable from 'X'
+      [ c, C, Greek_chi , VoidSymbol, copyright , U2102, cent ],
+      # i,I,ι,,,𝕀 # greek capital Iota is indistinguishable from 'I'
+      [ i, I, Greek_iota, VoidSymbol, VoidSymbol, U1D540      ]
+    };
     key <KP_O> {
+      # greek capital Rho is indistinguishable from 'P'
       [ r, R, Greek_rho, VoidSymbol, registered, trademark ],
       # greek omicron is indistinguishable from 'o'
       # U1D546 is blackboard-bold O
       [ o, O, VoidSymbol, VoidSymbol, VoidSymbol, U1D546 ]
     };
     key <KP_P> {
-      [ l, L         , oslash         , Oslash              ]
+      # l,L,λ,Λ,,𝕃
+      [ l, L, Greek_lambda, Greek_LAMBDA, VoidSymbol, U1D543 ],
+      # p,P,π,Π,,ℙ
+      [ p, P, Greek_pi    , Greek_PI    , VoidSymbol, U2119  ]
     };
     key <LBRK> {
-      [ slash       , question  , dead_stroke, questiondown   , dead_hook           ]
+      # /?¿
+      [ slash      , question , dead_stroke, questiondown       , dead_hook ],
+      # [{“
+      [ bracketleft, braceleft, VoidSymbol   , leftdoublequotemark ]
     };
 
     key <RBRK> {
-      [ equal     , plus       , multiply            , division        ]
+      # =+×÷
+      [ equal       , plus      , multiply  , division             ],
+      # ]}”
+      [ bracketright, braceright, VoidSymbol, rightdoublequotemark ]
     };
 
     # -- second letter row -------------
 
-    key <KP_A> {[ a, A, Greek_alpha, VoidSymbol, U04A9, U1D538  ]}; # Cyrillic small Abkhasian-ha
+    # a,A,α,,ҩ,𝔸 # Cyrillic small Abkhasian-ha
+    key <KP_A> {[ a, A, Greek_alpha, VoidSymbol, U04A9, U1D538  ]};
 
     key <KP_S> {
       # greek omicron is indistinguishable from 'o'
@@ -993,19 +1039,34 @@ xkb_compatibility "(unnamed)" {
       [ s, S, Greek_sigma, Greek_SIGMA, ssharp, U1D54A, section, Greek_finalsmallsigma ]
     };
     key <KP_D> {
-      [ e           , E         , eacute         , Eacute              ]
+      # e,E,ε,,,𝔼 # greek capital Epsilon is indistinguishable from 'E'
+      [ e, E, Greek_epsilon , VoidSymbol , VoidSymbol, U1D53C           ],
+      # d,D,δ,Δ,,𝔻,ð,Ð
+      [ d, D, Greek_delta,    Greek_DELTA, VoidSymbol, U1D53B, eth, ETH ]
     };
     key <KP_F> {
-      [ u           , U         , uacute         , Uacute              ]
+      # u,U,υ,,,𝕌 # greek capital Upsilon is indistinguishable from 'U'
+      [ u, U, Greek_upsilon, VoidSymbol, VoidSymbol, U1D54C ],
+      # f,F,,,,𝔽
+      [ f, F, VoidSymbol   , VoidSymbol, VoidSymbol, U1D53D ]
     };
     key <KP_G> {
-      [ i           , I              ]
+      # i,I,ι,,,𝕀 # greek capital Iota is indistinguishable from 'I'
+      [ i, I, Greek_iota , VoidSymbol , VoidSymbol, U1D540 ],
+      # g,G,γ,Γ,,𝔾
+      [ g, G, Greek_gamma, Greek_GAMMA, VoidSymbol, U1D53E ]
     };
     key <KP_H> {
-      [ d           , D         ,    eth         , ETH                 ]
+      # d,D,δ,Δ,,𝔻,ð,Ð
+      [ d, D, Greek_delta,    Greek_DELTA, VoidSymbol, U1D53B, eth, ETH ],
+      # greek capital Eta is indistinguishable from 'H'
+      [ h, H, Greek_eta, VoidSymbol, VoidSymbol, U210D ]
     };
     key <KP_J> {
-      [ h           , H         , h              , H                   ]
+      # h,H,η,,,ℍ # greek capital Eta is indistinguishable from 'H'
+      [ h, H, Greek_eta, VoidSymbol, VoidSymbol, U210D  ],
+      # jJφΦ𝕁
+      [ j, J, Greek_phi, Greek_PHI , VoidSymbol, U1D541 ]
     };
     key <KP_K> {
       [ t           , T         ,  thorn         , THORN               ]
@@ -1027,7 +1088,7 @@ xkb_compatibility "(unnamed)" {
 
     key <BKSL> {
         type= "TWO_LEVEL",
-        symbols[Group1]= [ Hyper_L, Multi_key ]
+        symbols[Group1]= [ VoidSymbol, Multi_key ], actions=[SetMods(modifiers=Mod3,clearLocks)]
     };
     key <KP_Z> {
       [ semicolon   , colon     , paragraph      , degree              ]
