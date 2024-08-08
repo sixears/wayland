@@ -891,20 +891,22 @@ xkb_compatibility "(unnamed)" {
 
     # note that dead keys need to be configured in XCompose
     # beware that the key.type sets the default for all keys below
-    key.type = "FOUR_LEVEL";
+    key.type = "EIGHT_LEVEL";
 
-    key <BKTK> {  [ grave, asciitilde , dead_grave          , dead_tilde     ]};
+    key <BKTK> {  [ grave, asciitilde , dead_grave, dead_tilde     ]};
 
-    key <NUM1> {  [ 1    , exclam     , exclamdown          , onesuperior    ]};
-    key <NUM2> {  [ 2    , at         , VoidSymbol          , twosuperior    ]};
-    key <NUM3> {  [ 3    , numbersign , sterling            , threesuperior  ]};
-    key <NUM4> {  [ 4    , dollar     , EuroSign            , foursuperior   ]};
-    key <NUM5> {  [ 5    , percent    , currency            , fivesuperior   ]};
-    key <NUM6> {  [ 6    , asciicircum, dead_circumflex     , sixsuperior    ]};
-    key <NUM7> {  [ 7    , ampersand  , dead_horn           , sevensuperior  ]};
-    key <NUM8> {  [ 8    , asterisk   , dead_ogonek         , eightsuperior  ]};
-    key <NUM9> {  [ 9    , parenleft  , leftsinglequotemark , dead_breve     ]};
-    key <NUM0> {  [ 0    , parenright , rightsinglequotemark, dead_abovering ]};
+    key <NUM1> {  [ 1, exclam     , exclamdown     , onesuperior    ]};
+    key <NUM2> {  [ 2, at         , VoidSymbol     , twosuperior    ]};
+    key <NUM3> {  [ 3, numbersign , sterling       , threesuperior  ]};
+    key <NUM4> {  [ 4, dollar     , EuroSign       , foursuperior   ]};
+    key <NUM5> {  [ 5, percent    , currency       , fivesuperior   ]};
+    key <NUM6> {  [ 6, asciicircum, dead_circumflex, sixsuperior    ]};
+    key <NUM7> {  [ 7, ampersand  , dead_horn      , sevensuperior  ]};
+    key <NUM8> {  [ 8, asterisk   , dead_ogonek    , eightsuperior  ]};
+    key <NUM9> {  [ 9, parenleft  , dead_breve     , ninesuperior,
+                   leftsinglequotemark  ]};
+    key <NUM0> {  [ 0, parenright , dead_abovering , zerosuperior,
+                   rightsinglequotemark ]};
 
     # ------------------------------------------------------
     #                     letter rows                      #
@@ -1064,7 +1066,7 @@ xkb_compatibility "(unnamed)" {
       type[Group1]    = "EIGHT_LEVEL_ALPHABETIC",
       symbols[Group1] = [ backslash, bar, notsign ],
 
-      type[Group2]    = "TWO_LEVEL",
+      type[Group2]    = "CTRL-ALT",
       symbols[Group2] = [ VoidSymbol, Multi_key ],
       # don't (e.g.) hyper_* here, as then emacs reads that as Hyper modifier
       actions[Group2] = [ SetMods(modifiers=Mod3,clearLocks) ]
@@ -1073,7 +1075,7 @@ xkb_compatibility "(unnamed)" {
     # -- third letter row --------------
 
     key <BKSL> {
-      type[Group1]    = "TWO_LEVEL",
+      type[Group1]    = "CTRL-ALT",
       symbols[Group1] = [ VoidSymbol, Multi_key ],
       # don't (e.g.) hyper_* here, as then emacs reads that as Hyper modifier
       actions[Group1] = [ SetMods(modifiers=Mod3,clearLocks) ],
