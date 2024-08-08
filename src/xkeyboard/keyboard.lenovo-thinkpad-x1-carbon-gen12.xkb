@@ -893,20 +893,20 @@ xkb_compatibility "(unnamed)" {
     # beware that the key.type sets the default for all keys below
     key.type = "EIGHT_LEVEL";
 
-    key <BKTK> {  [ grave, asciitilde , dead_grave, dead_tilde     ]};
+    key <BKTK> {[ grave, asciitilde , dead_grave, dead_tilde      ]}; # `~àã
 
-    key <NUM1> {  [ 1, exclam     , exclamdown     , onesuperior    ]};
-    key <NUM2> {  [ 2, at         , VoidSymbol     , twosuperior    ]};
-    key <NUM3> {  [ 3, numbersign , sterling       , threesuperior  ]};
-    key <NUM4> {  [ 4, dollar     , EuroSign       , foursuperior   ]};
-    key <NUM5> {  [ 5, percent    , currency       , fivesuperior   ]};
-    key <NUM6> {  [ 6, asciicircum, dead_circumflex, sixsuperior    ]};
-    key <NUM7> {  [ 7, ampersand  , dead_horn      , sevensuperior  ]};
-    key <NUM8> {  [ 8, asterisk   , dead_ogonek    , eightsuperior  ]};
-    key <NUM9> {  [ 9, parenleft  , dead_breve     , ninesuperior,
-                   leftsinglequotemark  ]};
-    key <NUM0> {  [ 0, parenright , dead_abovering , zerosuperior,
-                   rightsinglequotemark ]};
+    key <NUM1> {[ 1, exclam     , exclamdown     , onesuperior    ]}; # 1!¡¹
+    key <NUM2> {[ 2, at         , VoidSymbol     , twosuperior    ]}; # 2@ ²
+    key <NUM3> {[ 3, numbersign , sterling       , threesuperior  ]}; # 3#£³
+    key <NUM4> {[ 4, dollar     , EuroSign       , foursuperior   ]}; # 4$€⁴
+    key <NUM5> {[ 5, percent    , currency       , fivesuperior   ]}; # 5%¤⁵
+    key <NUM6> {[ 6, asciicircum, dead_circumflex, sixsuperior    ]}; # 6^â⁶
+    key <NUM7> {[ 7, ampersand  , dead_horn      , sevensuperior  ]}; # 7& ⁷
+    key <NUM8> {[ 8, asterisk   , dead_ogonek    , eightsuperior  ]}; # 8*ą⁸
+    key <NUM9> {[ 9, parenleft  , dead_breve     , ninesuperior,      # 9(ă⁹
+                  leftsinglequotemark  ]};                            # ‘
+    key <NUM0> {[ 0, parenright , dead_abovering , zerosuperior,      # 0)å⁰
+                  rightsinglequotemark ]};                            # ’
 
     # ------------------------------------------------------
     #                     letter rows                      #
