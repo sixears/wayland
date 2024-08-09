@@ -183,6 +183,22 @@ xkb_keymap {
       level_name[Level2] = "Control";
     };
 
+    type "Mod5" {
+      modifiers          = Mod5;
+      map[Mod5]          = Level2;
+      level_name[Level1] = "Base";
+      level_name[Level2] = "Mod5";
+    };
+
+    type "Mod3:Mod5" {
+      modifiers          = Mod3+Mod5;
+      map[Mod3]          = Level2;
+      map[Mod5]          = Level2;
+      map[Mod3+Mod5]     = Level2;
+      level_name[Level1] = "Base";
+      level_name[Level2] = "Mod5";
+    };
+
     type "CTRL-ALT" {
       # ignore control, alt individually: react only to ctrl+alt together
       modifiers         = Control+Mod1;
@@ -831,7 +847,7 @@ xkb_compatibility "(unnamed)" {
     key <LCTL> { [ Control_L     ] };
     key <LWIN> { [ Super_L       ] };
     key <LALT> { [ Alt_L, Meta_L ] };
-    key <SPCE> { [ space         ] };
+    key <SPCE> { type="Mod3:Mod5", [ space, nobreakspace ] };
     # don't use alt_r here, as then emacs reads that as Alt modifier
     key <RALT> { actions=[SetMods(modifiers=Mod5,clearLocks)] };
     key <RCTL> { [ Control_R     ] };
@@ -896,7 +912,7 @@ xkb_compatibility "(unnamed)" {
     key <BKTK> {[ grave, asciitilde , dead_grave, dead_tilde      ]}; # `~àã
 
     key <NUM1> {[ 1, exclam     , exclamdown     , onesuperior    ]}; # 1!¡¹
-    key <NUM2> {[ 2, at         , VoidSymbol     , twosuperior    ]}; # 2@ ²
+    key <NUM2> {[ 2, at         , dead_doubleacute     , twosuperior    ]}; # 2@ ²
     key <NUM3> {[ 3, numbersign , sterling       , threesuperior  ]}; # 3#£³
     key <NUM4> {[ 4, dollar     , EuroSign       , foursuperior   ]}; # 4$€⁴
     key <NUM5> {[ 5, percent    , currency       , fivesuperior   ]}; # 5%¤⁵
@@ -907,6 +923,23 @@ xkb_compatibility "(unnamed)" {
                   leftsinglequotemark  ]};                            # ‘
     key <NUM0> {[ 0, parenright , dead_abovering , zerosuperior,      # 0)å⁰
                   rightsinglequotemark ]};                            # ’
+
+    # diacritics (dead keys):
+    # grave      : à
+    # tilde      : ã
+    # circumflex : â
+    # horn       : ơ
+    # ogonek     : ą
+    # breve      : ă
+    # abovering  : å
+    # acute      : á
+    # diaeresis  : ä
+    # caron      : ǎ
+    # cedilla    : ç
+    # abovedot   : ȧ
+    # stroke     : ⱥ
+    # hook       : ả
+    # doubleacute: ő
 
     # ------------------------------------------------------
     #                     letter rows                      #
@@ -922,7 +955,7 @@ xkb_compatibility "(unnamed)" {
 
     # note that dead keys need to be configured in XCompose
     key <KP_Q> {
-      [ apostrophe, quotedbl, dead_acute , dead_diaeresis                    ],
+      [ apostrophe, quotedbl, dead_acute , dead_diaeresis, dead_doubleacute  ],
       # q,Q,θ,Θ,,ℚ
       [ q         , Q       , Greek_theta, Greek_THETA   , VoidSymbol, U211A ]
     };
@@ -934,7 +967,8 @@ xkb_compatibility "(unnamed)" {
     };
     key <KP_E> {
       # .>»·
-      [ period, greater, guillemotright, periodcentered, dead_abovedot ],
+      [ period, greater, guillemotright, periodcentered,
+        dead_abovedot, VoidSymbol, dead_belowdot ],
       # e,E,ε,,,𝔼 # greek capital Epsilon is indistinguishable from 'E'
       [ e     , E      , Greek_epsilon , VoidSymbol   , VoidSymbol, U1D53C ]
     };
@@ -1058,8 +1092,8 @@ xkb_compatibility "(unnamed)" {
     };
     key <APOS> {
       # -_
-      [ minus     , underscore , dead_macron, dead_belowdot   ],
-      [ apostrophe, quotedbl   , dead_acute , dead_diaeresis  ]
+      [ minus     , underscore , dead_macron, dead_belowdot                    ],
+      [ apostrophe, quotedbl   , dead_acute , dead_diaeresis, dead_doubleacute ]
     };
     key <HASH> {
       # \|¬
@@ -1076,7 +1110,7 @@ xkb_compatibility "(unnamed)" {
 
     key <BKSL> {
       type[Group1]    = "CTRL-ALT",
-      symbols[Group1] = [ VoidSymbol, Multi_key ],
+      symbols[Group1] = [ NoSymbol, Multi_key ],
       # don't (e.g.) hyper_* here, as then emacs reads that as Hyper modifier
       actions[Group1] = [ SetMods(modifiers=Mod3,clearLocks) ],
       type[Group2]    = "EIGHT_LEVEL_ALPHABETIC",
