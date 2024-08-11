@@ -353,9 +353,6 @@ xkb_compatibility "(unnamed)" {
         action= LockMods(modifiers=NumLock);
     };
     interpret ISO_Level3_Shift+AnyOf(all) {
-##        virtualModifier= LevelThree;
-##        useModMapMods=level1;
-##        action= SetMods(modifiers=LevelThree,clearLocks);
         action= SetMods(modifiers=Mod5,clearLocks);
     };
     interpret ISO_Level3_Latch+AnyOf(all) {
@@ -1206,27 +1203,6 @@ xkb_compatibility "(unnamed)" {
       # /?¿
       [ slash, question, dead_stroke, questiondown, dead_hook ]
     };
-
-################################################################################
-
-    modifier_map Control { <LCTL> };
-    modifier_map Shift { <LFSH> };
-    modifier_map Shift { <RTSH> };
-    modifier_map Mod1 { <LALT> };
-    modifier_map Lock { <CAPS> };
-    modifier_map Mod2 { <NMLK> };
-    modifier_map Mod5 { <LVL3> };
-    modifier_map Control { <RCTL> };
-    modifier_map Mod1 { <RALT> };
-    modifier_map Mod4 { <LWIN> };
-    modifier_map Mod4 { <RWIN> };
-    modifier_map Mod3 { <LVL5> };
-    modifier_map Mod1 { <ALT> };
-    modifier_map Mod1 { <META> };
-    modifier_map Mod4 { <SUPR> };
-    modifier_map Mod4 { <HYPR> };
-
-
   };
 
 };
