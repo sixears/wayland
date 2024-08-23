@@ -957,7 +957,8 @@ xkb_compatibility "(unnamed)" {
     key <NUM2> {[ 2, at         , paragraph , section     ]}; # 2@¶§
     key <NUM3> {[ 3, numbersign , sterling  , VoidSymbol      # 3#£ ♯♭
                 , musicalsharp, musicalflat               ]};
-    key <NUM4> {[ 4, dollar     , EuroSign  , VoidSymbol  ]}; # 4$€
+    key <NUM4> {[ 4, dollar     , EuroSign  , VoidSymbol      # 4$€ ▪▫
+                , enfilledsqbullet, enopensquarebullet  ]};
     key <NUM5> {[ 5, percent    , currency  , VoidSymbol      # 5%¤
                 , VoidSymbol, permille ]};
     key <NUM6> {[ 6, asciicircum                          ]}; # 6^
@@ -1015,22 +1016,23 @@ xkb_compatibility "(unnamed)" {
 
     # note that dead keys need to be configured in XCompose
     key <KP_Q> {
-      # ',",„
-      [ apostrophe, quotedbl, doublelowquotemark  ],
+      # ',",„,•,◦
+      [ apostrophe        , quotedbl        , doublelowquotemark, VoidSymbol
+      , enfilledcircbullet, enopencircbullet  ],
       # q,Q,θ,Θ,,ℚ
       [ q         , Q       , Greek_theta, Greek_THETA   , VoidSymbol, U211A ]
     };
     key <KP_W> {
-      # ,<«
-      [ comma     , less               , guillemotleft   , VoidSymbol
-      , VoidSymbol, filledlefttribullet, enfilledsqbullet, enopensquarebullet ],
+      # ,<«≤,◀
+      [ comma     , less               , guillemotleft   , lessthanequal
+      , VoidSymbol, filledlefttribullet ],
       # w,W,ω,Ω,,𝕎
       [ w    , W   , Greek_omega  , Greek_OMEGA, VoidSymbol, U1D54E ]
     };
     key <KP_E> {
-      # .,>,»,·,…,▶,•,◦
-      [ period, greater, guillemotright, periodcentered,
-        ellipsis, filledrighttribullet, enfilledcircbullet, enopencircbullet ],
+      # .,>,»,≥,·,…,▶
+      [ period        , greater , guillemotright, greaterthanequal
+      , periodcentered, ellipsis, filledrighttribullet ],
       # e,E,ε,,,𝔼 # greek capital Epsilon is indistinguishable from 'E'
       [ e     , E      , Greek_epsilon , VoidSymbol   , VoidSymbol, U1D53C ]
     };
@@ -1158,8 +1160,9 @@ xkb_compatibility "(unnamed)" {
     key <APOS> {
       # -,_,–,—,
       [ minus     , underscore , endash            , emdash     ],
-      # ',",„
-      [ apostrophe, quotedbl   , doublelowquotemark             ]
+      # ',",„,•,◦
+      [ apostrophe        , quotedbl        , doublelowquotemark, VoidSymbol
+      , enfilledcircbullet, enopencircbullet  ]
     };
     key <HASH> {
       # \|¬
@@ -1225,16 +1228,16 @@ xkb_compatibility "(unnamed)" {
     key <COMM> {
       # w,W,ω,Ω,,𝕎
       [ w    , W   , Greek_omega  , Greek_OMEGA, VoidSymbol, U1D54E ],
-      # ,<«  ◀▪▫
-      [ comma     , less               , guillemotleft   , VoidSymbol
-      , VoidSymbol, filledlefttribullet, enfilledsqbullet, enopensquarebullet ]
+      # ,<«≤,◀
+      [ comma     , less               , guillemotleft   , lessthanequal
+      , VoidSymbol, filledlefttribullet ]
     };
     key <PERD> {
       # v,V,,,,𝕍
       [ v, V, VoidSymbol, VoidSymbol, VoidSymbol, U1D54D ],
-      # .,>,»,·,…,▶,•,◦
-      [ period, greater, guillemotright, periodcentered,
-        ellipsis, filledrighttribullet, enfilledcircbullet, enopencircbullet ]
+      # .,>,»,≥,·,…,▶
+      [ period        , greater , guillemotright, greaterthanequal
+      , periodcentered, ellipsis, filledrighttribullet ]
     };
     key <SLSH> {
       # z,Z,ζ,,,ℤ # greek capital Zeta is indistinguishable from 'Z'
