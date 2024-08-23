@@ -164,7 +164,8 @@ xkb_keymap {
     # 02 - Lock (as in CapsLock)
     # 04 - Control
     # 08 - Mod1 (Alt/Meta)
-    # 20 - Mod3 (Hyper)
+    # 10 - Mod2 (diacritics, etc.)
+    # 20 - Mod3
     # 40 - Mod4
     # 80 - Mod5 (LevelThree)
 
@@ -213,6 +214,16 @@ xkb_keymap {
       map[Control+Mod1]  = Level2;
       level_name[Level1] = "Base";
       level_name[Level2] = "Control+Mod1";
+    };
+
+    type "CTRL-ALT-MOD3" {
+      # ignore control, alt individually: react only to ctrl+alt together
+      modifiers          = Control+Mod1+Mod3;
+      map[Control+Mod1]  = Level2;
+      map[Mod3]          = Level3;
+      level_name[Level1] = "Base";
+      level_name[Level2] = "Control+Mod1";
+      level_name[Level3] = "Mod3";
     };
 
     type "CTRL+ALT" {
@@ -297,6 +308,7 @@ xkb_keymap {
       level_name[Level7] = "X AltGr";
       level_name[Level8] = "X Shift AltGr";
     };
+
     type "SHIFT-ALT" {
         modifiers= Shift+Alt;
         map[Shift+Alt]= Level2;
@@ -820,7 +832,7 @@ xkb_compatibility "(unnamed)" {
 
 
     key <ESC>  { [ Escape ] };
-    key <FK01> { type = "CTRL-ALT", symbols= [ F1,  XF86Switch_VT_1  ] };
+    key <FK01> { type = "CTRL-ALT-MOD3", symbols= [ F1,  XF86Switch_VT_1, dead_acute ] };
     key <FK02> { type = "CTRL-ALT", symbols= [ F2,  XF86Switch_VT_2  ] };
     key <FK03> { type = "CTRL-ALT", symbols= [ F3,  XF86Switch_VT_3  ] };
     key <FK04> { type = "CTRL-ALT", symbols= [ F4,  XF86Switch_VT_4  ] };
@@ -830,8 +842,12 @@ xkb_compatibility "(unnamed)" {
     key <FK08> { type = "CTRL-ALT", symbols= [ F8,  XF86Switch_VT_8  ] };
     key <FK09> { type = "CTRL-ALT", symbols= [ F9,  XF86Switch_VT_9  ] };
     key <FK10> { type = "CTRL-ALT", symbols= [ F10, XF86Switch_VT_10 ] };
-    key <FK11> { type = "CTRL-ALT", symbols= [ F11, XF86Switch_VT_11 ] };
-    key <FK12> { type = "CTRL-ALT", symbols= [ Multi_key, XF86Switch_VT_12 ] };
+    key <FK11> {
+      type    = "CTRL-ALT-MOD3",
+      symbols = [ VoidSymbol, XF86Switch_VT_11, F11 ],
+      actions = [ SetMods(modifiers=Mod2,clearLocks) ]
+    };
+    key <FK12> { type = "CTRL-ALT-MOD3", symbols= [ Multi_key, XF86Switch_VT_12, F12 ] };
 
     key <HOME> { [ Home   ] };
     key <END>  { [ End    ] };
@@ -846,9 +862,6 @@ xkb_compatibility "(unnamed)" {
     # -- 23-35(TAB,q-l,[])
 
     key <TAB>  { type="TWO_LEVEL", [ Tab, ISO_Left_Tab ] };
-
-    key <MNUS> { type= "FOUR_LEVEL"           , symbols[Group1]= [ bracketleft , braceleft , onefifth       , leftdoublequotemark ]};
-    key <EQUL> { type= "FOUR_LEVEL"           , symbols[Group1]= [ bracketright, braceright, guillemotright , rightdoublequotemark]};
 
     # -- <CAPS> asdfghjkl;'# -----------------------------------------------------
     #
@@ -938,37 +951,55 @@ xkb_compatibility "(unnamed)" {
     # beware that the key.type sets the default for all keys below
     key.type = "EIGHT_LEVEL";
 
-    key <BKTK> {[ grave, asciitilde , dead_grave, dead_tilde      ]}; # `~àã
+    key <BKTK> {[ grave, asciitilde                       ]}; # `~
 
-    key <NUM1> {[ 1, exclam     , exclamdown     , onesuperior    ]}; # 1!¡¹
-    key <NUM2> {[ 2, at         , dead_doubleacute     , twosuperior    ]}; # 2@ ²
-    key <NUM3> {[ 3, numbersign , sterling       , threesuperior  ]}; # 3#£³
-    key <NUM4> {[ 4, dollar     , EuroSign       , foursuperior   ]}; # 4$€⁴
-    key <NUM5> {[ 5, percent    , currency       , fivesuperior   ]}; # 5%¤⁵
-    key <NUM6> {[ 6, asciicircum, dead_circumflex, sixsuperior    ]}; # 6^â⁶
-    key <NUM7> {[ 7, ampersand  , dead_horn      , sevensuperior  ]}; # 7& ⁷
-    key <NUM8> {[ 8, asterisk   , dead_ogonek    , eightsuperior  ]}; # 8*ą⁸
-    key <NUM9> {[ 9, parenleft  , dead_breve     , ninesuperior,      # 9(ă⁹
-                  leftsinglequotemark  ]};                            # ‘
-    key <NUM0> {[ 0, parenright , dead_abovering , zerosuperior,      # 0)å⁰
-                  rightsinglequotemark ]};                            # ’
+    key <NUM1> {[ 1, exclam     , exclamdown, notsign     ]}; # 1!¡
+    key <NUM2> {[ 2, at         , paragraph , section     ]}; # 2@¶§
+    key <NUM3> {[ 3, numbersign , sterling  , VoidSymbol      # 3#£ ♯♭
+                , musicalsharp, musicalflat               ]};
+    key <NUM4> {[ 4, dollar     , EuroSign  , VoidSymbol  ]}; # 4$€
+    key <NUM5> {[ 5, percent    , currency  , VoidSymbol      # 5%¤
+                , VoidSymbol, permille ]};
+    key <NUM6> {[ 6, asciicircum                          ]}; # 6^
+    key <NUM7> {[ 7, ampersand                            ]}; # 7&
+    key <NUM8> {[ 8, asterisk                             ]}; # 8*
+    key <NUM9> {[ 9, parenleft  , VoidSymbol, VoidSymbol      # 9( ‘
+                , leftsinglequotemark  ]};
+    key <NUM0> {[ 0, parenright , degree    , numerosign      # 0)°№’
+                , rightsinglequotemark ]};
+
+    key <MNUS> {
+      [ bracketleft, braceleft , onefifth  , leftdoublequotemark ],
+      # -,_,–,—,
+      [ minus      , underscore, endash    , emdash              ]
+    };
+    key <EQUL> {
+      [ bracketright, braceright, guillemotright , rightdoublequotemark],
+      # =+×÷±≠†‡
+      [ equal    , plus    , multiply, division
+      , plusminus, notequal, dagger  , doubledagger  ]
+    };
+
 
     # diacritics (dead keys):
-    # grave      : à
-    # tilde      : ã
-    # circumflex : â
-    # horn       : ơ
-    # ogonek     : ą
-    # breve      : ă
-    # abovering  : å
-    # acute      : á
-    # diaeresis  : ä
-    # caron      : ǎ
-    # cedilla    : ç
-    # abovedot   : ȧ
-    # stroke     : ⱥ
-    # hook       : ả
-    # doubleacute: ő
+    # acute      : á   # '
+    # grave      : à   # `
+    # tilde      : ã   # ~
+    # circumflex : â   # ^
+    # cedilla    : ç   # ,
+    # abovering  : å   # 0
+    # diaeresis  : ä   # "
+    # stroke     : ⱥ   # /
+    # doubleacute: ő   # ''
+    # abovedot   : ȧ   # :
+    # belowdot   : ạ   # ;
+
+    # ?=+\|!@#$%&*(){}[]-_
+    # breve      : ă   # ?
+    # caron      : ǎ   # ?
+    # hook       : ả   # ?
+    # horn       : ơ   # ?
+    # ogonek     : ą   # ?
 
     # ------------------------------------------------------
     #                     letter rows                      #
@@ -984,40 +1015,42 @@ xkb_compatibility "(unnamed)" {
 
     # note that dead keys need to be configured in XCompose
     key <KP_Q> {
-      [ apostrophe, quotedbl, dead_acute , dead_diaeresis, dead_doubleacute  ],
+      # ',",„
+      [ apostrophe, quotedbl, doublelowquotemark  ],
       # q,Q,θ,Θ,,ℚ
       [ q         , Q       , Greek_theta, Greek_THETA   , VoidSymbol, U211A ]
     };
     key <KP_W> {
       # ,<«
-      [ comma, less, guillemotleft, dead_caron, dead_cedilla        ],
+      [ comma     , less               , guillemotleft   , VoidSymbol
+      , VoidSymbol, filledlefttribullet, enfilledsqbullet, enopensquarebullet ],
       # w,W,ω,Ω,,𝕎
       [ w    , W   , Greek_omega  , Greek_OMEGA, VoidSymbol, U1D54E ]
     };
     key <KP_E> {
-      # .>»·
+      # .,>,»,·,…,▶,•,◦
       [ period, greater, guillemotright, periodcentered,
-        dead_abovedot, VoidSymbol, dead_belowdot ],
+        ellipsis, filledrighttribullet, enfilledcircbullet, enopencircbullet ],
       # e,E,ε,,,𝔼 # greek capital Epsilon is indistinguishable from 'E'
       [ e     , E      , Greek_epsilon , VoidSymbol   , VoidSymbol, U1D53C ]
     };
     key <KP_R> {
-      # p,P,π,Π,,ℙ
-      [ p, P, Greek_pi , Greek_PI  , VoidSymbol, U2119             ],
+      # p,P,π,Π,℗,ℙ
+      [ p, P, Greek_pi , Greek_PI  , phonographcopyright, U2119 ],
       # r,R,ρ,,®,ℝ,™ # greek capital Rho is indistinguishable from 'P'
-      [ r, R, Greek_rho, VoidSymbol, registered, U211D, trademark  ]
+      [ r, R, Greek_rho, VoidSymbol, registered         , U211D, trademark  ]
     };
     key <KP_T> {
-      # y,Y,ψ,Ψ,¥,ℙ
-      [ y, Y, Greek_psi, Greek_PSI , yen, U1D550        ],
-      # t,T,τ,,þ,𝕋,Þ # greek capital Tau is indistinguishable from 'T'
-      [ t, T, Greek_tau, VoidSymbol, thorn     , U1D54B, THORN ]
+      # y,Y,ψ,Ψ,¥,ℙ,✓
+      [ y, Y, Greek_psi, Greek_PSI , yen  , U1D550, checkmark        ],
+      # t,T,τ,,™,𝕋,þ,Þ # greek capital Tau is indistinguishable from 'T'
+      [ t, T, Greek_tau, VoidSymbol, trademark, U1D54B, thorn, THORN ]
     };
     key <KP_Y> {
       # f,F,,,,𝔽
       [ f, F, VoidSymbol, VoidSymbol, VoidSymbol, U1D53D ],
-      # y,Y,ψ,Ψ,¥,ℙ
-      [ y, Y, Greek_psi , Greek_PSI , yen, U1D550 ]
+      # y,Y,ψ,Ψ,¥,ℙ, ✓
+      [ y, Y, Greek_psi , Greek_PSI , yen, U1D550, checkmark ]
     };
     key <KP_U> {
       # g,G,γ,Γ,,𝔾
@@ -1040,20 +1073,21 @@ xkb_compatibility "(unnamed)" {
     };
     key <KP_P> {
       # l,L,λ,Λ,,𝕃
-      [ l, L, Greek_lambda, Greek_LAMBDA, VoidSymbol, U1D543 ],
-      # p,P,π,Π,,ℙ
-      [ p, P, Greek_pi    , Greek_PI    , VoidSymbol, U2119  ]
+      [ l, L, Greek_lambda, Greek_LAMBDA, VoidSymbol         , U1D543 ],
+      # p,P,π,Π,℗,ℙ
+      [ p, P, Greek_pi    , Greek_PI    , phonographcopyright, U2119 ]
     };
     key <LBRK> {
       # /?¿
-      [ slash      , question , dead_stroke, questiondown       , dead_hook ],
+      [ slash      , question , VoidSymbol, questiondown       , VoidSymbol ],
       # [{“
       [ bracketleft, braceleft, VoidSymbol   , leftdoublequotemark ]
     };
 
     key <RBRK> {
-      # =+×÷
-      [ equal       , plus      , multiply  , division, plusminus  ],
+      # =+×÷±≠†‡
+      [ equal    , plus    , multiply, division
+      , plusminus, notequal, dagger  , doubledagger  ],
       # ]}”
       [ bracketright, braceright, VoidSymbol, rightdoublequotemark ]
     };
@@ -1068,8 +1102,9 @@ xkb_compatibility "(unnamed)" {
       # U1D546 is blackboard-bold O
       # o, O,,,, 𝕆
       [ o, O, VoidSymbol, VoidSymbol, VoidSymbol, U1D546 ],
-      # s, S, σ, Σ, ß, 𝕊, §, ς
-      [ s, S, Greek_sigma, Greek_SIGMA, ssharp, U1D54A, section, Greek_finalsmallsigma ]
+      # s,S,σ,Σ,ß,𝕊,,ς
+      [ s     , S     , Greek_sigma, Greek_SIGMA
+      , ssharp, U1D54A, VoidSymbol , Greek_finalsmallsigma ]
     };
     key <KP_D> {
       # e,E,ε,,,𝔼 # greek capital Epsilon is indistinguishable from 'E'
@@ -1102,8 +1137,8 @@ xkb_compatibility "(unnamed)" {
       [ j, J, Greek_phi, Greek_PHI , VoidSymbol, U1D541 ]
     };
     key <KP_K> {
-      # t,T,τ,,þ,𝕋,Þ # greek capital Tau is indistinguishable from 'T'
-      [ t, T, Greek_tau  , VoidSymbol, thorn     , U1D54B, THORN ],
+      # t,T,τ,,™,𝕋,þ,Þ # greek capital Tau is indistinguishable from 'T'
+      [ t, T, Greek_tau, VoidSymbol, trademark, U1D54B, thorn, THORN ],
       # k,K,κ,,,𝕂 # greek capital Kappa is indistinguishable from 'K'
       [ k, K, Greek_kappa, VoidSymbol, VoidSymbol, U1D542        ]
     };
@@ -1114,20 +1149,22 @@ xkb_compatibility "(unnamed)" {
       [ l, L, Greek_lambda, Greek_LAMBDA, VoidSymbol, U1D543 ]
     };
     key <SEMI> {
-      # s, S, σ, Σ, ß, 𝕊, §, ς
-      [ s, S, Greek_sigma, Greek_SIGMA, ssharp, U1D54A, section, Greek_finalsmallsigma ],
-      # ;:¶°
-      [ semicolon, colon, paragraph, degree              ]
+      # s,S,σ,Σ,ß,𝕊,,ς
+      [ s     , S     , Greek_sigma, Greek_SIGMA
+      , ssharp, U1D54A, VoidSymbol , Greek_finalsmallsigma ],
+      # ;:
+      [ semicolon, colon              ]
     };
     key <APOS> {
-      # -_
-      [ minus     , underscore , dead_macron, dead_belowdot                    ],
-      [ apostrophe, quotedbl   , dead_acute , dead_diaeresis, dead_doubleacute ]
+      # -,_,–,—,
+      [ minus     , underscore , endash            , emdash     ],
+      # ',",„
+      [ apostrophe, quotedbl   , doublelowquotemark             ]
     };
     key <HASH> {
       # \|¬
       type[Group1]    = "EIGHT_LEVEL_ALPHABETIC",
-      symbols[Group1] = [ backslash, bar, notsign ],
+      symbols[Group1] = [ backslash, bar, notsign, brokenbar ],
 
       type[Group2]    = "CTRL-ALT",
       symbols[Group2] = [ VoidSymbol, Multi_key ],
@@ -1143,7 +1180,7 @@ xkb_compatibility "(unnamed)" {
       # don't (e.g.) hyper_* here, as then emacs reads that as Hyper modifier
       actions[Group1] = [ SetMods(modifiers=Mod3,clearLocks) ],
       type[Group2]    = "EIGHT_LEVEL_ALPHABETIC",
-      symbols[Group2] = [ backslash, bar, notsign ]
+      symbols[Group2] = [ backslash, bar, notsign, brokenbar ]
     };
     key <KP_Z> {
       # ;:¶°
@@ -1154,8 +1191,8 @@ xkb_compatibility "(unnamed)" {
     key <KP_X> {
       # q,Q,θ,Θ,,ℚ
       [ q, Q, Greek_theta, Greek_THETA, VoidSymbol, U211A ],
-      # x,X,ξ,Ξ,,𝕏
-      [ x, X, Greek_xi, Greek_XI, VoidSymbol, U1D54F      ]
+      # x,X,ξ,Ξ,,𝕏,☓
+      [ x, X, Greek_xi, Greek_XI, VoidSymbol, U1D54F, signaturemark ]
     };
     key <KP_C> {
       # j,J,φ,Φ,,𝕁
@@ -1170,8 +1207,8 @@ xkb_compatibility "(unnamed)" {
       [ v, V, VoidSymbol , VoidSymbol, VoidSymbol, U1D54D ]
     };
     key <KP_B> {
-      # x,X,ξ,Ξ,,𝕏
-      [ x, X, Greek_xi  , Greek_XI  , VoidSymbol, U1D54F ],
+      # x,X,ξ,Ξ,,𝕏,☓
+      [ x, X, Greek_xi  , Greek_XI  , VoidSymbol, U1D54F, signaturemark ],
       # b,B,β,,,𝔹 # greek capital Beta is indistinguishable from 'N'
       [ b, B, Greek_beta, VoidSymbol, VoidSymbol, U1D539 ]
     };
@@ -1188,20 +1225,22 @@ xkb_compatibility "(unnamed)" {
     key <COMM> {
       # w,W,ω,Ω,,𝕎
       [ w    , W   , Greek_omega  , Greek_OMEGA, VoidSymbol, U1D54E ],
-      # ,<«
-      [ comma, less, guillemotleft, dead_caron, dead_cedilla        ]
+      # ,<«  ◀▪▫
+      [ comma     , less               , guillemotleft   , VoidSymbol
+      , VoidSymbol, filledlefttribullet, enfilledsqbullet, enopensquarebullet ]
     };
     key <PERD> {
       # v,V,,,,𝕍
       [ v, V, VoidSymbol, VoidSymbol, VoidSymbol, U1D54D ],
-      # .>»·
-      [ period, greater, guillemotright, periodcentered, dead_abovedot ]
+      # .,>,»,·,…,▶,•,◦
+      [ period, greater, guillemotright, periodcentered,
+        ellipsis, filledrighttribullet, enfilledcircbullet, enopencircbullet ]
     };
     key <SLSH> {
       # z,Z,ζ,,,ℤ # greek capital Zeta is indistinguishable from 'Z'
       [ z,     Z,        Greek_zeta,  VoidSymbol  , VoidSymbol, U2124 ],
       # /?¿
-      [ slash, question, dead_stroke, questiondown, dead_hook ]
+      [ slash, question, VoidSymbol, questiondown, VoidSymbol ]
     };
   };
 
