@@ -951,7 +951,8 @@ xkb_compatibility "(unnamed)" {
     # beware that the key.type sets the default for all keys below
     key.type = "EIGHT_LEVEL";
 
-    key <BKTK> {[ grave, asciitilde                       ]}; # `~
+    key <BKTK> {[ grave     , asciitilde, similarequal, approxeq      # `~≃≈  ≣≇
+                , VoidSymbol, VoidSymbol, stricteq    , notapproxeq ]};
 
     key <NUM1> {[ 1, exclam     , exclamdown, notsign     ]}; # 1!¡
     key <NUM2> {[ 2, at         , paragraph , section     ]}; # 2@¶§
