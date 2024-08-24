@@ -831,7 +831,7 @@ xkb_compatibility "(unnamed)" {
     # Fn+Right:115
 
 
-    key <ESC>  { [ Escape ] };
+    key <ESC>  { type="SHIFT-ALT", [ Escape, includedin ] };
     key <FK01> { type = "CTRL-ALT-MOD3", symbols= [ F1,  XF86Switch_VT_1, dead_acute ] };
     key <FK02> { type = "CTRL-ALT", symbols= [ F2,  XF86Switch_VT_2  ] };
     key <FK03> { type = "CTRL-ALT", symbols= [ F3,  XF86Switch_VT_3  ] };
@@ -954,7 +954,7 @@ xkb_compatibility "(unnamed)" {
     key <BKTK> {[ grave     , asciitilde, similarequal, approxeq      # `~≃≈  ≣≇
                 , VoidSymbol, VoidSymbol, stricteq    , notapproxeq ]};
 
-    key <NUM1> {[ 1, exclam     , exclamdown, notsign     ]}; # 1!¡
+    key <NUM1> {[ 1, exclam     , exclamdown, notsign     ]}; # 1!¡¬
     key <NUM2> {[ 2, at         , paragraph , section     ]}; # 2@¶§
     key <NUM3> {[ 3, numbersign , sterling  , VoidSymbol      # 3#£ ♯♭
                 , musicalsharp, musicalflat               ]};
@@ -967,8 +967,8 @@ xkb_compatibility "(unnamed)" {
     key <NUM8> {[ 8, asterisk                             ]}; # 8*
     key <NUM9> {[ 9, parenleft  , VoidSymbol, VoidSymbol      # 9( ‘
                 , leftsinglequotemark  ]};
-    key <NUM0> {[ 0, parenright , degree    , numerosign      # 0)°№’
-                , rightsinglequotemark ]};
+    key <NUM0> {[ 0, parenright , degree    , numerosign      # 0)°№’∅
+                , rightsinglequotemark, emptyset ]};
 
     key <MNUS> {
       [ bracketleft, braceleft , onefifth  , leftdoublequotemark ],
@@ -1034,8 +1034,8 @@ xkb_compatibility "(unnamed)" {
       # .,>,»,≥,·,…,▶
       [ period        , greater , guillemotright, greaterthanequal
       , periodcentered, ellipsis, filledrighttribullet ],
-      # e,E,ε,,,𝔼 # greek capital Epsilon is indistinguishable from 'E'
-      [ e     , E      , Greek_epsilon , VoidSymbol   , VoidSymbol, U1D53C ]
+      # e,E,ε,Ǝ,ǝ,𝔼 # greek capital Epsilon is indistinguishable from 'E'
+      [ e     , E      , Greek_epsilon , U018E   , U01DD, U1D53C ]
     };
     key <KP_R> {
       # p,P,π,Π,℗,ℙ
@@ -1110,10 +1110,10 @@ xkb_compatibility "(unnamed)" {
       , ssharp, U1D54A, VoidSymbol , Greek_finalsmallsigma ]
     };
     key <KP_D> {
-      # e,E,ε,,,𝔼 # greek capital Epsilon is indistinguishable from 'E'
-      [ e, E, Greek_epsilon , VoidSymbol , VoidSymbol, U1D53C           ],
+      # e,E,ε,Ǝ,ǝ,𝔼 # greek capital Epsilon is indistinguishable from 'E'
+      [ e, E, Greek_epsilon , U018E      , U01DD     , U1D53C ],
       # d,D,δ,Δ,,𝔻,ð,Ð
-      [ d, D, Greek_delta,    Greek_DELTA, VoidSymbol, U1D53B, eth, ETH ]
+      [ d, D, Greek_delta   , Greek_DELTA, VoidSymbol, U1D53B, eth, ETH ]
     };
     key <KP_F> {
       # u,U,υ,,,𝕌 # greek capital Upsilon is indistinguishable from 'U'
