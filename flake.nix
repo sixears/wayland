@@ -86,14 +86,8 @@
             name = "xkeyboard";
             src  = ./src/xkeyboard;
 
-  #          installPhase = ''
-  #            mkdir -p $out
-  #          '';
-
             inherit (pkgs) coreutils;
             builder = "${pkgs.bash}/bin/bash";
-  #          args  = [ ./src/xkeyboard/builder.sh ];
-  #          args  = [ "-c" "exit 99" ];
             args  = [ "-c" build ];
           };
 
@@ -111,7 +105,6 @@
               wofi-config    = ./src/wofi.rc;
               xkb            =
                 "${xkeyboard}/share/xkeyboard/keyboard.lenovo-thinkpad-x1-carbon-gen12.xkb";
-#                ./src/keyboard.dvorak.xkb;
             };
 
       in
