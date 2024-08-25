@@ -78,13 +78,13 @@
           let
             build = ''
               ${pkgs.coreutils}/bin/mkdir -p $out/share
-              ${pkgs.coreutils}/bin/cp -av $src/ $out/share/xkeyboard/
+              ${pkgs.coreutils}/bin/cp -av $src $out/share/keyboard.xkb
             '';
           in
           derivation {
             inherit system;
             name = "xkeyboard";
-            src  = ./src/xkeyboard;
+            src  = ./src/keyboard.xkb;
 
             inherit (pkgs) coreutils;
             builder = "${pkgs.bash}/bin/bash";
@@ -103,8 +103,7 @@
               wallpaper      = ./src/nixos1.jpg;
               lock-wallpaper = ./src/nixos3.jpg;
               wofi-config    = ./src/wofi.rc;
-              xkb            =
-                "${xkeyboard}/share/xkeyboard/keyboard.lenovo-thinkpad-x1-carbon-gen12.xkb";
+              xkb            = "${xkeyboard}/share/keyboard.xkb";
             };
 
       in
