@@ -34,6 +34,7 @@
         hlib         = hpkgs1.lib.${system};
         mkHBin       = hlib.mkHBin;
         bash-header  = bashHeader.packages.${system}.bash-header;
+        hix          = hpkgs.hix;
 
         vlc-lockfile       = my-settings.vlc-lockfile;
         gammastep-lockfile = "/run/user/1000/gammastep.pid";
@@ -69,6 +70,11 @@
                           { inherit pkgs sway-sock sway-show-bindings; };
         sway-bindings = import ./src/sway-bindings.nix
                           { inherit pkgs sway-float sway-binds; };
+
+        sway-reload =
+          let src = import ./src/sway-reload.nix
+                           { inherit pkgs bash-header hix sway-rc; };
+          in  pkgs.writers.writeBashBin "sway-reload" src;
 
         grime =
           let src = import ./src/grime.nix { inherit pkgs bash-header; };
@@ -106,6 +112,20 @@
               xkb            = "${xkeyboard}/share/keyboard.xkb";
             };
 
+        sway-rc       = import ./src/sway-rc.nix  { inherit pkgs sway-config;
+                                                    inherit (my-pkgs) replace;
+                                                  };
+
+        xkb =
+          let src = import ./src/xkb.nix
+                           { inherit pkgs bash-header sway-reload; };
+          in  pkgs.writers.writeBashBin "xkb" src;
+
+        xkc =
+          let src = import ./src/xkc.nix
+                           { inherit pkgs bash-header hix; };
+          in  pkgs.writers.writeBashBin "xkc" src;
+
       in
         {
           packages = flake-utils.lib.flattenTree (with pkgs; rec {
@@ -121,16 +141,12 @@
 
             inherit alac hostconfig;
 
-            sway-rc  = import ./src/sway-rc.nix  { inherit pkgs sway-config;
-                                                   inherit (my-pkgs) replace;
-                                                 };
-
             ## FIXME
             inherit xkeyboard sway-config;
             xkb-file = import ./src/xkb-file.nix { inherit pkgs; };
 
-            inherit sway-float sway-sock sway-binds sway-bindings
-                    sway-show-bindings;
+            inherit sway-float sway-sock sway-binds sway-bindings sway-reload
+                    sway-rc sway-show-bindings xkb xkc;
           });
         }
     );

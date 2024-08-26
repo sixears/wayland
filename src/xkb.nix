@@ -1,13 +1,13 @@
-{ pkgs, bash-header, hix, sway-rc }: ''
+{ pkgs, bash-header, sway-reload }: ''
 
 set -u -o pipefail -o noclobber; shopt -s nullglob
 PATH=/dev/null
 
 source ${bash-header}
 
-Cmd[nyx]=${hix}/bin/nyx
-Cmd[sway-rc]=${sway-rc}/bin/sway-rc
-Cmd[swaymsg]=${pkgs.sway-unwrapped}/bin/swaymsg
+Cmd[sway-reload]=${sway-reload}/bin/sway-reload
+Cmd[vlc]=${pkgs.vlc}/bin/vlc
+Cmd[xkbcomp]=${pkgs.xorg.xkbcomp}/bin/xkbcomp
 
 Remote=false
 Isolated=false
@@ -19,9 +19,10 @@ main() {
   $Remote && args+=( --remote )
   $Isolated && args+=( --isolated )
 
-  gocmd 10 nyx "''${args[@]}" install -c wayland sway-rc
-  gocmd 11 sway-rc
-  gocmd 12 swaymsg reload
+  local tempfn; mktemp --infix "$Progname" tempfn
+  gocmd 10 xkbcomp ~/nix/wayland/src/keyboard.xkb $tempfn
+  gocmd 11 sway-reload "''${args[@]}"
+  gocmd 12 vlc --no-audio
 }
 
 # ------------------------------------------------------------------------------
@@ -29,7 +30,7 @@ main() {
 Usage="$(''${Cmd[cat]} <<EOF
 Usage: $Progname OPTION*
 
-re-install sway configuration, and trigger a reload
+Re-install from nix config & reload xkeyboard configuration
 
 Available options:
   -r | --remote              disconnected from sixears network

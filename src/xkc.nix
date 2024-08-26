@@ -1,4 +1,4 @@
-{ pkgs, bash-header, hix, sway-rc }: ''
+{ pkgs, bash-header, hix }: ''
 
 set -u -o pipefail -o noclobber; shopt -s nullglob
 PATH=/dev/null
@@ -6,8 +6,7 @@ PATH=/dev/null
 source ${bash-header}
 
 Cmd[nyx]=${hix}/bin/nyx
-Cmd[sway-rc]=${sway-rc}/bin/sway-rc
-Cmd[swaymsg]=${pkgs.sway-unwrapped}/bin/swaymsg
+Cmd[readlink]=${pkgs.coreutils}/bin/readlink
 
 Remote=false
 Isolated=false
@@ -19,9 +18,10 @@ main() {
   $Remote && args+=( --remote )
   $Isolated && args+=( --isolated )
 
-  gocmd 10 nyx "''${args[@]}" install -c wayland sway-rc
-  gocmd 11 sway-rc
-  gocmd 12 swaymsg reload
+  gocmd 10 nyx "''${args[@]}" install -c gui XCompose
+  local l; capture l gocmd 11 readlink "$HOME/.XCompose"
+  local -r expect=".nix-profiles/gui/share/XCompose"
+  [[ $l == "$expect" ]] || warn "~/.XCompose is not linked to $expect"
 }
 
 # ------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ main() {
 Usage="$(''${Cmd[cat]} <<EOF
 Usage: $Progname OPTION*
 
-re-install sway configuration, and trigger a reload
+Re-install XCompose file from nix configuration
 
 Available options:
   -r | --remote              disconnected from sixears network
