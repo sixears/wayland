@@ -3,6 +3,9 @@
 # https://wiki.archlinux.org/title/X_keyboard_extension
 # https://who-t.blogspot.com/2020/02/user-specific-xkb-configuration-part-1.html
 
+# gothic keys:
+# https://en.wikipedia.org/wiki/Gothic_(Unicode_block)
+
 # To output current map: xkbcomp $DISPLAY -
 # see also xkb-file (executable)
 
@@ -151,6 +154,8 @@ xkb_keymap {
     <LEFT> = 113;
     <DOWN> = 116;
     <RGHT> = 114;
+
+    <MENU> = 135; # bottom-right main key on RH board on Model-100
 
     # --------------------------------------------------------
 
@@ -1046,14 +1051,14 @@ xkb_compatibility "(unnamed)" {
     key <KP_T> {
       # y,Y,ψ,Ψ,¥,ℙ,✓
       [ y, Y, Greek_psi, Greek_PSI , yen  , U1D550, checkmark        ],
-      # t,T,τ,,™,𝕋,þ,Þ # greek capital Tau is indistinguishable from 'T'
-      [ t, T, Greek_tau, VoidSymbol, trademark, U1D54B, thorn, THORN ]
+      # t,T,τ,𐍄,™,𝕋,þ,Þ # greek capital Tau is indistinguishable from 'T'
+      [ t, T, Greek_tau, U10344, trademark, U1D54B, thorn, THORN ]
     };
     key <KP_Y> {
-      # f,F,,,,𝔽
-      [ f, F, VoidSymbol, VoidSymbol, VoidSymbol, U1D53D ],
+      # f,F,,,,𝔽,,𐍆
+      [ f, F, VoidSymbol, VoidSymbol, VoidSymbol, U1D53D, VoidSymbol, U10346 ],
       # y,Y,ψ,Ψ,¥,ℙ, ✓
-      [ y, Y, Greek_psi , Greek_PSI , yen, U1D550, checkmark ]
+      [ y, Y, Greek_psi , Greek_PSI , yen       , U1D550, checkmark ]
     };
     key <KP_U> {
       # g,G,γ,Γ,,𝔾
@@ -1097,8 +1102,8 @@ xkb_compatibility "(unnamed)" {
 
     # -- second letter row -------------
 
-    # a,A,α,,ҩ,𝔸 # Cyrillic small Abkhasian-ha
-    key <KP_A> {[ a, A, Greek_alpha, VoidSymbol, U04A9, U1D538  ]};
+    # a,A,α,,ҩ,𝔸,,𐌰 # Cyrillic small Abkhasian-ha
+    key <KP_A> {[ a, A, Greek_alpha, VoidSymbol, U04A9, U1D538, VoidSymbol, U10330  ]};
 
     key <KP_S> {
       # greek omicron is indistinguishable from 'o'
@@ -1118,8 +1123,8 @@ xkb_compatibility "(unnamed)" {
     key <KP_F> {
       # u,U,υ,,,𝕌 # greek capital Upsilon is indistinguishable from 'U'
       [ u, U, Greek_upsilon, VoidSymbol, VoidSymbol, U1D54C ],
-      # f,F,,,,𝔽
-      [ f, F, VoidSymbol   , VoidSymbol, VoidSymbol, U1D53D ]
+      # f,F,,,,𝔽,,𐍆
+      [ f, F, VoidSymbol   , VoidSymbol, VoidSymbol, U1D53D, VoidSymbol, U10346 ]
     };
     key <KP_G> {
       # i,I,ι,,,𝕀 # greek capital Iota is indistinguishable from 'I'
@@ -1136,18 +1141,18 @@ xkb_compatibility "(unnamed)" {
     key <KP_J> {
       # h,H,η,,,ℍ # greek capital Eta is indistinguishable from 'H'
       [ h, H, Greek_eta, VoidSymbol, VoidSymbol, U210D  ],
-      # j,J,φ,Φ,,𝕁
-      [ j, J, Greek_phi, Greek_PHI , VoidSymbol, U1D541 ]
+      # j,J,φ,Φ,,𝕁,,𐌸
+      [ j, J, Greek_phi, Greek_PHI , VoidSymbol, U1D541, VoidSymbol, U10338 ]
     };
     key <KP_K> {
-      # t,T,τ,,™,𝕋,þ,Þ # greek capital Tau is indistinguishable from 'T'
-      [ t, T, Greek_tau, VoidSymbol, trademark, U1D54B, thorn, THORN ],
+      # t,T,τ,𐍄,™,𝕋,þ,Þ # greek capital Tau is indistinguishable from 'T'
+      [ t, T, Greek_tau, U10344, trademark, U1D54B, thorn, THORN ],
       # k,K,κ,,,𝕂 # greek capital Kappa is indistinguishable from 'K'
       [ k, K, Greek_kappa, VoidSymbol, VoidSymbol, U1D542        ]
     };
     key <KP_L> {
-      # n,N,ν,,,ℕ # greek capital Nu is indistinguishable from 'N'
-      [ n, N, Greek_nu    , VoidSymbol  , VoidSymbol, U2115  ],
+      # n,N,ν,,,ℕ,,𐌽 # greek capital Nu is indistinguishable from 'N'
+      [ n, N, Greek_nu    , VoidSymbol  , VoidSymbol, U2115, VoidSymbol, U1033D  ],
       # l,L,λ,Λ,,𝕃
       [ l, L, Greek_lambda, Greek_LAMBDA, VoidSymbol, U1D543 ]
     };
@@ -1199,8 +1204,8 @@ xkb_compatibility "(unnamed)" {
       [ x, X, Greek_xi, Greek_XI, VoidSymbol, U1D54F, signaturemark ]
     };
     key <KP_C> {
-      # j,J,φ,Φ,,𝕁
-      [ j, J, Greek_phi, Greek_PHI , VoidSymbol, U1D541 ],
+      # j,J,φ,Φ,,𝕁,,𐌸
+      [ j, J, Greek_phi, Greek_PHI , VoidSymbol, U1D541, VoidSymbol, U10338 ],
       # c,C,χ,,©,ℂ,¢ # greek capital Chi is indistinguishable from 'X'
       [ c, C, Greek_chi , VoidSymbol, copyright , U2102, cent ]
     };
@@ -1216,11 +1221,21 @@ xkb_compatibility "(unnamed)" {
       # b,B,β,,,𝔹 # greek capital Beta is indistinguishable from 'N'
       [ b, B, Greek_beta, VoidSymbol, VoidSymbol, U1D539 ]
     };
+    # Model-100 bottom-left main key on RH board
+    key <MENU> {
+      type[Group1]    = "CTRL-ALT",
+      symbols[Group1] = [ NoSymbol, Multi_key ],
+      # don't (e.g.) hyper_* here, as then emacs reads that as Hyper modifier
+      actions[Group1] = [ SetMods(modifiers=Mod3,clearLocks) ],
+      type[Group2]    = "EIGHT_LEVEL_ALPHABETIC",
+      symbols[Group2] = [ backslash, bar, notsign, brokenbar ]
+    };
+
     key <KP_N> {
       # b,B,β,,,𝔹 # greek capital Beta is indistinguishable from 'N'
       [ b, B, Greek_beta, VoidSymbol, VoidSymbol, U1D539 ],
-      # n,N,ν,,,ℕ # greek capital Nu is indistinguishable from 'N'
-      [ n, N, Greek_nu  , VoidSymbol, VoidSymbol, U2115  ]
+      # n,N,ν,,,ℕ,,𐌽 # greek capital Nu is indistinguishable from 'N'
+      [ n, N, Greek_nu    , VoidSymbol  , VoidSymbol, U2115, VoidSymbol, U1033D  ]
     };
     key <KP_M> {
       # m,M,μ,,,𝕄
