@@ -1022,9 +1022,9 @@ xkb_compatibility "(unnamed)" {
 
     # note that dead keys need to be configured in XCompose
     key <KP_Q> {
-      # ',",„,•,◦
+      # ',",„,•,◦,∘,⊚
       [ apostrophe        , quotedbl        , doublelowquotemark, VoidSymbol
-      , enfilledcircbullet, enopencircbullet  ],
+      , enfilledcircbullet, enopencircbullet, U2218, U229A  ],
       # q,Q,θ,Θ,,ℚ
       [ q         , Q       , Greek_theta, Greek_THETA   , VoidSymbol, U211A ]
     };
@@ -1166,9 +1166,9 @@ xkb_compatibility "(unnamed)" {
     key <APOS> {
       # -,_,–,—,
       [ minus     , underscore , endash            , emdash     ],
-      # ',",„,•,◦
+      # ',",„,•,◦,∘,⊚
       [ apostrophe        , quotedbl        , doublelowquotemark, VoidSymbol
-      , enfilledcircbullet, enopencircbullet  ]
+      , enfilledcircbullet, enopencircbullet, U2218, U229A  ]
     };
     key <HASH> {
       # \|¬
