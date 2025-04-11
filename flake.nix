@@ -2,27 +2,33 @@
   description = "nix configuration for wayland things";
 
   inputs = {
-    nixpkgs.url     = github:NixOS/nixpkgs/938aa157; # nixos-24.05 2024-06-20
+    nixpkgs.url     = github:NixOS/nixpkgs/d9d87c51; # nixos-24.11 2024-12-11
     flake-utils.url = github:numtide/flake-utils/c0e246b9;
     myPkgs          = {
-      url    = github:sixears/nix-pkgs/r0.0.11.0;
+      url    = github:sixears/nix-pkgs/r0.0.13.0;
 #      url    = path:/home/martyn/nix/pkgs/;
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
     base-scripts-pkgs.url = path:/home/martyn/nix/base-scripts;
     gui-pkgs.url          = path:/home/martyn/nix/gui;
     hpkgs1          = {
-      url    = github:sixears/hpkgs1/r0.0.24.0;
+      url    = github:sixears/hpkgs1/r0.0.40.0;
 #      inputs = { nixpkgs.follows = "nixpkgs"; };
     };
     bashHeader      = {
-      url    = github:sixears/bash-header/r0.0.3.0;
+      url    = github:sixears/bash-header/r0.0.6.0;
+#      url    = path:/home/martyn/src/bash-header;
+      inputs = { nixpkgs.follows = "nixpkgs"; };
+    };
+    emacs          = {
+      url    = github:sixears/nix-emacs/r0.0.0.1;
+#      url    = path:/home/martyn/nix/emacs/;
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
   };
 
   outputs = { self, nixpkgs, flake-utils, base-scripts-pkgs, bashHeader
-            , gui-pkgs, myPkgs, hpkgs1 }:
+            , gui-pkgs, myPkgs, hpkgs1, emacs }:
     flake-utils.lib.eachSystem ["x86_64-linux"] (system:
       let
         pkgs         = nixpkgs.legacyPackages.${system};
@@ -35,6 +41,7 @@
         mkHBin       = hlib.mkHBin;
         bash-header  = bashHeader.packages.${system}.bash-header;
         hix          = hpkgs.hix;
+        emacs-pkgs   = emacs.packages.${system};
 
         vlc-lockfile       = my-settings.vlc-lockfile;
         gammastep-lockfile = "/run/user/1000/gammastep.pid";
@@ -106,6 +113,7 @@
                                      pa-mic-toggle;
               inherit (my-settings)  swap-summary-fifo cpu-temp-fifo;
               inherit (base-scripts) paths;
+              inherit (emacs-pkgs)   emacs-server;
               wallpaper      = ./src/nixos1.jpg;
               lock-wallpaper = ./src/nixos3.jpg;
               wofi-config    = ./src/wofi.rc;
@@ -134,6 +142,8 @@
             inherit wdisplays wev;
             # wofi is a gui chooser
             inherit wofi;
+
+            inherit wshowkeys wlr-randr;
 
             # clipboard management;
             inherit wl-clipboard; # wl-copy & wl-paste

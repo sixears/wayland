@@ -58,8 +58,8 @@ args=()
 while true; do
   case "$1" in
     # don't forget to update $Usage!!
-    -r | --remote   ) Remote=false   ; shift ;;
-    -R | --isolated ) Isolated=false ; shift ;;
+    -r | --remote   ) Remote=true   ; shift ;;
+    -R | --isolated ) Isolated=true ; shift ;;
 
     # hidden option for testing
     -v | --verbose  ) Verbose=$((Verbose+1)) ; shift ;;

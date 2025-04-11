@@ -3,7 +3,7 @@
 { pkgs, dim, sway-lock, i3stat, hostconfig, alac, wallpaper, lock-wallpaper
 , sway-bindings, swap-summary-fifo, gammastep-lockfile, sway-power-on, grime
 , flock-pid-run, swap-summary, cpu-temperature, cpu-temp-fifo, xkb, wofi-config
-, paths, pa-mic-toggle }:
+, paths, pa-mic-toggle, emacs-server }:
 pkgs.writeTextDir "share/sway.rc" ''
 
 # Read `man 5 sway` for a complete reference.
@@ -70,6 +70,8 @@ set $grime ${grime}/bin/grime
 
 set $swaymsg ${pkgs.sway}/bin/swaymsg
 # set $menu $dmenu_path | $dmenu | $xargs $swaymsg exec --
+
+exec_always ${emacs-server}/bin/emacs-server
 
 # -- output configuration ------------------------------------------------------
 
@@ -162,7 +164,6 @@ set $exit_menu bash -c \
 bindsym $mod+Shift+Ctrl+Escape exec $exit_menu  # TEST exit sway
 
 # -- moving around -----------------------------------------
-
 
 # cycle through focus with Super+Tab (plus modifiers)
 bindsym $mod+Tab            focus next
@@ -315,6 +316,7 @@ set $vol   $pactl set-sink-volume @DEFAULT_SINK@
 set $pa-mic-toggle exec ${pa-mic-toggle}/bin/pa-mic-toggle
 
 set $xbacklight ${pkgs.light}/bin/light
+set $emacsclient ${pkgs.emacs}/bin/emacsclient
 
 # >> audio mute
 bindsym XF86AudioMute $mute
@@ -328,6 +330,8 @@ bindsym XF86AudioLowerVolume $vol -1%
 bindsym XF86MonBrightnessUp   exec $xbacklight -A 5
 # >> brightness--
 bindsym XF86MonBrightnessDown exec $xbacklight -U 5
+# >> ecn
+bindsym $mod+grave exec $emacsclient --create-frame --no-wait
 
 # (F5)/AudioPlay on Dell_XPS 9315
 ## bindsym XF86AudioPlay input type:touchpad events toggle enabled disabled
@@ -381,6 +385,3 @@ bar {
 
 include /etc/sway/config.d/*
 ''
-
-# workspace $ws4 output HDMI-A-3
-
