@@ -156,6 +156,7 @@ xkb_keymap {
     <DOWN> = 116;
     <RGHT> = 114;
 
+    <RSUP> = 134; # right super or win key on, e.g., preonic board
     <MENU> = 135; # bottom-right main key on RH board on Model-100
 
     # --------------------------------------------------------
@@ -249,10 +250,10 @@ xkb_keymap {
     # 02 - Lock (as in CapsLock)
     # 04 - Control
     # 08 - Mod1 (Alt/Meta)
-    # 10 - Mod2 (diacritics, etc.)
-    # 20 - Mod3
-    # 40 - Mod4
-    # 80 - Mod5 (LevelThree)
+    # 10 - Mod2 (diacritics, etc.) - LCtrl
+    # 20 - Mod3 (LevelFour) - ISO backslash
+    # 40 - Mod4 (Super/Win)
+    # 80 - Mod5 (LevelThree) - AltGr
 
     # we mostly leave Control, Alt + Super for apps, etc., to read directly
 
@@ -982,7 +983,10 @@ xkb_compatibility "(unnamed)" {
     key <SPCE> { type="Mod3:Mod5", [ space, nobreakspace ] };
     # don't use alt_r here, as then emacs reads that as Alt modifier
     key <RALT> { actions=[SetMods(modifiers=Mod5,clearLocks)] };
-    key <RCTL> { [ Control_R     ] };
+    # set RCtl to provide a LCtl so that RCtrl on my X1 provides the same thing
+    # as the capslock=control key; whereas Control_R == Mod3
+    # key <RCTL> { [ Control_L     ] };
+    key <RCTL> { actions=[ SetMods(modifiers=Control) ] };
 
     # <PGUP> <UP> <PGDN> <LEFT> <DOWN> <RGHT> ----------------
 
@@ -993,8 +997,7 @@ xkb_compatibility "(unnamed)" {
     key <DOWN> { [ Down  ] };
     key <RGHT> { [ Right ] };
 
-    # ----------------------------------------------------------------------------
-
+    # --------------------------------------------------------------------------
 
     # key <SCLK> {         [     Scroll_Lock ] };
 
@@ -1020,7 +1023,7 @@ xkb_compatibility "(unnamed)" {
     key <DISP> {[ XF86Display           ]};
 
     modifier_map Control { <LCTL> };
-    modifier_map Control { <RCTL> };
+    modifier_map Mod3    { <RSUP> };
     modifier_map Control { <CAPS> };
 
     modifier_map Shift { <LFSH> };
@@ -1041,11 +1044,14 @@ xkb_compatibility "(unnamed)" {
     # beware that the key.type sets the default for all keys below
     key.type = "EIGHT_LEVEL";
 
-    key <BKTK> {[ grave     , asciitilde, similarequal, approxeq      # `~≃≈  ≣≇
-                , VoidSymbol, VoidSymbol, stricteq    , notapproxeq ]};
+    key <BKTK> {[ grave, asciitilde, similarequal, approxeq      # `~≃≈ﬧ ≣≇
+                , UFB27, VoidSymbol, stricteq    , notapproxeq ]};
+                # ﬧ is Hebrew wide resh
 
-    key <NUM1> {[ 1, exclam     , exclamdown, notsign         # 1!¡¬‼
-                , U203C     ]};
+    key <NUM1> {[ 1, exclam     , exclamdown, notsign         # 1!¡¬‼ ꙩꙫ
+                , U203C, VoidSymbol, UA669, UA66B     ]};
+                # ꙩ is Cyrillic lowercase monocular O
+                # ꙫ is Cyrillic lowercase binocular O
     key <NUM2> {[ 2, at         , paragraph , section     ]}; # 2@¶§
     key <NUM3> {[ 3, numbersign , sterling  , VoidSymbol      # 3#£ ♯♭⩨⩩
                 , musicalsharp, musicalflat, U2A68, U2A69 ]};
@@ -1054,7 +1060,7 @@ xkb_compatibility "(unnamed)" {
     key <NUM5> {[ 5, percent    , currency  , VoidSymbol      # 5%¤ ‰
                 , VoidSymbol, permille ]};
     key <NUM6> {[ 6, asciicircum                          ]}; # 6^
-    key <NUM7> {[ 7, ampersand                            ]}; # 7&
+    key <NUM7> {[ 7, ampersand, U214B                     ]}; # 7&⅋
     key <NUM8> {[ 8, asterisk                             ]}; # 8*
     key <NUM9> {[ 9, parenleft  , VoidSymbol, VoidSymbol      # 9( ‘
                 , leftsinglequotemark  ]};
@@ -1062,17 +1068,17 @@ xkb_compatibility "(unnamed)" {
                 , rightsinglequotemark, emptyset ]};
 
     key <MNUS> {
-      # [{⊲“≪⋪⊴
-      [ bracketleft, braceleft, U22B2  , leftdoublequotemark
-      , U226A      , U22EA    , U22B4 ],
+      # [{⊲“≪⋪⊴‹
+      [ bracketleft, braceleft, U22B2, leftdoublequotemark
+      , U226A      , U22EA    , U22B4, U2039 ],
       # -,_,–,—,
       [ minus      , underscore, endash    , emdash              ]
     };
 
     key <EQUL> {
-      # ]}⊳”≫⋫⊵
-      [ bracketright, braceright, U22B3  , rightdoublequotemark
-      , U226B       , U22EB     , U22B5 ],
+      # ]}⊳”≫⋫⊵›
+      [ bracketright, braceright, U22B3, rightdoublequotemark
+      , U226B       , U22EB     , U22B5, U203A ],
       # =+×÷±≠†‡
       [ equal    , plus    , multiply, division
       , plusminus, notequal, dagger  , doubledagger  ]
@@ -1117,6 +1123,7 @@ xkb_compatibility "(unnamed)" {
       # p,P,π,Π,℗,ℙ
       [ p, P, Greek_pi , Greek_PI  , phonographcopyright, U2119 ],
       # r,R,ρ,,®,ℝ,щ,𝓡 # greek capital Rho is indistinguishable from 'P'
+                       # щ is cyrillic small letter shcha
       [ r, R, Greek_rho, VoidSymbol, registered         , U211D, U0449, U1D4E1 ]
     };
     key <KP_T> {
@@ -1138,8 +1145,9 @@ xkb_compatibility "(unnamed)" {
       [ u, U, Greek_upsilon, VoidSymbol , VoidSymbol, U1D54C ]
     };
     key <KP_I> {
-      # c,C,χ,,©,ℂ,¢ # greek capital Chi is indistinguishable from 'X'
-      [ c, C, Greek_chi , VoidSymbol, copyright , U2102 , cent ],
+      # c,C,χ,©,ͻ,ℂ,¢ # greek capital Chi is indistinguishable from 'X'
+                      # ͻ is Greek small reversed lunate sigma symbol
+      [ c, C, Greek_chi , copyright, U037B , U2102, cent ],
       # i,I,ι,,𝚤,𝕀,ı # greek capital Iota is indistinguishable from 'I';
       # 𝚤 is mathematical italic small dotless i
       # (see https://www.compart.com/en/unicode/block/U+1D400)
@@ -1148,6 +1156,7 @@ xkb_compatibility "(unnamed)" {
     };
     key <KP_O> {
       # r,R,ρ,,®,ℝ,щ,𝓡 # greek capital Rho is indistinguishable from 'P'
+                       # щ is cyrillic small letter shcha
       [ r, R, Greek_rho, VoidSymbol, registered, U211D, U0449, U1D4E1 ],
       # greek omicron is indistinguishable from 'o'
       # U1D546 is blackboard-bold O
@@ -1167,24 +1176,25 @@ xkb_compatibility "(unnamed)" {
     key <LBRK> {
       # /? ¿
       [ slash      , question , VoidSymbol, questiondown       , VoidSymbol ],
-      # [{⊲“≪⋪⊴
-      [ bracketleft, braceleft, U22B2  , leftdoublequotemark
-      , U226A      , U22EA    , U22B4 ]
+      # [{⊲“≪⋪⊴‹
+      [ bracketleft, braceleft, U22B2, leftdoublequotemark
+      , U226A      , U22EA    , U22B4, U2039 ]
     };
 
     key <RBRK> {
       # =+×÷±≠†‡
       [ equal    , plus    , multiply, division
       , plusminus, notequal, dagger  , doubledagger  ],
-      # ]}⊳”≫⋫⊵
-      [ bracketright, braceright, U22B3  , rightdoublequotemark
-      , U226B       , U22EB     , U22B5 ]
+      # ]}⊳”≫⋫⊵›
+      [ bracketright, braceright, U22B3, rightdoublequotemark
+      , U226B       , U22EB     , U22B5, U203A ]
     };
 
     # -- second letter row -------------
 
-    # a,A,α,,ҩ,𝔸 # Cyrillic small Abkhasian-ha
-    key <KP_A> {[ a, A, Greek_alpha, VoidSymbol, U04A9, U1D538, VoidSymbol ]};
+    # a,A,α,,ҩ,𝔸,ꬰ # ҩ is Cyrillic small Abkhasian-ha
+                   # ꬰ is lowercase barred alpha
+    key <KP_A> {[ a, A, Greek_alpha, VoidSymbol, U04A9, U1D538, UAB30 ]};
 
     key <KP_S> {
       # greek omicron is indistinguishable from 'o'
@@ -1294,9 +1304,9 @@ xkb_compatibility "(unnamed)" {
     key <KP_X> {
       # q,Q,θ,Θ,,ℚ
       [ q, Q, Greek_theta, Greek_THETA, VoidSymbol, U211A ],
-      # x,X,ξ,Ξ,ӿ,𝕏,☓,ⵥ # ӿ is Cyrillic lowercase Ha with stroke'
+      # x,X,ξ,Ξ,ӿ,𝕏,ⵥ,☓ # ӿ is Cyrillic lowercase Ha with stroke'; ☓ is saltire
                        # ⵥ is Tifinagh yazz (no case, treats as lower)
-      [ x, X, Greek_xi   , Greek_XI   , U04FF     , U1D54F,signaturemark,U2D65 ]
+      [ x, X, Greek_xi   , Greek_XI   , U04FF     , U1D54F,U2D65,signaturemark ]
     };
     key <KP_C> {
       # j,J,φ,Φ,𝚥,𝕁,ȷ,𝓙
@@ -1304,8 +1314,9 @@ xkb_compatibility "(unnamed)" {
       # (see https://www.compart.com/en/unicode/block/U+1D400)
       # ȷ is latin small dotless j
       [ j, J, Greek_phi, Greek_PHI , U1D6A5, U1D541, U0237, U1D4D9 ],
-      # c,C,χ,,©,ℂ,¢ # greek capital Chi is indistinguishable from 'X'
-      [ c, C, Greek_chi , VoidSymbol, copyright , U2102, cent ]
+      # c,C,χ,©,ͻ,ℂ,¢ # greek capital Chi is indistinguishable from 'X'
+                      # ͻ is Greek small reversed lunate sigma symbol
+      [ c, C, Greek_chi , copyright, U037B , U2102, cent ]
     };
     key <KP_V> {
       # k,K,κ,,,𝕂 # greek capital Kappa is indistinguishable from 'K'
@@ -1316,14 +1327,24 @@ xkb_compatibility "(unnamed)" {
       [ v, V, VoidSymbol , VoidSymbol, checkmark, U1D54D, U1EFD, U1EFC ]
     };
     key <KP_B> {
-      # x,X,ξ,Ξ,ӿ,𝕏,☓,ⵥ # ӿ is Cyrillic lowercase Ha with stroke'
+      # x,X,ξ,Ξ,ӿ,𝕏,ⵥ,☓ # ӿ is Cyrillic lowercase Ha with stroke'; ☓ is saltire
                        # ⵥ is Tifinagh yazz (no case, treats as lower)
-      [ x, X, Greek_xi  , Greek_XI  , U04FF     , U1D54F, signaturemark,U2D65 ],
+      [ x, X, Greek_xi  , Greek_XI  , U04FF     , U1D54F, U2D65,signaturemark ],
       # b,B,β,,,𝔹 # greek capital Beta is indistinguishable from 'N'
       [ b, B, Greek_beta, VoidSymbol, VoidSymbol, U1D539 ]
     };
     # Model-100 bottom-left main key on RH board
     key <MENU> {
+      type[Group1]    = "CTRL-ALT",
+      symbols[Group1] = [ NoSymbol, Multi_key ],
+      # don't (e.g.) hyper_* here, as then emacs reads that as Hyper modifier
+      actions[Group1] = [ SetMods(modifiers=Mod3,clearLocks) ],
+      type[Group2]    = "EIGHT_LEVEL_ALPHABETIC",
+      symbols[Group2] = [ backslash, bar, notsign, brokenbar ]
+    };
+
+    # Model-100 bottom-left main key on RH board
+    key <RSUP> {
       type[Group1]    = "CTRL-ALT",
       symbols[Group1] = [ NoSymbol, Multi_key ],
       # don't (e.g.) hyper_* here, as then emacs reads that as Hyper modifier

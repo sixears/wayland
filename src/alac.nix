@@ -1,4 +1,4 @@
-{ pkgs }: pkgs.writers.writeBashBin "alac" ''
+{ pkgs, tmux }: pkgs.writers.writeBashBin "alac" ''
 
 # use wofi to choose a tmux instance, launch an alacritty
 # using that tmux
@@ -10,7 +10,7 @@ env=${pkgs.coreutils}/bin/env
 getent=${pkgs.glibc.bin}/bin/getent
 id=${pkgs.coreutils}/bin/id
 sort=${pkgs.coreutils}/bin/sort
-tmux=${pkgs.tmux}/bin/tmux
+tmux=${tmux}/bin/tmux
 tr=${pkgs.coreutils}/bin/tr
 wc=${pkgs.coreutils}/bin/wc
 wofi=${pkgs.wofi}/bin/wofi
@@ -23,7 +23,6 @@ wofi=${pkgs.wofi}/bin/wofi
 export XDG_RUNTIME_DIR
 
 alac_conf=$HOME/rc/alacritty/config.toml
-tmux_conf=$HOME/rc/tmux/conf
 
 exec >& "$XDG_RUNTIME_DIR/alac-$$.log"
 TZ=UTC ${pkgs.coreutils}/bin/date +%Y-%m-%dZ%H:%M:%S
@@ -46,11 +45,11 @@ echo '-- SESSIONS ----------------------------'
 echo "$sessions"
 echo '----------------------------------------'
 
-wofi_args=( --sort-order=alphabetical --dmenu --gtk-dark
+wofi_args=( --sort-order=alphabetical --dmenu --gtk-dark --width 40%
             --lines $((1+session_count)) )
 term_name="$(echo "$sessions" | $wofi "''${wofi_args[@]}")"
 
-alacritty_args=( --config-file $alac_conf --command $tmux -f $tmux_conf new )
+alacritty_args=( --config-file $alac_conf --command $tmux new )
 if [[ $term_name = "" ]]; then
   exec $alacritty "''${alacritty_args[@]}"
 else

@@ -1,3 +1,5 @@
 run-always_parse_args=true
 run-show_all=false
 run-print_command=true
+# width is of the whole display, rather than an individual screen
+width=40%

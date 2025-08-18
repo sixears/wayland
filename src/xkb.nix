@@ -1,5 +1,7 @@
 { pkgs, bash-header, sway-reload }: ''
 
+# nyx install -c wayland sway-rc && sway-rc && swaymsg reload
+
 set -u -o pipefail -o noclobber; shopt -s nullglob
 PATH=/dev/null
 
@@ -16,13 +18,15 @@ Isolated=false
 
 main() {
   local args=()
-  $Remote && args+=( --remote )
+  $Remote   && args+=( --remote )
   $Isolated && args+=( --isolated )
+  [[ $Verbose -ge 0 ]] && args+=( --verbose )
+  $DryRun   && args+=( --dry-run )
 
   local tempfn; mktemp --infix "$Progname" tempfn
-  gocmd 10 xkbcomp ~/nix/wayland/src/keyboard.xkb $tempfn
-  gocmd 11 sway-reload "''${args[@]}"
-  gocmd 12 vlc --no-audio
+  gocmd          10  xkbcomp ~/nix/wayland/src/keyboard.xkb $tempfn
+  gocmdnodryrun  11  sway-reload "''${args[@]}"
+  gocmd          12  vlc --no-audio
 }
 
 # ------------------------------------------------------------------------------
@@ -81,8 +85,8 @@ done
 $Remote && $Isolated && dieusage;
 
 case ''${#args[@]} in
-  0 ) main     ;;
-  * ) dieusage ;;
+  0 ) main                                                  ;;
+  * ) dieusage "$Progname: too many args (''${#args[@]}>0)" ;;
 esac
 
 # that's all, folks! -----------------------------------------------------------

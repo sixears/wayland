@@ -2,17 +2,19 @@
   description = "nix configuration for wayland things";
 
   inputs = {
-    nixpkgs.url     = github:NixOS/nixpkgs/d9d87c51; # nixos-24.11 2024-12-11
+    # nixpkgs.url     = github:NixOS/nixpkgs/d9d87c51; # nixos-24.11 2024-12-11
+    # upgraded for tmux-powerline, which is not available in 2024-12-11
+    nixpkgs.url     = github:NixOS/nixpkgs/72841a4a; # nixos-24.11 2025-05-21
     flake-utils.url = github:numtide/flake-utils/c0e246b9;
     myPkgs          = {
-      url    = github:sixears/nix-pkgs/r0.0.13.0;
-#      url    = path:/home/martyn/nix/pkgs/;
+#      url    = github:sixears/nix-pkgs/r0.0.15.0;
+      url    = path:/home/martyn/nix/pkgs/;
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
     base-scripts-pkgs.url = path:/home/martyn/nix/base-scripts;
     gui-pkgs.url          = path:/home/martyn/nix/gui;
     hpkgs1          = {
-      url    = github:sixears/hpkgs1/r0.0.40.0;
+      url    = github:sixears/hpkgs1/r0.0.43.0;
 #      inputs = { nixpkgs.follows = "nixpkgs"; };
     };
     bashHeader      = {
@@ -59,7 +61,7 @@
                                            inherit (my-pkgs) pidkill; };
 
         # my personal wrapper around alacritty/byobu/tmux with a wofi selector
-        alac = import ./src/alac.nix { inherit pkgs; };
+        alac = import ./src/alac.nix { inherit pkgs; inherit (my-pkgs) tmux; };
 
         # multi-monitor setup
         hostconfig = import ./src/hostconfig.nix { inherit pkgs; };
@@ -71,6 +73,7 @@
             ];
           }).pkg;
 
+        play-pause    = import ./src/play-pause.nix { inherit pkgs; };
         sway-float    = import ./src/sway-float.nix { inherit pkgs; };
         sway-sock     = import ./src/sway-sock.nix  { inherit pkgs; };
         sway-binds    = import ./src/sway-binds.nix
@@ -107,7 +110,7 @@
         sway-config =
           import ./src/sway-config.nix
             { inherit pkgs dim hostconfig alac gammastep-lockfile sway-lock
-                      sway-bindings sway-power-on grime;
+                      sway-bindings sway-power-on grime play-pause;
               inherit (gui)          i3stat;
               inherit (my-pkgs)      flock-pid-run swap-summary cpu-temperature
                                      pa-mic-toggle;

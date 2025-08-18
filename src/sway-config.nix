@@ -1,9 +1,11 @@
 # see https://fontawesome.com/ for pretty icons
 
-{ pkgs, dim, sway-lock, i3stat, hostconfig, alac, wallpaper, lock-wallpaper
-, sway-bindings, swap-summary-fifo, gammastep-lockfile, sway-power-on, grime
-, flock-pid-run, swap-summary, cpu-temperature, cpu-temp-fifo, xkb, wofi-config
-, paths, pa-mic-toggle, emacs-server }:
+{ pkgs
+, alac, cpu-temp-fifo, cpu-temperature, dim, emacs-server, flock-pid-run
+, gammastep-lockfile, grime, hostconfig, i3stat, lock-wallpaper, pa-mic-toggle
+, paths, play-pause, swap-summary, swap-summary-fifo, sway-bindings, sway-lock
+, sway-power-on, wallpaper, wofi-config, xkb
+}:
 pkgs.writeTextDir "share/sway.rc" ''
 
 # Read `man 5 sway` for a complete reference.
@@ -121,7 +123,7 @@ bindsym $mod+Return exec $term # new term
 set $paths ${paths}/bin/paths
 
 # start an executable
-set $exec_path $paths $wofi --conf ${wofi-config} --show run | xargs $swaymsg exec --
+set $exec_path $paths -- $wofi --conf ${wofi-config} --show run | xargs $swaymsg exec --
 bindsym $mod+Shift+Return exec $exec_path # exec menu
 
 # kill focused window
@@ -318,36 +320,45 @@ set $pa-mic-toggle exec ${pa-mic-toggle}/bin/pa-mic-toggle
 set $xbacklight ${pkgs.light}/bin/light
 set $emacsclient ${pkgs.emacs}/bin/emacsclient
 
+# (F1)/mute on Lenovo Thinkpad Carbon Gen12
 # >> audio mute
 bindsym XF86AudioMute $mute
-# >> mic mute
-bindsym XF86AudioMicMute $pa-mic-toggle
-# >> volume++
-bindsym XF86AudioRaiseVolume $vol +1%
+# (F2)/volume-down on Lenovo Thinkpad Carbon Gen12
 # >> volume--
 bindsym XF86AudioLowerVolume $vol -1%
-# >> brightness++
-bindsym XF86MonBrightnessUp   exec $xbacklight -A 5
+# (F3)/volume-up on Lenovo Thinkpad Carbon Gen12
+# >> volume++
+bindsym XF86AudioRaiseVolume $vol +1%
+# (F4)/mic-mute on Lenovo Thinkpad Carbon Gen12
+# >> mic mute
+bindsym XF86AudioMicMute $pa-mic-toggle
+# (F5)/brightness-down on Lenovo Thinkpad Carbon Gen12
 # >> brightness--
 bindsym XF86MonBrightnessDown exec $xbacklight -U 5
-# >> ecn
-bindsym $mod+grave exec $emacsclient --create-frame --no-wait
-
 # (F5)/AudioPlay on Dell_XPS 9315
 ## bindsym XF86AudioPlay input type:touchpad events toggle enabled disabled
+# (F6)/brightness-up on Lenovo Thinkpad Carbon Gen12
+# >> brightness++
+bindsym XF86MonBrightnessUp   exec $xbacklight -A 5
+# (F7)/Display on Lenovo Thinkpad Carbon Gen12
+bindsym XF86Display input type:touchpad events toggle enabled disabled
+
+# >> ecn
+bindsym $mod+grave exec $emacsclient --create-frame --no-wait
 
 # (F10)/screenshot on Lenovo Thinkpad Carbon Gen12
 # >> screenshot selection to clipboard
 bindsym XF86Launch2 exec $grimshot copy anything
 # >> screenshot to ~/screenshots/...
 bindsym $mod+XF86Launch2       exec $grime anything
-# >> screenshot screen to ~/screenshots/...
+# >> screenshot screen to clipboard
 bindsym Shift+XF86Launch2      exec $grimshot copy screen
-# >> screenshot screen to ~/screenshots/...
+# >> screenshot screen to `/screenshots/...
 bindsym $mod+Shift+XF86Launch2 exec $grime screen
 
+# >> play/pause audacious
 # (F12)/Star on Lenovo Thinkpad Carbon Gen12
-bindsym XF86Favorites input type:touchpad events toggle enabled disabled
+bindsym XF86Favorites exec ${play-pause}
 
 # -- swaybar -------------------------------------------------------------------
 

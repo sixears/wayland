@@ -5,8 +5,12 @@ PATH=/dev/null
 
 source ${bash-header}
 
+Cmd[nix]=${pkgs.nix}/bin/nix
 Cmd[nyx]=${hix}/bin/nyx
-Cmd[sway-rc]=${sway-rc}/bin/sway-rc
+# Cmd[sway-rc]=${sway-rc}/bin/sway-rc
+# this needs to be so so that we execute the newly-installed sway-rc, not one
+# that was compiled into this script
+Cmd[sway-rc]=~/.nix-profiles/wayland/bin/sway-rc
 Cmd[swaymsg]=${pkgs.sway-unwrapped}/bin/swaymsg
 
 Remote=false
@@ -19,6 +23,7 @@ main() {
   $Remote && args+=( --remote )
   $Isolated && args+=( --isolated )
 
+  gocmd 13 nix flake update --flake ~/nix/wayland/
   gocmd 10 nyx "''${args[@]}" install -c wayland sway-rc
   gocmd 11 sway-rc
   gocmd 12 swaymsg reload
@@ -80,8 +85,8 @@ done
 $Remote && $Isolated && dieusage;
 
 case ''${#args[@]} in
-  0 ) main     ;;
-  * ) dieusage ;;
+  0 ) main                                                  ;;
+  * ) dieusage "$Progname: too many args (''${#args[@]}>0)" ;;
 esac
 
 # that's all, folks! -----------------------------------------------------------
