@@ -51,9 +51,11 @@ term_name="$(echo "$sessions" | $wofi "''${wofi_args[@]}")"
 
 alacritty_args=( --config-file $alac_conf --command $tmux new )
 if [[ $term_name = "" ]]; then
+  echo "EXEC> $alacritty ''${alacritty_args[@]}"
   exec $alacritty "''${alacritty_args[@]}"
 else
   # -A, -t are passed through to tmux
+  echo "EXEC> $alacritty ''${alacritty_args[@]}" -t "$term_name"
   exec $alacritty "''${alacritty_args[@]}" -t "$term_name"
 fi
 ''

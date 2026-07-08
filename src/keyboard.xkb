@@ -1021,6 +1021,7 @@ xkb_compatibility "(unnamed)" {
     key <BRT-> {[ XF86MonBrightnessDown ]};
     key <BRT+> {[ XF86MonBrightnessUp   ]};
     key <DISP> {[ XF86Display           ]};
+    key <PLAY> {[ XF86AudioPlay         ]};
 
     modifier_map Control { <LCTL> };
     modifier_map Mod3    { <RSUP> };
@@ -1048,8 +1049,9 @@ xkb_compatibility "(unnamed)" {
                 , UFB27, VoidSymbol, stricteq    , notapproxeq ]};
                 # ﬧ is Hebrew wide resh
 
-    key <NUM1> {[ 1, exclam     , exclamdown, notsign         # 1!¡¬‼ ꙩꙫ
-                , U203C, VoidSymbol, UA669, UA66B     ]};
+    key <NUM1> {[ 1, exclam     , exclamdown, notsign         # 1!¡¬‼ꙭꙩꙫ
+                , U203C, UA66D, UA669, UA66B     ]};
+                # ꙭ is Cyrillic lowercase double monocular O
                 # ꙩ is Cyrillic lowercase monocular O
                 # ꙫ is Cyrillic lowercase binocular O
     key <NUM2> {[ 2, at         , paragraph , section     ]}; # 2@¶§
@@ -1108,8 +1110,8 @@ xkb_compatibility "(unnamed)" {
       # ,<«≤← ◇◀ # left arrow diamond
       [ comma     , less          , guillemotleft   , lessthanequal
       , VoidSymbol, U2190         , U25C7           , filledlefttribullet ],
-      # w,W,ω,Ω,𝕨,𝕎
-      [ w    , W   , Greek_omega  , Greek_OMEGA, U1D568, U1D54E ]
+      # w,W,ω,Ω,𝕨,𝕎,щ
+      [ w    , W   , Greek_omega  , Greek_OMEGA, U1D568, U1D54E, U0449 ]
     };
     key <KP_E> {
       # .,>,»,≥,·,→,…,▶ # right arrow
@@ -1122,9 +1124,9 @@ xkb_compatibility "(unnamed)" {
     key <KP_R> {
       # p,P,π,Π,℗,ℙ
       [ p, P, Greek_pi , Greek_PI  , phonographcopyright, U2119 ],
-      # r,R,ρ,,®,ℝ,щ,𝓡 # greek capital Rho is indistinguishable from 'P'
-                       # щ is cyrillic small letter shcha
-      [ r, R, Greek_rho, VoidSymbol, registered         , U211D, U0449, U1D4E1 ]
+      # r,R,ρ,𝕣,®,ℝ,я,𝓡 # greek capital Rho is indistinguishable from 'P'
+                       # я is cyrillic small letter ya
+      [ r, R, Greek_rho, U1D563, registered         , U211D, U044f, U1D4E1 ]
     };
     key <KP_T> {
       # y,Y,ψ,Ψ,¥,ℙ,ỿ,Ỿ
@@ -1141,13 +1143,14 @@ xkb_compatibility "(unnamed)" {
     key <KP_U> {
       # g,G,γ,Γ,,𝔾
       [ g, G, Greek_gamma  , Greek_GAMMA, VoidSymbol, U1D53E ],
-      # greek capital Upsilon is indistinguishable from 'U'
-      [ u, U, Greek_upsilon, VoidSymbol , VoidSymbol, U1D54C ]
+      # u,U,υ,,𝕦,𝕌 # greek capital Upsilon is indistinguishable from 'U'
+      [ u, U, Greek_upsilon, VoidSymbol, U1D566, U1D54C ]
     };
     key <KP_I> {
-      # c,C,χ,©,ͻ,ℂ,¢ # greek capital Chi is indistinguishable from 'X'
-                      # ͻ is Greek small reversed lunate sigma symbol
-      [ c, C, Greek_chi , copyright, U037B , U2102, cent ],
+      # c,C,χ,©,ͻ,ℂ,¢,ⵎ # greek capital Chi is indistinguishable from 'X'
+                        # ͻ is Greek small reversed lunate sigma symbol
+                        # ⵎ is Tifinagh letter yam
+      [ c, C, Greek_chi , copyright, U037B , U2102, cent, U2D4E ],
       # i,I,ι,,𝚤,𝕀,ı # greek capital Iota is indistinguishable from 'I';
       # 𝚤 is mathematical italic small dotless i
       # (see https://www.compart.com/en/unicode/block/U+1D400)
@@ -1155,9 +1158,9 @@ xkb_compatibility "(unnamed)" {
       [ i, I, Greek_iota, VoidSymbol, U1D6A4    , U1D540, U0131 ]
     };
     key <KP_O> {
-      # r,R,ρ,,®,ℝ,щ,𝓡 # greek capital Rho is indistinguishable from 'P'
-                       # щ is cyrillic small letter shcha
-      [ r, R, Greek_rho, VoidSymbol, registered, U211D, U0449, U1D4E1 ],
+      # r,R,ρ,𝕣,®,ℝ,я,𝓡 # greek capital Rho is indistinguishable from 'P'
+                       # я is cyrillic small letter ya
+      [ r, R, Greek_rho, U1D563, registered, U211D, U044f, U1D4E1 ],
       # greek omicron is indistinguishable from 'o'
       # U1D546 is blackboard-bold O
       # o,O,,,,𝕆
@@ -1212,8 +1215,8 @@ xkb_compatibility "(unnamed)" {
       [ d, D, Greek_delta   , Greek_DELTA, VoidSymbol, U1D53B, eth, ETH ]
     };
     key <KP_F> {
-      # u,U,υ,,,𝕌 # greek capital Upsilon is indistinguishable from 'U'
-      [ u, U, Greek_upsilon, VoidSymbol, VoidSymbol, U1D54C ],
+      # u,U,υ,,𝕦,𝕌 # greek capital Upsilon is indistinguishable from 'U'
+      [ u, U, Greek_upsilon, VoidSymbol, U1D566, U1D54C ],
       # f,F,ⅎ,Ⅎ,,𝔽,,𝓕
       [ f, F, U214E, U2132, VoidSymbol, U1D53D, VoidSymbol, U1D4D5 ]
     };
@@ -1229,12 +1232,12 @@ xkb_compatibility "(unnamed)" {
     key <KP_H> {
       # d,D,δ,Δ,,𝔻,ð,Ð
       [ d, D, Greek_delta,    Greek_DELTA, VoidSymbol, U1D53B, eth, ETH ],
-      # greek capital Eta is indistinguishable from 'H'
-      [ h, H, Greek_eta, VoidSymbol, VoidSymbol, U210D ]
+      # h,H,η,,𝕙,ℍ # greek capital Eta is indistinguishable from 'H'
+      [ h, H, Greek_eta, VoidSymbol, U1D559, U210D  ]
     };
     key <KP_J> {
-      # h,H,η,,,ℍ # greek capital Eta is indistinguishable from 'H'
-      [ h, H, Greek_eta, VoidSymbol, VoidSymbol, U210D  ],
+      # h,H,η,,𝕙,ℍ # greek capital Eta is indistinguishable from 'H'
+      [ h, H, Greek_eta, VoidSymbol, U1D559, U210D  ],
       # j,J,φ,Φ,𝚥,𝕁,ȷ,𝓙
       # 𝚥 is mathematical italic small dotless j
       # (see https://www.compart.com/en/unicode/block/U+1D400)
@@ -1244,8 +1247,11 @@ xkb_compatibility "(unnamed)" {
     key <KP_K> {
       # t,T,τ,𝓣,™,𝕋,þ,Þ # greek capital Tau is indistinguishable from 'T'
       [ t, T, Greek_tau, U1D4E3, trademark, U1D54B, thorn, THORN ],
-      # k,K,κ,,,𝕂 # greek capital Kappa is indistinguishable from 'K'
-      [ k, K, Greek_kappa, VoidSymbol, VoidSymbol, U1D542        ]
+      # k,K,κ,ӝ,,𝕂,ж,ӂ # greek capital Kappa is indistinguishable from 'K'
+                       # ж is small cyrillic Zhe
+                       # ӂ is small cyrillic Zhe with breve
+                       # ӝ is small cyrillic Zhe with diaeresis
+      [ k, K, Greek_kappa, U04DD, VoidSymbol, U1D542, U0436, U04C2 ]
     };
     key <KP_L> {
       # n,N,ν,ℓ,и,ℕ,И,𝓝 # greek capital Nu is indistinguishable from 'N'
@@ -1272,10 +1278,10 @@ xkb_compatibility "(unnamed)" {
       , enfilledcircbullet, enopencircbullet, U2218, U229A  ]
     };
     key <HASH> {
-      # \|¬∤ ¦ ∦
+      # \|¬∤‖¦∥∦
       type[Group1]    = "EIGHT_LEVEL_ALPHABETIC",
-      symbols[Group1] = [ backslash , bar      , notsign   , U2224
-                        , VoidSymbol, brokenbar, VoidSymbol, U2226 ],
+      symbols[Group1] = [ backslash, bar      , notsign, U2224
+                        , U2016    , brokenbar, U2225  , U2226 ],
 
       type[Group2]    = "CTRL-ALT",
       symbols[Group2] = [ VoidSymbol, Multi_key ],
@@ -1291,9 +1297,9 @@ xkb_compatibility "(unnamed)" {
       # don't (e.g.) hyper_* here, as then emacs reads that as Hyper modifier
       actions[Group1] = [ SetMods(modifiers=Mod3,clearLocks) ],
       type[Group2]    = "EIGHT_LEVEL_ALPHABETIC",
-      # \|¬∤ ¦ ∦
-      symbols[Group2] = [ backslash , bar      , notsign   , U2224
-                        , VoidSymbol, brokenbar, VoidSymbol, U2226 ]
+      # \|¬∤‖¦∥∦
+      symbols[Group2] = [ backslash, bar      , notsign, U2224
+                        , U2016    , brokenbar, U2225  , U2226 ]
     };
     key <KP_Z> {
       # ;:∷¶°
@@ -1314,13 +1320,17 @@ xkb_compatibility "(unnamed)" {
       # (see https://www.compart.com/en/unicode/block/U+1D400)
       # ȷ is latin small dotless j
       [ j, J, Greek_phi, Greek_PHI , U1D6A5, U1D541, U0237, U1D4D9 ],
-      # c,C,χ,©,ͻ,ℂ,¢ # greek capital Chi is indistinguishable from 'X'
-                      # ͻ is Greek small reversed lunate sigma symbol
-      [ c, C, Greek_chi , copyright, U037B , U2102, cent ]
+      # c,C,χ,©,ͻ,ℂ,¢,ⵎ # greek capital Chi is indistinguishable from 'X'
+                        # ͻ is Greek small reversed lunate sigma symbol
+                        # ⵎ is Tifinagh letter yam
+      [ c, C, Greek_chi , copyright, U037B , U2102, cent, U2D4E ]
     };
     key <KP_V> {
-      # k,K,κ,,,𝕂 # greek capital Kappa is indistinguishable from 'K'
-      [ k, K, Greek_kappa, VoidSymbol, VoidSymbol, U1D542 ],
+      # k,K,κ,ӝ,,𝕂,ж,ӂ # greek capital Kappa is indistinguishable from 'K'
+                       # ж is small cyrillic Zhe
+                       # ӂ is small cyrillic Zhe with breve
+                       # ӝ is small cyrillic Zhe with diaeresis
+      [ k, K, Greek_kappa, U04DD     , VoidSymbol, U1D542, U0436, U04C2 ],
       # v,V,,,✓,𝕍,ỽ,Ỽ
       # Ỽ is uppercase Middle-Welsh V
       # ỽ is lowercase Middle-Welsh V
@@ -1364,9 +1374,9 @@ xkb_compatibility "(unnamed)" {
       [ m, M, Greek_mu, VoidSymbol, VoidSymbol, U1D544 ]
     };
     key <COMM> {
-      # w,W,ω,Ω,𝕨,𝕎
+      # w,W,ω,Ω,𝕨,𝕎,щ
       [ w         , W             , Greek_omega     , Greek_OMEGA
-      , U1D568    , U1D54E        ],
+      , U1D568    , U1D54E        , U0449           ],
       # ,<«≤← ◇◀
       [ comma     , less          , guillemotleft   , lessthanequal
       , VoidSymbol, U2190         , U25C7           , filledlefttribullet ]

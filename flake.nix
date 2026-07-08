@@ -4,26 +4,30 @@
   inputs = {
     # nixpkgs.url     = github:NixOS/nixpkgs/d9d87c51; # nixos-24.11 2024-12-11
     # upgraded for tmux-powerline, which is not available in 2024-12-11
-    nixpkgs.url     = github:NixOS/nixpkgs/72841a4a; # nixos-24.11 2025-05-21
+    nixpkgs.url     = github:NixOS/nixpkgs/667d5cf1; # nixos-26.05 2026-06-26
     flake-utils.url = github:numtide/flake-utils/c0e246b9;
     myPkgs          = {
-#      url    = github:sixears/nix-pkgs/r0.0.15.0;
-      url    = path:/home/martyn/nix/pkgs/;
+      url    = github:sixears/nix-pkgs/r0.0.17.0;
+#      url    = path:/home/martyn/nix/pkgs/;
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
-    base-scripts-pkgs.url = path:/home/martyn/nix/base-scripts;
-    gui-pkgs.url          = path:/home/martyn/nix/gui;
+    base-scripts-pkgs.url =
+      # path:/home/martyn/nix/base-scripts;
+      github:sixears/nix-base-scripts/r0.0.0.4;
+    gui-pkgs.url          =
+      # path:/home/martyn/nix/gui;
+      github:sixears/gui/r0.0.0.2;
     hpkgs1          = {
-      url    = github:sixears/hpkgs1/r0.0.43.0;
+      url    = github:sixears/hpkgs1/r0.0.58.0;
 #      inputs = { nixpkgs.follows = "nixpkgs"; };
     };
     bashHeader      = {
-      url    = github:sixears/bash-header/r0.0.6.0;
+      url    = github:sixears/bash-header/r0.0.8.0;
 #      url    = path:/home/martyn/src/bash-header;
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
     emacs          = {
-      url    = github:sixears/nix-emacs/r0.0.0.1;
+      url    = github:sixears/nix-emacs/r0.0.0.3;
 #      url    = path:/home/martyn/nix/emacs/;
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };

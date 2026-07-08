@@ -3,7 +3,7 @@
 set -eu -o pipefail
 PATH=/dev/null
 
-${pkgs.audacious}/bin/audtool --playback-pause
+exec ${pkgs.audacious}/bin/audtool playback-pause
 ''
 # Local Variables:
 # mode: sh

@@ -317,29 +317,29 @@ set $mute  $pactl set-sink-mute @DEFAULT_SINK@ toggle
 set $vol   $pactl set-sink-volume @DEFAULT_SINK@
 set $pa-mic-toggle exec ${pa-mic-toggle}/bin/pa-mic-toggle
 
-set $xbacklight ${pkgs.light}/bin/light
+set $xbacklight ${pkgs.acpilight}/bin/light
 set $emacsclient ${pkgs.emacs}/bin/emacsclient
 
 # (F1)/mute on Lenovo Thinkpad Carbon Gen12
 # >> audio mute
-bindsym XF86AudioMute $mute
+bindsym --locked XF86AudioMute $mute
 # (F2)/volume-down on Lenovo Thinkpad Carbon Gen12
 # >> volume--
-bindsym XF86AudioLowerVolume $vol -1%
+bindsym --locked XF86AudioLowerVolume $vol -1%
 # (F3)/volume-up on Lenovo Thinkpad Carbon Gen12
 # >> volume++
-bindsym XF86AudioRaiseVolume $vol +1%
+bindsym --locked XF86AudioRaiseVolume $vol +1%
 # (F4)/mic-mute on Lenovo Thinkpad Carbon Gen12
 # >> mic mute
-bindsym XF86AudioMicMute $pa-mic-toggle
+bindsym --locked XF86AudioMicMute $pa-mic-toggle
 # (F5)/brightness-down on Lenovo Thinkpad Carbon Gen12
 # >> brightness--
-bindsym XF86MonBrightnessDown exec $xbacklight -U 5
+bindsym XF86MonBrightnessDown exec $xbacklight -inc 5
 # (F5)/AudioPlay on Dell_XPS 9315
 ## bindsym XF86AudioPlay input type:touchpad events toggle enabled disabled
 # (F6)/brightness-up on Lenovo Thinkpad Carbon Gen12
 # >> brightness++
-bindsym XF86MonBrightnessUp   exec $xbacklight -A 5
+bindsym XF86MonBrightnessUp   exec $xbacklight -dec 5
 # (F7)/Display on Lenovo Thinkpad Carbon Gen12
 bindsym XF86Display input type:touchpad events toggle enabled disabled
 
@@ -358,7 +358,9 @@ bindsym $mod+Shift+XF86Launch2 exec $grime screen
 
 # >> play/pause audacious
 # (F12)/Star on Lenovo Thinkpad Carbon Gen12
-bindsym XF86Favorites exec ${play-pause}
+# Fn+thumbkicks on M100
+bindsym --locked XF86Favorites exec ${play-pause}
+bindsym --locked XF86AudioPlay exec ${play-pause}
 
 # -- swaybar -------------------------------------------------------------------
 
