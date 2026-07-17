@@ -69,6 +69,7 @@ set $flock_pid_run ${flock-pid-run}/bin/flock-pid-run
 set $xargs ${pkgs.findutils}/bin/xargs
 set $grimshot ${pkgs.sway-contrib.grimshot}/bin/grimshot
 set $grime ${grime}/bin/grime
+set $systemctl ${pkgs.systemd}/bin/systemctl
 
 set $swaymsg ${pkgs.sway}/bin/swaymsg
 # set $menu $dmenu_path | $dmenu | $xargs $swaymsg exec --
@@ -356,11 +357,16 @@ bindsym Shift+XF86Launch2      exec $grimshot copy screen
 # >> screenshot screen to `/screenshots/...
 bindsym $mod+Shift+XF86Launch2 exec $grime screen
 
-# >> play/pause audacious
 # (F12)/Star on Lenovo Thinkpad Carbon Gen12
 # Fn+thumbkicks on M100
+# >> play/pause audacious
 bindsym --locked XF86Favorites exec ${play-pause}
+# >> play/pause audacious
 bindsym --locked XF86AudioPlay exec ${play-pause}
+
+# Fn+p on Lenovo Thinkpad Carbon Gen12
+# >> suspend
+bindsym --locked Pause exec /run/wrappers/bin/sudo $systemctl suspend
 
 # -- swaybar -------------------------------------------------------------------
 

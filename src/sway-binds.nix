@@ -9,7 +9,7 @@ readonly sway_show_bindings=${sway-show-bindings}/bin/sway-show-bindings
 export SWAYSOCK="$($sway_sock)"
 
 column_args=( --table --separator $'\t' --output-separator ' | '
-              --table-columns MODE,MODIFIERS,KEY,EFFECT )
+              --table-columns MODE,"FLAGS     ",MODIFIERS,KEY,EFFECT )
 $sway_show_bindings | $column "''${column_args[@]}"
 echo
 read -p 'hit return to exit'

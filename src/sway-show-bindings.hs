@@ -4,8 +4,6 @@
 {-# LANGUAGE UnicodeSyntax     #-}
 {-# LANGUAGE ViewPatterns      #-}
 
-import Debug.Trace  ( traceShow )
-
 import Base1
 import Prelude  ( error )
 
@@ -17,8 +15,8 @@ import Control.Monad     ( foldM_ )
 import Data.Char         ( chr, isAlpha, isSpace, ord, toLower )
 import Data.Foldable     ( concat )
 import Data.Functor      ( (<$) )
-import Data.List         ( drop, dropWhile, intercalate, reverse, span, splitAt
-                         , take, dropWhileEnd )
+import Data.List         ( drop, dropWhile, dropWhileEnd, intercalate, reverse,
+                           span, splitAt )
 import Data.Maybe        ( catMaybes )
 import Data.Monoid       ( mempty )
 import GHC.Num           ( subtract )
@@ -71,7 +69,7 @@ instance Parse α ⇒ Parse [α] where
 --------------------
 
 instance (Parse α, Parse β) ⇒ Parse (𝔼 α β) where
-  parse = choice [ 𝕷 ⊳ try parse, 𝕽 ⊳ parse ]
+  parse = choice [ 𝓛 ⊳ try parse, 𝓡 ⊳ parse ]
 
 ------------------------------------------------------------
 
@@ -383,18 +381,18 @@ data BashLine = BashLine [BashWord] (𝕄 Comment)
 {- | Printable instances are what we want to output in practice; for BashLines,
      we use the trailing comment if available -}
 instance Printable BashLine where
-  print (BashLine _ (𝕵 c)) = P.string (unComment c)
-  print (BashLine ws 𝕹) = P.text $ [fmt|%Q|] ws
+  print (BashLine _ (𝓙 c)) = P.string (unComment c)
+  print (BashLine ws 𝓝) = P.text $ [fmt|%Q|] ws
 
 instance Parse BashLine where
   parse =
     let words_m_comment ∷ [𝔼 BashWord Comment] → BashLine
-        words_m_comment (𝕷 w : xs) =
+        words_m_comment (𝓛 w : xs) =
           let BashLine ws c = words_m_comment xs
           in  BashLine (w:ws) c
-        words_m_comment [𝕽 c]     = BashLine [] (𝕵 c)
-        words_m_comment []        = BashLine [] 𝕹
-        words_m_comment (𝕽 c : x) =
+        words_m_comment [𝓡 c]     = BashLine [] (𝓙 c)
+        words_m_comment []        = BashLine [] 𝓝
+        words_m_comment (𝓡 c : x) =
           error $ "non-terminating comment '" ⊕ show c ⊕ "' (" ⊕ show x ⊕ ")"
 
         isNonNLSpace c = isSpace c ∧ c ≢ '\n'
@@ -405,14 +403,30 @@ instance Parse BashLine where
 
 ------------------------------------------------------------
 
-data BindSym = BindSymRegular 𝕊 𝕊 | BindSymExec 𝕊 BashLine
+data BindSymOption = BindSymLocked | BindSymInhibited
+  deriving Show
+
+instance Parse BindSymOption where
+  parse = choice [ try $ ŧ "--locked" ⋫ pure BindSymLocked
+                 , try $ ŧ "--inhibited" ⋫ pure BindSymInhibited
+                 ]
+
+instance Printable BindSymOption where
+  print BindSymLocked    = P.text "--locked"
+  print BindSymInhibited = P.text "--inhibited"
+
+------------------------------------------------------------
+
+data BindSym = BindSymRegular [BindSymOption] 𝕊 𝕊
+             | BindSymExec [BindSymOption] 𝕊 BashLine
   deriving Show
 
 {- | Note that sway doesn't do inline comments; however, the exec cmdline is
      passed to 'sh', which does -}
 instance Parse BindSym where
-  parse = ŧ "bindsym" ⋫ choice [ try $ BindSymExec ⊳ nonSpace' ⊵ ƕ "exec"
-                               , BindSymRegular ⊳ nonSpace' ⊵ restOfLine ]
+  parse =
+    ŧ "bindsym" ⋫ choice [ try $ BindSymExec ⊳ many parse ⊵ nonSpace' ⊵ ƕ "exec"
+                         , BindSymRegular ⊳ many parse ⊵ nonSpace' ⊵ restOfLine]
 
 ------------------------------------------------------------
 
@@ -494,10 +508,10 @@ instance Parse Clause where
 ----------------------------------------
 
 clauseToBSCM ∷ Clause → Maybe (E3 BindSym Comment Mode)
-clauseToBSCM (BindSym b) = 𝕵 (L3 b)
-clauseToBSCM (Comment c) = 𝕵 (M3 c)
-clauseToBSCM (Mode m)    = 𝕵 (R3 m)
-clauseToBSCM _           = 𝕹
+clauseToBSCM (BindSym b) = 𝓙 (L3 b)
+clauseToBSCM (Comment c) = 𝓙 (M3 c)
+clauseToBSCM (Mode m)    = 𝓙 (R3 m)
+clauseToBSCM _           = 𝓝
 
 ------------------------------------------------------------
 
@@ -515,33 +529,39 @@ data E3 α β γ = L3 α | M3 β | R3 γ
   deriving Show
 
 eToE3 ∷ 𝔼 α β → E3 α β γ
-eToE3 (𝕷 a) = L3 a
-eToE3 (𝕽 b) = M3 b
+eToE3 (𝓛 a) = L3 a
+eToE3 (𝓡 b) = M3 b
 
 ----------------------------------------
 
+{-
 rspan ∷ (α → 𝔹) → [α] → ([α],[α])
 rspan f s = let (x,y) = span f (reverse s)
             in  (reverse y,reverse x)
+-}
 
+systemTranslations ∷ 𝕊 -> [(𝕊, 𝕊)]
 systemTranslations "ThinkPad X1 Carbon Gen 12" =
-  [ ("xf86audiomute"         , "Fn+F1" )
-  , ("xf86audiolowervolume"  , "Fn+F2" )
-  , ("xf86audioraisevolume"  , "Fn+F3" )
-  , ("xf86audiomicmute"      , "Fn+F4" )
-  , ("xf86monbrightnessdown" , "Fn+F5" )
-  , ("xf86monbrightnessup"   , "Fn+F6" )
+  [ ("xf86audiomute"         , "Fn+F1"  )
+  , ("xf86audiolowervolume"  , "Fn+F2"  )
+  , ("xf86audioraisevolume"  , "Fn+F3"  )
+  , ("xf86audiomicmute"      , "Fn+F4"  )
+  , ("xf86monbrightnessdown" , "Fn+F5"  )
+  , ("xf86monbrightnessup"   , "Fn+F6"  )
+  , ("xf86display"           , "Fn+F7"  )
   , ("xf86launch2"           , "Fn+F10" )
   , ("xf86favorites"         , "Fn+F12" )
+  , ("pause"                 , "Fn+p"   )
     -- hide this key, it doesn't exist on the X1Gen12
   , ("xf86audioplay", "")
-                                                 ]
+  ]
+
 systemTranslations _ = []
 
 translations ∷ 𝕊 → Map.Map 𝕊 𝕊
 translations system_family =
   ю [ Map.fromList $ systemTranslations system_family
-    , Map.fromList [ ("$mod"        , "W")
+    , Map.fromList [ ("$mod"        , "𐌎") -- "W"
                    , ("shift"       , "s")
                    , ("ctrl"        , "C")
                    , ("control"     , "C")
@@ -558,16 +578,18 @@ translations system_family =
                    ]
     ]
 
-printKey ∷ 𝕊 → 𝕄 Mode → 𝕊 → 𝕊 → IO ()
-printKey system_family m k s =
+printKey ∷ 𝕊 → [BindSymOption] → 𝕄 Mode → 𝕊 → 𝕊 → IO ()
+printKey system_family opts m k s =
   let tr = translations system_family
       ks = (\ x → Map.findWithDefault x (toLower ⊳ x) tr) ⊳ splitOn "+" k
-      (k':xs) = reverse ks
-      m' = intercalate "+" (reverse xs)
-  in
-    when (k' ≢ "") $
-      putStrLn $ [fmt|%s\t%s\t%s\t%s|]
-                   (maybe "" (\ (Mode' x _) → x) m) m' k' s
+      opts' = intercalate "," (toString ⊳ opts)
+  in  case reverse ks of
+    [] → hPutStrLn stderr $ "no key? '" ◇ intercalate "," ks ◇ "'"
+    (k':xs) → do
+      let m' = intercalate "+" (reverse xs)
+      when (k' ≢ "") $
+        putStrLn $ [fmt|%s\t%-10s\t%s\t%s\t%s|]
+                     (maybe "" (\ (Mode' x _) → x) m) opts' m' k' s
 
 ----------------------------------------
 
@@ -575,48 +597,48 @@ printKey system_family m k s =
      clause is a bindsym, print it.  The prior clause is used as a description
      of the action, if it is a suitably-formatted comment.
 -}
-printBSOC ∷ 𝕊 → 𝕄 Mode → (𝕄 (E3 BindSym Comment Mode), 𝕊) → E3 BindSym Comment Mode
+printBSOC ∷ 𝕊 → 𝕄 Mode → (𝕄 (E3 BindSym Comment Mode), 𝕊)→E3 BindSym Comment Mode
           → IO (𝕄 (E3 BindSym Comment Mode), 𝕊)
 printBSOC system_family m (prior,pfx) l = do
   let print_key = printKey system_family
   case l of
-      L3 (BindSymRegular k a) → do
+      L3 (BindSymRegular os k a) → do
         case prior of
-          𝕵 (M3 (unComment → c)) →
+          𝓙 (M3 (unComment → c)) →
             case splitAt 2 c of
               ("{-",_) →
                 -- keep the attached comment in buffer until we see '-}'
                 return(prior, pfx)
               (">>",t) → do
-                print_key m k (dropWhile isSpace t)
-                return(𝕵 l,pfx)
-              _        → print_key m k a ⪼return(𝕵 l,pfx)
-          _            → print_key m k a ⪼return(𝕵 l,pfx)
+                print_key os m k (dropWhile isSpace t)
+                return (𝓙 l,pfx)
+              _        → print_key os m k a ⪼ return(𝓙 l,pfx)
+          _            → print_key os m k a ⪼ return(𝓙 l,pfx)
 
-      L3 (BindSymExec k a) → do
+      L3 (BindSymExec os k a) → do
         case prior of
-          𝕵 (M3 (unComment → c)) →
+          𝓙 (M3 (unComment → c)) →
             case splitAt 2 c of
-              (">>",t) → print_key m k (dropWhile isSpace t)
-              _        → print_key m k ([fmt|exec %q|] a)
-          _            → print_key m k ([fmt|exec %q|] a)
+              (">>",t) → print_key os m k (dropWhile isSpace t)
+              _        → print_key os m k ([fmt|exec %q|] a)
+          _            → print_key os m k ([fmt|exec %q|] a)
 
-        return (𝕵 l,pfx)
+        return (𝓙 l,pfx)
 
       R3 m'@(Mode' _ xs) → do
-        foldM_ (printBSOC system_family (𝕵 m')) (𝕹, pfx) (eToE3 ⊳ xs)
-        return (𝕵 l,pfx)
+        foldM_ (printBSOC system_family (𝓙 m')) (𝓝, pfx) (eToE3 ⊳ xs)
+        return (𝓙 l,pfx)
 
       M3 (splitAt 2 ∘ unComment → ("-}",_)) →
         -- everything after -} is ignored
         case prior of
-          𝕵 (M3 (unComment → c)) → do
+          𝓙 (M3 (unComment → c)) → do
             let (k,desc) = span (not ∘ isSpace) (drop 3 c)
-            print_key m k (dropWhile isSpace desc)
-            return (𝕵 l,pfx)
-          𝕵 x → warn ([fmt|unexpected %w at '-}'|] x) ⪼ return (𝕵 l,pfx)
-          𝕹   → warn "unexpected '-}' with no prior"  ⪼ return (𝕵 l,pfx)
-      M3 _ → return (𝕵 l,pfx)
+            print_key [] m k (dropWhile isSpace desc)
+            return (𝓙 l,pfx)
+          𝓙 x → warn ([fmt|unexpected %w at '-}'|] x) ⪼ return (𝓙 l,pfx)
+          𝓝   → warn "unexpected '-}' with no prior"  ⪼ return (𝓙 l,pfx)
+      M3 _ → return (𝓙 l,pfx)
 
 ----------------------------------------
 
@@ -631,6 +653,6 @@ main = do
   case r of
     Failure e → System.IO.print e
     Success s → do
-      foldM_ (printBSOC system_family 𝕹) (𝕹,"") (catMaybes $ clauseToBSCM ⊳ s)
+      foldM_ (printBSOC system_family 𝓝) (𝓝,"") (catMaybes $ clauseToBSCM ⊳ s)
 
 -- that's all, folks! ----------------------------------------------------------
